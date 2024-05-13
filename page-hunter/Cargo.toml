@@ -1,0 +1,30 @@
+[package]
+name = "page-hunter"
+description = "The pagination powerhouse, built with Rust"
+version = "0.1.0-alpha.1"
+authors = [
+    "Juan Manuel Tamayo <jmtamayog23@gmail.com>",
+]
+edition = "2021"
+repository = "https://github.com/jmtamayo/page-hunter"
+documentation = "https://docs.rs/page-hunter"
+homepage = "https://github.com/jmtamayo/page-hunter"
+license-file = "../LICENSE"
+readme = "../README.md"
+keywords = [
+    "pagination",
+    "paginator",
+    "page_model"
+]
+categories = [
+    "development-tools",
+]
+
+[dependencies]
+serde = { version = "1.0.199", features = ["derive"], optional = true }
+
+[dev-dependencies]
+serde_json = { version = "1.0.116" }
+
+[features]
+serde = ["dep:serde"]
