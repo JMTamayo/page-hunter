@@ -74,7 +74,7 @@ On feature `serde` enabled, you can serialize and deserialize `Page` instances a
     let deserialized_page: Page<u32> = serde_json::from_str(&serialized_page).unwrap();
 ```
 
-When you create a new `Page` instance from a JSON string (deserialization), you can verify the integrity of the data with the `validate_fields()` method:
+When you create a new `Page` instance from a JSON string (deserialization), you can verify the integrity of the data with the `verify_fields()` method.
 
 ## CONTRIBUTIONS
 The ***Page Hunter*** project is open source and therefore any interested software developer can contribute to its improvement. To contribute, take a look at the following recommendations:
