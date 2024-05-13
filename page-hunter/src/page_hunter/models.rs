@@ -85,7 +85,7 @@ impl<E: Clone + Debug> Page<E> {
     ///     "total":5,"pages":3,"previous_page":null,"next_page":1}"#;
     /// let page_model: Page<u32> = serde_json::from_str(page_model_json).unwrap();
     ///
-    /// let pagination_result: PaginationResult<()> = page_model.check_fields();
+    /// let pagination_result: PaginationResult<()> = page_model.verify_fields();
     /// ````
     /// This method is useful to check if the fields of a [`Page`] instance are valid based on the following criteria:
     /// - ***pages*** must be equal to ***total*** divided by ***size*** rounded up. When ***size*** is 0, ***pages*** must be 1.

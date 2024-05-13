@@ -49,6 +49,8 @@
 //! 
 //!     let pagination_result: PaginationResult<Page<u32>> =
 //!         paginate_records(&records, page, size);
+//! 
+//!     let page_model: Page<u32> = pagination_result.unwrap();
 //! ```
 //! 
 //! On feature `serde` enabled, you can serialize and deserialize `Page` instances as follows:
@@ -60,7 +62,7 @@
 //!     let size: usize = 2;
 //!     let total_elements: usize = 5;
 //! 
-//!     let page_model: PaginationResult<Page<u32>> = Page::new(
+//!     let page_model: Page<u32> = Page::new(
 //!         &items,
 //!         page,
 //!         size,
