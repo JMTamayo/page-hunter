@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Check Project
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --all-features
+
+    - name: Run Tests For All Features
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --all-features
