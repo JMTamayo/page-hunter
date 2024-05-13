@@ -1,0 +1,9 @@
+[workspace]
+resolver="2"
+members = [
+  "page-hunter",
+]
+
+default-members = [
+  "page-hunter",
+]
