@@ -12,20 +12,30 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
 
-    - name: Check Project
+    - name: Install Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1.8.0
+      with:
+        components: llvm-tools-preview
+
+    - name: Install cargo-llvm-cov
+      uses: taiki-e/install-action@v2.33.22
+      with:
+        tool: cargo-llvm-cov
+
+    - name: Check project
       uses: actions-rs/cargo@v1
       with:
         command: check
         args: --all-features
 
-    - name: Run Tests For All Features
-      uses: actions-rs/cargo@v1
+    - name: Run tests with coverage for all features
+      run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4.3.1
       with:
-        command: test
-        args: --all-features
+        files: codecov.json
+        fail_ci_if_error: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

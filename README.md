@@ -1,5 +1,12 @@
 # PAGE HUNTER
 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![dependency status](https://deps.rs/repo/github/JMTamayo/page-hunter/status.svg)](https://deps.rs/repo/github/JMTamayo/page-hunter)
+[![CI](https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml/badge.svg)](https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/page-hunter.svg?label=crates.io&color=orange&logo=rust)](https://crates.io/crates/page-hunter)
+[![docs.rs](https://img.shields.io/static/v1?label=docs.rs&message=page-hunter&color=blue&logo=docsdotrs)](http://docs.rs/page-hunter/latest/)
+
+
 ***Page Hunter*** library is a Rust-based pagination tool that provides a way to manage and navigate through pages of data.
 It offers a set of resources that encapsulates all the necessary pagination information such as the current page, total pages, previous page, next page and the items on the current page.
 
