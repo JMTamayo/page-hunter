@@ -260,6 +260,7 @@ mod test_page_model {
     #[test]
     fn test_page_model_deserialization_with_invalid_pages() {
         use serde::{Deserialize, Serialize};
+        use serde_json::Error as SerdeJsonError;
 
         #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
         struct Person {
@@ -270,12 +271,10 @@ mod test_page_model {
         let serialized: String = "{\"items\":[{\"name\":\"John\",\"age\":20},{\"name\":\"Jane\",\"age\":25}],\"page\":0,\"size\":2,\"total\":5,\"pages\":0,\"previous_page\":null,\"next_page\":1}".to_string();
         let deserialized: Result<Page<Person>, serde_json::Error> =
             serde_json::from_str(&serialized);
-        assert!(deserialized.is_ok());
 
-        let page: Page<Person> = deserialized.unwrap();
-        assert!(page.verify_fields().is_err());
+        assert!(deserialized.is_err());
 
-        let error: PaginationError = page.verify_fields().unwrap_err();
+        let error: SerdeJsonError = deserialized.unwrap_err();
         assert_eq!(
             error.to_string(),
             "FIELD VALUE ERROR- Total pages error: expected '3', found '0'"
@@ -287,6 +286,7 @@ mod test_page_model {
     #[test]
     fn test_page_model_deserialization_with_invalid_previous_page() {
         use serde::{Deserialize, Serialize};
+        use serde_json::Error as SerdeJsonError;
 
         #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
         struct Person {
@@ -297,12 +297,10 @@ mod test_page_model {
         let serialized: String = "{\"items\":[{\"name\":\"John\",\"age\":20},{\"name\":\"Jane\",\"age\":25}],\"page\":0,\"size\":2,\"total\":5,\"pages\":3,\"previous_page\":2,\"next_page\":1}".to_string();
         let deserialized: Result<Page<Person>, serde_json::Error> =
             serde_json::from_str(&serialized);
-        assert!(deserialized.is_ok());
 
-        let page: Page<Person> = deserialized.unwrap();
-        assert!(page.verify_fields().is_err());
+        assert!(deserialized.is_err());
 
-        let error: PaginationError = page.verify_fields().unwrap_err();
+        let error: SerdeJsonError = deserialized.unwrap_err();
         assert_eq!(
             error.to_string(),
             "FIELD VALUE ERROR- Previous page index error: expected 'None', found 'Some(2)'"
@@ -314,6 +312,7 @@ mod test_page_model {
     #[test]
     fn test_page_model_deserialization_with_invalid_next_page() {
         use serde::{Deserialize, Serialize};
+        use serde_json::Error as SerdeJsonError;
 
         #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
         struct Person {
@@ -324,12 +323,10 @@ mod test_page_model {
         let serialized: String = "{\"items\":[{\"name\":\"John\",\"age\":20},{\"name\":\"Jane\",\"age\":25}],\"page\":0,\"size\":2,\"total\":5,\"pages\":3,\"previous_page\":null,\"next_page\":2}".to_string();
         let deserialized: Result<Page<Person>, serde_json::Error> =
             serde_json::from_str(&serialized);
-        assert!(deserialized.is_ok());
 
-        let page: Page<Person> = deserialized.unwrap();
-        assert!(page.verify_fields().is_err());
+        assert!(deserialized.is_err());
 
-        let error: PaginationError = page.verify_fields().unwrap_err();
+        let error: SerdeJsonError = deserialized.unwrap_err();
         assert_eq!(
             error.to_string(),
             "FIELD VALUE ERROR- Next page index error: expected 'Some(1)', found 'Some(2)'"

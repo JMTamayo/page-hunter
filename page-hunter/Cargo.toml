@@ -21,10 +21,10 @@ categories = [
 ]
 
 [dependencies]
-serde = { version = "1.0.199", features = ["derive"], optional = true }
+serde = { version = "1.0.202", features = ["derive"], optional = true }
 
 [dev-dependencies]
-serde_json = { version = "1.0.116" }
+serde_json = { version = "1.0.117" }
 
 [features]
 serde = ["dep:serde"]

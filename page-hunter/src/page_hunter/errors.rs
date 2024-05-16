@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 
-
+#[allow(unused_imports)]
+use super::models::Page;
 
 /// Provides a way to categorize the pagination error.
 #[derive(Debug, Clone)]
