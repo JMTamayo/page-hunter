@@ -16,7 +16,7 @@ pub type PaginationResult<E> = Result<E, PaginationError>;
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
 ///
 /// ***E*** must implement [`Clone`], [`Debug`] and other traits based on the library features.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
 pub struct Page<E>
 where
@@ -73,28 +73,14 @@ impl<E: Clone + Debug> Page<E> {
     /// ### Returns:
     /// A [`PaginationResult`] with ***()*** if successful, otherwise a [`PaginationError`] is returned.
     ///
-    /// ### Example:
-    /// ```rust,no_run
-    /// // For this example, the `serde` feature is enabled.
-    /// use page_hunter::*;
-    ///
-    /// let page_model_json = r#"{
-    ///     "items":[1,2],
-    ///     "page":0,
-    ///     "size":2,
-    ///     "total":5,"pages":3,"previous_page":null,"next_page":1}"#;
-    /// let page_model: Page<u32> = serde_json::from_str(page_model_json).unwrap();
-    ///
-    /// let pagination_result: PaginationResult<()> = page_model.verify_fields();
-    /// ````
-    /// This method is useful to check if the fields of a [`Page`] instance are valid based on the following criteria:
+    /// This method is used to check if the fields of a [`Page`] are valid based on the following criteria:
     /// - ***pages*** must be equal to ***total*** divided by ***size*** rounded up. When ***size*** is 0, ***pages*** must be 1.
     /// - ***page*** must be less than or equal to ***pages*** - 1.
     /// - if ***page*** is less than ***pages*** - 1, ***items*** length must be equal to ***size***.
     /// - if ***page*** is equal to ***pages*** - 1, ***total*** must be equal to (***pages*** - 1) * ***size*** + ***items*** length.
     /// - ***previous_page*** must be equal to ***page*** - 1 if ***page*** is greater than 0, otherwise it must be [`None`].
     /// - ***next_page*** must be equal to ***page*** + 1 if ***page*** is less than ***pages*** - 1, otherwise it must be [`None`].
-    pub fn verify_fields(&self) -> PaginationResult<()> {
+    fn verify_fields(&self) -> PaginationResult<()> {
         let items_length: usize = self.get_items().len();
 
         // pages must be equal to total divided by size rounded up. When size is 0, pages must be 1.
@@ -173,14 +159,14 @@ impl<E: Clone + Debug> Page<E> {
         Ok(())
     }
 
-    /// Create a new [`Page`] instance. It returns a [`PaginationResult`] with the [`Page`] instance if successful, otherwise a [`PaginationError`] is returned.
+    /// Create a new [`Page`] instance. It returns a [`PaginationResult`] with a [`Page`] if successful, otherwise a [`PaginationError`] is returned.
     /// ### Arguments:
     /// - **items**: A reference to a collection of items `E`, where `E` implements [`Clone`] and [`Debug`].
     /// - **page**: The page index.
     /// - **size**: The maximum number of elements per page.
     /// - **total**: The total number of records used for pagination.
     /// ### Returns:
-    /// A [`PaginationResult`] with the [`Page`] instance of the paginated items ***E*** if successful, otherwise a [`PaginationError`] is returned.
+    /// A [`PaginationResult`] with a [`Page`] of the paginated items ***E*** if successful, otherwise a [`PaginationError`] is returned.
     /// ### Example:
     ///```rust,no_run
     /// use page_hunter::*;
@@ -233,6 +219,44 @@ impl<E: Clone + Debug> Page<E> {
             next_page,
         };
         page.verify_fields()?;
+
+        Ok(page)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de, E> serde::de::Deserialize<'de> for Page<E>
+where
+    E: Clone + Debug + serde::de::Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Page<E>, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        #[derive(serde::Deserialize)]
+        struct PageModel<E> {
+            items: Vec<E>,
+            page: usize,
+            size: usize,
+            total: usize,
+            pages: usize,
+            previous_page: Option<usize>,
+            next_page: Option<usize>,
+        }
+
+        let page_model: PageModel<E> = serde::de::Deserialize::deserialize(deserializer)?;
+
+        let page: Page<E> = Page {
+            items: page_model.items,
+            page: page_model.page,
+            size: page_model.size,
+            total: page_model.total,
+            pages: page_model.pages,
+            previous_page: page_model.previous_page,
+            next_page: page_model.next_page,
+        };
+
+        page.verify_fields().map_err(serde::de::Error::custom)?;
 
         Ok(page)
     }
