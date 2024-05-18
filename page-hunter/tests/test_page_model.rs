@@ -1,4 +1,4 @@
-/// Test page_model module.
+/// Test page model.
 #[cfg(test)]
 mod test_page_model {
     use std::vec::IntoIter;
