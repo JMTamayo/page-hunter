@@ -16,7 +16,6 @@ pub type PaginationResult<E> = Result<E, PaginationError>;
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
 ///
 /// ***E*** must implement [`Clone`], [`Debug`] and other traits based on the library features.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
 pub struct Page<E>
 where
@@ -220,6 +219,45 @@ impl<E: Clone + Debug> Page<E> {
     }
 }
 
+/// Implementation of [`Serialize`] for [`Page`] if the feature `serde` is enabled.
+#[cfg(feature = "serde")]
+impl<E> serde::Serialize for Page<E>
+where
+    E: Clone + Debug + serde::Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(serde::Serialize)]
+        struct PageModel<'a, E>
+        where
+            E: Clone + Debug + serde::Serialize,
+        {
+            items: &'a Vec<E>,
+            page: usize,
+            size: usize,
+            total: usize,
+            pages: usize,
+            previous_page: Option<usize>,
+            next_page: Option<usize>,
+        }
+
+        let page_model: PageModel<E> = PageModel {
+            items: &self.items,
+            page: self.page,
+            size: self.size,
+            total: self.total,
+            pages: self.pages,
+            previous_page: self.previous_page,
+            next_page: self.next_page,
+        };
+
+        page_model.serialize(serializer)
+    }
+}
+
+/// Implementation of [`Deserialize`] for [`Page`] if the feature `serde` is enabled.
 #[cfg(feature = "serde")]
 impl<'de, E> serde::de::Deserialize<'de> for Page<E>
 where
@@ -258,7 +296,7 @@ where
     }
 }
 
-/// Implement [`Default`] for [`Page`].
+/// Implementation of [`Default`] for [`Page`].
 impl<E: Clone + Debug> Default for Page<E> {
     fn default() -> Self {
         Self {
@@ -273,7 +311,7 @@ impl<E: Clone + Debug> Default for Page<E> {
     }
 }
 
-/// Implement [`Display`] for [`Page`].
+/// Implementation of [`Display`] for [`Page`].
 impl<E: Clone + Debug> Display for Page<E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -284,7 +322,7 @@ impl<E: Clone + Debug> Display for Page<E> {
     }
 }
 
-/// Implement [`IntoIterator`] for [`Page`].
+/// Implementation of [`IntoIterator`] for [`Page`].
 impl<E: Clone + Debug> IntoIterator for Page<E> {
     type Item = E;
     type IntoIter = std::vec::IntoIter<Self::Item>;
