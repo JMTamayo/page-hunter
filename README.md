@@ -18,20 +18,35 @@ To use **page-hunter** from GitHub repository with specific version, set the dep
 
 ```ini
 [dependencies]
-page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.0", features = ["serde"] }
+page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.1", features = ["serde"] }
 ```
 
 You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 
 ```ini
 [dependencies]
-page-hunter = { version = "0.1.0", features = ["serde"] }
+page-hunter = { version = "0.1.1", features = ["serde"] }
 ```
 
 ## CRATE FEATURES
-- `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for `Page` based on crate [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
+- `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for `Page` and `Book` based on crate [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
 
 ## BASIC OPERATION
+
+### Paginate records:
+
+If you need to paginate records and get a specific `Page`:
+```rust,no_run
+    use page_hunter::*;
+
+    let records: Vec<u32> = vec![1, 2, 3, 4, 5];
+    let page: usize = 0;
+    let size: usize = 2;
+
+    let pagination_result: PaginationResult<Page<u32>> =
+        paginate_records(&records, page, size);
+```
+
 To create a new instance of a `Page` from known parameters:
 ```rust,no_run
     use page_hunter::*;
@@ -47,18 +62,6 @@ To create a new instance of a `Page` from known parameters:
         size,
         total_elements,
     );
-```
-
-If you need to paginate records and get a specific page:
-```rust,no_run
-    use page_hunter::*;
-
-    let records: Vec<u32> = vec![1, 2, 3, 4, 5];
-    let page: usize = 0;
-    let size: usize = 2;
-
-    let pagination_result: PaginationResult<Page<u32>> =
-        paginate_records(&records, page, size);
 ```
 
 On feature `serde` enabled, you can serialize and deserialize a `Page` as follows:
@@ -78,7 +81,6 @@ On feature `serde` enabled, you can serialize and deserialize a `Page` as follow
     ).unwrap();
 
     let serialized_page: String = serde_json::to_string(&page_model).unwrap();
-
     let deserialized_page: Page<u32> = serde_json::from_str(&serialized_page).unwrap();
 ```
 
@@ -89,6 +91,50 @@ When you create a new `Page` instance from the constructor or deserialization, t
 - if ***page*** is equal to ***pages*** - 1, ***total*** must be equal to (***pages*** - 1) * ***size*** + ***items*** length.
 - ***previous_page*** must be equal to ***page*** - 1 if ***page*** is greater than 0, otherwise it must be `None`.
 - ***next_page*** must be equal to ***page*** + 1 if ***page*** is less than ***pages*** - 1, otherwise it must be `None`.
+
+If any of these rules are violated, a `PaginationError` will be returned.
+
+### Bind records:
+
+If you need to bind records into a `Book` model:
+```rust,no_run
+    use page_hunter::*;
+
+    let records: Vec<u32> = vec![1, 2, 3, 4, 5];
+    let size: usize = 2;
+
+    let book_result: PaginationResult<Book<u32>> =
+        bind_records(&records, size);
+
+    let book: Book<u32> = book_result.unwrap();
+```
+
+To create a new `Book` instance from known parameters:
+```rust,no_run
+    use page_hunter::*;
+
+    let sheets: Vec<Page<u32>> = vec![
+        Page::new(&vec![1, 2], 0, 2, 5).unwrap(),
+        Page::new(&vec![3, 4], 1, 2, 5).unwrap(),
+    ];
+
+    let book: Book<u32> = Book::new(&sheets);
+```
+
+On feature `serde` enabled, you can serialize and deserialize a [`Book`] as follows:
+```rust,no_run
+    use page_hunter::*;
+
+    let sheets: Vec<Page<u32>> = vec![
+        Page::new(&vec![1, 2], 0, 2, 5).unwrap(),
+        Page::new(&vec![3, 4], 1, 2, 5).unwrap(),
+    ];
+
+    let book: Book<u32> = Book::new(&sheets);
+
+    let serialized_book: String = serde_json::to_string(&book).unwrap();
+    let deserialized_book: Book<u32> = serde_json::from_str(&serialized_book).unwrap();
+```
 
 ## CONTRIBUTIONS
 The ***Page Hunter*** project is open source and therefore any interested software developer can contribute to its improvement. To contribute, take a look at the following recommendations:

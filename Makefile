@@ -10,8 +10,11 @@ doc:
 check:
 	cargo check --all-features
 
-test-all-features-tarpaulin:
+test-tarpaulin:
 	cargo tarpaulin --all-features --out Html --output-dir page-hunter/tests
 
-test-all-features:
+test-llvm-cov:
+	cargo llvm-cov --html --workspace --all-features
+
+test:
 	cargo test --all-features
