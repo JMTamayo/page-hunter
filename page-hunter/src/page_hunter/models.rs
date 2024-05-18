@@ -199,24 +199,20 @@ impl<E: Clone + Debug> Page<E> {
             false => total.div_ceil(size).max(1),
         };
 
-        let previous_page: Option<usize> = match page.eq(&0) {
-            true => None,
-            false => Some(page - 1),
-        };
-
-        let next_page: Option<usize> = match page.eq(&(pages - 1)) {
-            true => None,
-            false => Some(page + 1),
-        };
-
         let page: Page<E> = Page {
             items: items.to_owned(),
             page,
             size,
             total,
             pages,
-            previous_page,
-            next_page,
+            previous_page: match page.eq(&0) {
+                true => None,
+                false => Some(page - 1),
+            },
+            next_page: match page.eq(&(pages - 1)) {
+                true => None,
+                false => Some(page + 1),
+            },
         };
         page.verify_fields()?;
 
@@ -295,5 +291,75 @@ impl<E: Clone + Debug> IntoIterator for Page<E> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.items.into_iter()
+    }
+}
+
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Clone, Debug)]
+pub struct Book<E>
+where
+    E: Clone + Debug,
+{
+    sheets: Vec<Page<E>>,
+}
+
+impl<E: Clone + Debug> Book<E> {
+    pub fn get_sheets(&self) -> &Vec<Page<E>> {
+        &self.sheets
+    }
+
+    pub fn new(sheets: &Vec<Page<E>>) -> Book<E> {
+        Book {
+            sheets: sheets.to_owned(),
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de, E> serde::de::Deserialize<'de> for Book<E>
+where
+    E: Clone + Debug + serde::de::Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Book<E>, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        #[derive(serde::Deserialize)]
+        struct BookModel<E>
+        where
+            E: Clone + Debug,
+        {
+            sheets: Vec<Page<E>>,
+        }
+
+        let book_model: BookModel<E> = serde::de::Deserialize::deserialize(deserializer)?;
+
+        Ok(Book {
+            sheets: book_model.sheets,
+        })
+    }
+}
+
+/// Implement [`Default`] for [`Book`].
+impl<E: Clone + Debug> Default for Book<E> {
+    fn default() -> Self {
+        Self { sheets: Vec::new() }
+    }
+}
+
+/// Implement [`Display`] for [`Book`].
+impl<E: Clone + Debug> Display for Book<E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Book {{ sheets: {:?} }}", self.sheets)
+    }
+}
+
+/// Implement [`IntoIterator`] for [`Book`].
+impl<E: Clone + Debug> IntoIterator for Book<E> {
+    type Item = Page<E>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.sheets.into_iter()
     }
 }
