@@ -29,6 +29,9 @@ jobs:
         command: check
         args: --all-features
 
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
     - name: Run tests with coverage for all features
       run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
