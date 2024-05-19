@@ -20,13 +20,7 @@ pub type PaginationResult<E> = Result<E, PaginationError>;
 /// - **pages**: Represents the total number of pages in a [`Page`].
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
-///
-/// ***E*** must implement [`Clone`], [`Debug`] and other traits based on the library features.
-#[derive(Clone, Debug)]
-pub struct Page<E>
-where
-    E: Clone + Debug,
-{
+pub struct Page<E> {
     items: Vec<E>,
     page: usize,
     size: usize,
@@ -36,7 +30,7 @@ where
     next_page: Option<usize>,
 }
 
-impl<E: Clone + Debug> Page<E> {
+impl<E> Page<E> {
     /// Get ***items***
     pub fn get_items(&self) -> &Vec<E> {
         &self.items
@@ -193,12 +187,10 @@ impl<E: Clone + Debug> Page<E> {
     ///     Err(error) => panic!("Error: {}", error),
     /// };
     /// ````
-    pub fn new(
-        items: &Vec<E>,
-        page: usize,
-        size: usize,
-        total: usize,
-    ) -> PaginationResult<Page<E>> {
+    pub fn new(items: &Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>>
+    where
+        E: Clone,
+    {
         let pages: usize = match size.eq(&0) {
             true => 1,
             false => total.div_ceil(size).max(1),
@@ -229,7 +221,7 @@ impl<E: Clone + Debug> Page<E> {
 #[cfg(feature = "serde")]
 impl<E> Serialize for Page<E>
 where
-    E: Clone + Debug + Serialize,
+    E: Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -238,7 +230,7 @@ where
         #[derive(Serialize)]
         struct PageModel<'a, E>
         where
-            E: Clone + Debug + Serialize,
+            E: Serialize,
         {
             items: &'a Vec<E>,
             page: usize,
@@ -267,7 +259,7 @@ where
 #[cfg(feature = "serde")]
 impl<'de, E> DeDeserialize<'de> for Page<E>
 where
-    E: Clone + Debug + Deserialize<'de>,
+    E: Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Page<E>, D::Error>
     where
@@ -302,8 +294,40 @@ where
     }
 }
 
+/// Implementation of [`Clone`] for [`Page`].
+impl<E> Clone for Page<E>
+where
+    E: Clone,
+{
+    fn clone(&self) -> Self {
+        Page {
+            items: self.items.to_owned(),
+            page: self.page,
+            size: self.size,
+            total: self.total,
+            pages: self.pages,
+            previous_page: self.previous_page,
+            next_page: self.next_page,
+        }
+    }
+}
+
+/// Implementation of [`Debug`] for [`Page`].
+impl<E> Debug for Page<E>
+where
+    E: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Page {{ items: {:?}, page: {}, size: {}, total: {}, pages: {}, previous_page: {:?}, next_page: {:?} }}",
+            self.items, self.page, self.size, self.total, self.pages, self.previous_page, self.next_page
+        )
+    }
+}
+
 /// Implementation of [`Default`] for [`Page`].
-impl<E: Clone + Debug> Default for Page<E> {
+impl<E> Default for Page<E> {
     fn default() -> Self {
         Self {
             items: Vec::new(),
@@ -318,7 +342,10 @@ impl<E: Clone + Debug> Default for Page<E> {
 }
 
 /// Implementation of [`Display`] for [`Page`].
-impl<E: Clone + Debug> Display for Page<E> {
+impl<E> Display for Page<E>
+where
+    E: Debug,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -329,7 +356,7 @@ impl<E: Clone + Debug> Display for Page<E> {
 }
 
 /// Implementation of [`IntoIterator`] for [`Page`].
-impl<E: Clone + Debug> IntoIterator for Page<E> {
+impl<E> IntoIterator for Page<E> {
     type Item = E;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -341,17 +368,11 @@ impl<E: Clone + Debug> IntoIterator for Page<E> {
 /// Model to represent a book of paginated items.
 /// #### Fields:
 /// - **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`] of [`Page`] of generic elements ***E***.
-///
-/// ***E*** must implement [`Clone`], [`Debug`] and other traits based on the library features.
-#[derive(Clone, Debug)]
-pub struct Book<E>
-where
-    E: Clone + Debug,
-{
+pub struct Book<E> {
     sheets: Vec<Page<E>>,
 }
 
-impl<E: Clone + Debug> Book<E> {
+impl<E> Book<E> {
     /// Get ***sheets***
     pub fn get_sheets(&self) -> &Vec<Page<E>> {
         &self.sheets
@@ -373,7 +394,10 @@ impl<E: Clone + Debug> Book<E> {
     ///
     /// let book: Book<u32> = Book::new(&sheets);
     /// ```
-    pub fn new(sheets: &Vec<Page<E>>) -> Book<E> {
+    pub fn new(sheets: &Vec<Page<E>>) -> Book<E>
+    where
+        E: Clone,
+    {
         Book {
             sheets: sheets.to_owned(),
         }
@@ -384,7 +408,7 @@ impl<E: Clone + Debug> Book<E> {
 #[cfg(feature = "serde")]
 impl<E> Serialize for Book<E>
 where
-    E: Clone + Debug + Serialize,
+    E: Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -393,7 +417,7 @@ where
         #[derive(Serialize)]
         struct BookModel<'a, E>
         where
-            E: Clone + Debug + Serialize,
+            E: Serialize,
         {
             sheets: &'a Vec<Page<E>>,
         }
@@ -410,17 +434,14 @@ where
 #[cfg(feature = "serde")]
 impl<'de, E> DeDeserialize<'de> for Book<E>
 where
-    E: Clone + Debug + DeDeserialize<'de>,
+    E: DeDeserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Book<E>, D::Error>
     where
         D: DeDeserializer<'de>,
     {
         #[derive(Deserialize)]
-        struct BookModel<E>
-        where
-            E: Clone + Debug,
-        {
+        struct BookModel<E> {
             sheets: Vec<Page<E>>,
         }
 
@@ -432,22 +453,47 @@ where
     }
 }
 
+/// Implementation of [`Clone`] for [`Book`].
+impl<E> Clone for Book<E>
+where
+    E: Clone,
+{
+    fn clone(&self) -> Self {
+        Book {
+            sheets: self.sheets.to_owned(),
+        }
+    }
+}
+
+/// Implementation of [`Debug`] for [`Book`].
+impl<E> Debug for Book<E>
+where
+    E: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Book {{ sheets: {:?} }}", self.sheets)
+    }
+}
+
 /// Implementation of [`Default`] for [`Book`].
-impl<E: Clone + Debug> Default for Book<E> {
+impl<E> Default for Book<E> {
     fn default() -> Self {
         Self { sheets: Vec::new() }
     }
 }
 
 /// Implementation of [`Display`] for [`Book`].
-impl<E: Clone + Debug> Display for Book<E> {
+impl<E> Display for Book<E>
+where
+    E: Debug,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Book {{ sheets: {:?} }}", self.sheets)
     }
 }
 
 /// Implementation of [`IntoIterator`] for [`Book`].
-impl<E: Clone + Debug> IntoIterator for Book<E> {
+impl<E> IntoIterator for Book<E> {
     type Item = Page<E>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
