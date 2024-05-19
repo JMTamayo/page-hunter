@@ -3,6 +3,7 @@
 mod test_book {
     use page_hunter::*;
 
+    /// Test [`Book] constructor.
     #[test]
     fn test_book_constructor() {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
@@ -15,6 +16,7 @@ mod test_book {
         Book::new(&vec![page_1, page_2, page_3]);
     }
 
+    /// Test [`Book] clone method.
     #[test]
     fn test_book_clone() {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
@@ -119,6 +121,7 @@ mod test_book {
         );
     }
 
+    /// Test [`Book] display method.
     #[test]
     fn test_book_display() {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
@@ -136,6 +139,7 @@ mod test_book {
         );
     }
 
+    /// Test [`Book] into_iter method.
     #[test]
     fn test_book_into_iter() {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
@@ -155,6 +159,24 @@ mod test_book {
         assert!(iter.next().is_none());
     }
 
+    /// Test [`Book`] debug method.
+    #[test]
+    fn test_book_debug() {
+        let records: Vec<u32> = vec![1, 2, 3, 4, 5];
+        let size: usize = 2;
+
+        let page_1: Page<u32> = Page::new(&records[0..2].to_vec(), 0, size, records.len()).unwrap();
+        let page_2: Page<u32> = Page::new(&records[2..4].to_vec(), 1, size, records.len()).unwrap();
+
+        let book: Book<u32> = Book::new(&vec![page_1, page_2]);
+
+        assert_eq!(
+            format!("{:?}", book),
+            "Book { sheets: [Page { items: [1, 2], page: 0, size: 2, total: 5, pages: 3, previous_page: None, next_page: Some(1) }, Page { items: [3, 4], page: 1, size: 2, total: 5, pages: 3, previous_page: Some(0), next_page: Some(2) }] }"
+        );
+    }
+
+    /// Test [`Book] serialization and deserialization methods.
     #[cfg(feature = "serde")]
     #[test]
     fn test_book_serialization_and_deserialization() {
@@ -171,6 +193,7 @@ mod test_book {
         let _deserialized_book: Book<u32> = serde_json::from_str(&serialized_book).unwrap();
     }
 
+    /// Test [`Book] deserialization error.
     #[cfg(feature = "serde")]
     #[test]
     fn test_book_deserialization_error() {
