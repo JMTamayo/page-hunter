@@ -35,10 +35,10 @@ page-hunter = { version = "0.1.1", features = ["serde"] }
 ## BASIC OPERATION
 
 The **page-hunter** library provides two main models to manage pagination:
-- [`Page`]: Represents a page of records with the current page, total pages, previous page, next page, and the items on the current page.
-- [`Book`]: Represents a book of pages with a collection of [`Page`] instances.
+- `Page`: Represents a page of records with the current page, total pages, previous page, next page, and the items on the current page.
+- `Book`: Represents a book of pages with a collection of `Page` instances.
 
-The library also provides a set of functions to paginate records into a [`Page`] model and bind records into a [`Book`] model. The following examples show how to use the **page-hunter** library:
+The library also provides a set of functions to paginate records into a `Page` model and bind records into a `Book` model. The following examples show how to use the **page-hunter** library:
 
 ### Paginate records:
 
@@ -133,7 +133,7 @@ To create a new `Book` instance from known parameters:
     let book: Book<u32> = Book::new(&sheets);
 ```
 
-On feature `serde` enabled, you can serialize and deserialize a [`Book`] as follows:
+On feature `serde` enabled, you can serialize and deserialize a `Book` as follows:
 ```rust,no_run
     use page_hunter::*;
 
@@ -155,7 +155,7 @@ On feature `serde` enabled, you can serialize and deserialize a [`Book`] as foll
 
 #### Paginate records from a PostgreSQL database with SQLx:
 
-If you need to paginate records from a PostgreSQL database using the SQLx crate:
+If you need to paginate records from a PostgreSQL database using the [SQLx](https://crates.io/crates/sqlx) crate:
 ```rust,no_run
     use page_hunter::*;
     use sqlx::postgres::{PgPool, Postgres};
