@@ -193,10 +193,6 @@ pub trait PgSqlxPagination {
 ///
 ///     let app_users_result: PaginationResult<Page<User>> =
 ///         query.paginate(&pool, 2, 2).await;
-///
-///     let app_users_page: Page<User> = app_users_result.unwrap();
-///     
-///     println!("{:?}", app_users_page.get_items());
 /// }
 /// ```
 ///
