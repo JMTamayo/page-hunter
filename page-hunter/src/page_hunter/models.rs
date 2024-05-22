@@ -12,7 +12,7 @@ use super::errors::{ErrorKind, PaginationError};
 pub type PaginationResult<E> = Result<E, PaginationError>;
 
 /// Model to represent paginated items.
-/// 
+///
 /// #### Fields:
 /// - **items**: Represents the ***items*** in a [`Page`] as a [`Vec`] of generic elements ***E***.
 /// - **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.
@@ -68,10 +68,10 @@ impl<E> Page<E> {
     }
 
     /// Verify [`Page`] fields. It returns a [`PaginationResult`] with ***()*** if successful, otherwise a [`PaginationError`] is returned.
-    /// 
+    ///
     /// ### Arguments:
     /// *No arguments*
-    /// 
+    ///
     /// ### Returns:
     /// A [`PaginationResult`] with ***()*** if successful, otherwise a [`PaginationError`] is returned.
     ///
@@ -162,16 +162,16 @@ impl<E> Page<E> {
     }
 
     /// Create a new [`Page`] instance. It returns a [`PaginationResult`] with a [`Page`] if successful, otherwise a [`PaginationError`] is returned.
-    /// 
+    ///
     /// ### Arguments:
     /// - **items**: A reference to a collection of items `E`, where `E` implements [`Clone`] and [`Debug`].
     /// - **page**: The page index.
     /// - **size**: The maximum number of elements per page.
     /// - **total**: The total number of records used for pagination.
-    /// 
+    ///
     /// ### Returns:
     /// A [`PaginationResult`] with a [`Page`] of the paginated items ***E*** if successful, otherwise a [`PaginationError`] is returned.
-    /// 
+    ///
     /// ### Example:
     ///```rust,no_run
     /// use page_hunter::*;
@@ -385,13 +385,13 @@ impl<E> Book<E> {
     }
 
     /// Create a new [`Book`] instance.
-    /// 
+    ///
     /// ### Arguments:
     /// - **sheets**: A reference to a collection of [`Page`] of items `E`, where `E` implements [`Clone`] and [`Debug`].
-    /// 
+    ///
     /// ### Returns:
     /// A [`Book`] of the paginated items ***E*** if successful, otherwise a [`PaginationError`] is returned.
-    /// 
+    ///
     /// ### Example:
     /// ```rust,no_run
     /// use page_hunter::*;
