@@ -1,8 +1,9 @@
-/// Test pagination module
+/// Test records pagination
 #[cfg(test)]
-pub mod test_pagination {
+pub mod test_records_pagination {
     use page_hunter::*;
 
+    /// Test paginate records
     #[test]
     fn test_paginate_records() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -20,6 +21,7 @@ pub mod test_pagination {
         assert_eq!(page_model.get_next_page(), Some(2));
     }
 
+    /// Test bind records
     #[test]
     fn test_bind_records() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -70,6 +72,7 @@ pub mod test_pagination {
         assert_eq!(book.get_sheets()[3].get_next_page(), None);
     }
 
+    /// Test bind records with zero size
     #[test]
     fn test_bind_records_with_zero_size() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
