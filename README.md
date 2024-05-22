@@ -18,14 +18,14 @@ To use **page-hunter** from GitHub repository with specific version, set the dep
 
 ```ini
 [dependencies]
-page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.1", features = ["serde"] }
+page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.2", features = ["serde"] }
 ```
 
 You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 
 ```ini
 [dependencies]
-page-hunter = { version = "0.1.1", features = ["serde"] }
+page-hunter = { version = "0.1.2", features = ["serde", "pg-sqlx"] }
 ```
 
 ## CRATE FEATURES
