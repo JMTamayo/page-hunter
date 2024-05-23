@@ -5,7 +5,7 @@
 [![CI](https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml/badge.svg)](https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/JMTamayo/page-hunter/graph/badge.svg?token=R1LAPNSV5J)](https://codecov.io/gh/JMTamayo/page-hunter)
 [![crates.io](https://img.shields.io/crates/v/page-hunter.svg?label=crates.io&color=orange&logo=rust)](https://crates.io/crates/page-hunter)
-[![docs.rs](https://img.shields.io/static/v1?label=docs.rs&message=page-hunter&color=blue&logo=docsdotrs)](http://docs.rs/page-hunter/latest/)
+[![docs.rs](https://img.shields.io/static/v1?label=docs.rs&message=latest&color=blue&logo=docsdotrs)](http://docs.rs/page-hunter/latest/)
 
 
 ***Page Hunter*** library is a Rust-based pagination tool that provides a way to manage and navigate through pages of data.
@@ -18,23 +18,28 @@ To use **page-hunter** from GitHub repository with specific version, set the dep
 
 ```ini
 [dependencies]
-page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.1", features = ["serde"] }
+page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.2", features = ["serde"] }
 ```
 
 You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 
 ```ini
 [dependencies]
-page-hunter = { version = "0.1.1", features = ["serde"] }
+page-hunter = { version = "0.1.2", features = ["serde", "pg-sqlx"] }
 ```
 
 ## CRATE FEATURES
 - `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for `Page` and `Book` based on crate [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
+- `pg-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) crate for PostgreSQL database. This feature is useful for paginating records from a PostgreSQL database.
 
 ## BASIC OPERATION
+The **page-hunter** library provides two main models to manage pagination:
+- `Page`: Represents a page of records with the current page, total pages, previous page, next page, and the items on the current page.
+- `Book`: Represents a book of pages with a collection of `Page` instances.
+
+The library also provides a set of functions to paginate records into a `Page` model and bind records into a `Book` model. The following examples show how to use the **page-hunter** library:
 
 ### Paginate records:
-
 If you need to paginate records and get a specific `Page`:
 ```rust,no_run
     use page_hunter::*;
@@ -78,10 +83,17 @@ On feature `serde` enabled, you can serialize and deserialize a `Page` as follow
         page,
         size,
         total_elements,
-    ).unwrap();
+    ).unwrap_or_else(|error| {
+        panic!("Error creating page model: {:?}", error);
+    });
 
-    let serialized_page: String = serde_json::to_string(&page_model).unwrap();
-    let deserialized_page: Page<u32> = serde_json::from_str(&serialized_page).unwrap();
+    let serialized_page: String = serde_json::to_string(&page_model).unwrap_or_else(|error| {
+        panic!("Error serializing page model: {:?}", error);
+    });
+
+    let deserialized_page: Page<u32> = serde_json::from_str(&serialized_page).unwrap_or_else(|error| {
+        panic!("Error deserializing page model: {:?}", error);
+    });
 ```
 
 When you create a new `Page` instance from the constructor or deserialization, the following rules are validated for the fields on the page:
@@ -95,7 +107,6 @@ When you create a new `Page` instance from the constructor or deserialization, t
 If any of these rules are violated, a `PaginationError` will be returned.
 
 ### Bind records:
-
 If you need to bind records into a `Book` model:
 ```rust,no_run
     use page_hunter::*;
@@ -105,8 +116,6 @@ If you need to bind records into a `Book` model:
 
     let book_result: PaginationResult<Book<u32>> =
         bind_records(&records, size);
-
-    let book: Book<u32> = book_result.unwrap();
 ```
 
 To create a new `Book` instance from known parameters:
@@ -121,7 +130,7 @@ To create a new `Book` instance from known parameters:
     let book: Book<u32> = Book::new(&sheets);
 ```
 
-On feature `serde` enabled, you can serialize and deserialize a [`Book`] as follows:
+On feature `serde` enabled, you can serialize and deserialize a `Book` as follows:
 ```rust,no_run
     use page_hunter::*;
 
@@ -132,8 +141,111 @@ On feature `serde` enabled, you can serialize and deserialize a [`Book`] as foll
 
     let book: Book<u32> = Book::new(&sheets);
 
-    let serialized_book: String = serde_json::to_string(&book).unwrap();
-    let deserialized_book: Book<u32> = serde_json::from_str(&serialized_book).unwrap();
+    let serialized_book: String = serde_json::to_string(&book).unwrap_or_else(|error| {
+        panic!("Error serializing book model: {:?}", error);
+    });
+
+    let deserialized_book: Book<u32> = serde_json::from_str(&serialized_book).unwrap_or_else(|error| {
+        panic!("Error deserializing book model: {:?}", error);
+    });
+```
+
+#### Paginate records from a PostgreSQL database with SQLx:
+If you need to paginate records from a PostgreSQL database using the [SQLx](https://crates.io/crates/sqlx) crate:
+```rust,no_run
+    use page_hunter::*;
+    use sqlx::postgres::{PgPool, Postgres};
+    use sqlx::{FromRow, QueryBuilder};
+    use uuid::Uuid;
+
+    #[tokio::main]
+    async fn main() {
+        #[derive(Clone, Debug, FromRow)]
+        pub struct Country {
+            id: Uuid,
+            name: String,
+        }
+
+        let pool: PgPool = PgPool::connect(
+            "postgres://username:password@localhost/db"
+        ).await.unwrap_or_else(|error| {
+           panic!("Error connecting to database: {:?}", error);
+       });
+
+        let query: QueryBuilder<Postgres> = QueryBuilder::new(
+            "SELECT * FROM db.geo.countries"
+        );
+
+        let page: Page<Country> =
+            query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
+                panic!("Error paginating records: {:?}", error);
+            });
+   }
+```
+
+## DEVELOPMENT
+To test `page-hunter`, follow these recommendations:
+
+#### Set env variables:
+Create `local.env` file at workspace folder to store the required environment variables
+```text
+    PG_DB_HOST=localhost
+    PG_DB_PORT=5432
+    PG_DB_USER=test
+    PG_DB_PASSWORD=docker
+    PG_DB_NAME=test
+```
+
+#### Setup databases:
+Run databases as Docker containers using the following commands:
+
+##### Postgres SQL:
+```bash
+    docker run --name postgres-db -e POSTGRES_PASSWORD=docker -e POSTGRES_DB=test -e POSTGRES_USER=test -p 5432:5432 postgres 
+```
+
+#### Run database migrations:
+##### Postgres SQL
+- Install sqlx-cli for postgres:
+```bash
+    cargo install sqlx-cli --no-default-features --features postgres
+```
+
+- Export DATABASE_URL:
+```bash
+    export DATABASE_URL=postgres://test:docker@localhost:5432/test 
+```
+
+- Run migrations:
+```bash
+    sqlx migrate run --source page-hunter/tests/migrations/postgres 
+```
+
+#### To test:
+```bash
+    make test
+```
+
+#### To test using tarpaulin:
+- Install cargo-tarpaulin:
+```bash
+    cargo install cargo-tarpaulin  
+```
+
+- Run tests:
+```bash
+    make test-tarpaulin
+```
+
+#### To test using llvm-cov:
+- Install llvm-cov:
+```bash
+    cargo install cargo-llvm-cov 
+```
+
+- Run tests:
+```bash
+    make test-llvm-cov
 ```
 
 ## CONTRIBUTIONS

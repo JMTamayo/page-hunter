@@ -10,6 +10,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{ secrets.PG_DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.PG_DB_NAME }}
+        ports:
+            - 5432:5432
+
     steps:
     - uses: actions/checkout@v2
 
@@ -23,13 +33,30 @@ jobs:
       with:
         tool: cargo-llvm-cov
 
+    - name: Install SQLx CLI
+      run: cargo install sqlx-cli --no-default-features --features postgres
+
+    - name: Run migrations for Postgres
+      env:
+        DATABASE_URL: postgres://${{ secrets.PG_DB_USER }}:${{ secrets.PG_DB_PASSWORD }}@${{ secrets.PG_DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.PG_DB_NAME }}
+      run: sqlx migrate run --source page-hunter/tests/migrations/postgres 
+
     - name: Check project
       uses: actions-rs/cargo@v1
       with:
         command: check
         args: --all-features
 
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
     - name: Run tests with coverage for all features
+      env:
+        PG_DB_USER: ${{ secrets.PG_DB_USER }}
+        PG_DB_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+        PG_DB_NAME: ${{ secrets.PG_DB_NAME }}
+        PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
+        PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
       run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
     - name: Upload coverage to Codecov

@@ -11,10 +11,10 @@ check:
 	cargo check --all-features
 
 test-tarpaulin:
-	cargo tarpaulin --all-features --out Html --output-dir page-hunter/tests
+	export $(shell cat local.env | xargs) && cargo tarpaulin --all-features --out Html --output-dir page-hunter/tests
 
 test-llvm-cov:
-	cargo llvm-cov --html --workspace --all-features
+	export $(shell cat local.env | xargs) && cargo llvm-cov --html --workspace --all-features
 
 test:
-	cargo test --all-features
+	export $(shell cat local.env | xargs) && cargo test --all-features
