@@ -194,6 +194,7 @@ Create `local.env` file at workspace folder to store the required environment va
     PG_DB_USER=test
     PG_DB_PASSWORD=docker
     PG_DB_NAME=test
+    DATABASE_URL=postgres://test:docker@localhost:5432/test
 ```
 
 #### Setup databases:
@@ -211,9 +212,9 @@ Run databases as Docker containers using the following commands:
     cargo install sqlx-cli --no-default-features --features postgres
 ```
 
-- Export DATABASE_URL:
+- Export env variables from local.env:
 ```bash
-    export DATABASE_URL=postgres://test:docker@localhost:5432/test 
+    export $(grep -v '^#' local.env | xargs)
 ```
 
 - Run migrations:
