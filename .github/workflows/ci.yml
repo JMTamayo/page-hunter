@@ -14,11 +14,11 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_USER: ${{ secrets.PG_DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.PG_DB_NAME }}
         ports:
-          - 5432:5432
+            - 5432:5432
 
     steps:
     - uses: actions/checkout@v2
@@ -32,6 +32,14 @@ jobs:
       uses: taiki-e/install-action@v2.33.22
       with:
         tool: cargo-llvm-cov
+
+    - name: Install SQLx CLI
+      run: cargo install sqlx-cli --no-default-features --features postgres
+
+    - name: Run migrations for Postgres
+      env:
+        DATABASE_URL: postgres://${{ secrets.PG_DB_USER }}:${{ secrets.PG_DB_PASSWORD }}@${{ secrets.PG_DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.PG_DB_NAME }}
+      run: sqlx migrate run --source page-hunter/tests/migrations/postgres 
 
     - name: Check project
       uses: actions-rs/cargo@v1
