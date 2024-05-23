@@ -188,4 +188,5 @@ mod page_hunter;
 
 pub use page_hunter::errors::*;
 pub use page_hunter::models::*;
-pub use page_hunter::pagination::*;
+pub use page_hunter::records_pagination::*;
+pub use page_hunter::sqlx_pagination::*;
