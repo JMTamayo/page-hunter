@@ -28,3 +28,6 @@ venv/
 
 # macOS
 .DS_Store
+
+# Env files
+*.env
