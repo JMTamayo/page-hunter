@@ -33,7 +33,6 @@ page-hunter = { version = "0.1.2", features = ["serde", "pg-sqlx"] }
 - `pg-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) crate for PostgreSQL database. This feature is useful for paginating records from a PostgreSQL database.
 
 ## BASIC OPERATION
-
 The **page-hunter** library provides two main models to manage pagination:
 - `Page`: Represents a page of records with the current page, total pages, previous page, next page, and the items on the current page.
 - `Book`: Represents a book of pages with a collection of `Page` instances.
@@ -41,7 +40,6 @@ The **page-hunter** library provides two main models to manage pagination:
 The library also provides a set of functions to paginate records into a `Page` model and bind records into a `Book` model. The following examples show how to use the **page-hunter** library:
 
 ### Paginate records:
-
 If you need to paginate records and get a specific `Page`:
 ```rust,no_run
     use page_hunter::*;
@@ -109,7 +107,6 @@ When you create a new `Page` instance from the constructor or deserialization, t
 If any of these rules are violated, a `PaginationError` will be returned.
 
 ### Bind records:
-
 If you need to bind records into a `Book` model:
 ```rust,no_run
     use page_hunter::*;
@@ -154,7 +151,6 @@ On feature `serde` enabled, you can serialize and deserialize a `Book` as follow
 ```
 
 #### Paginate records from a PostgreSQL database with SQLx:
-
 If you need to paginate records from a PostgreSQL database using the [SQLx](https://crates.io/crates/sqlx) crate:
 ```rust,no_run
     use page_hunter::*;
@@ -185,6 +181,71 @@ If you need to paginate records from a PostgreSQL database using the [SQLx](http
                 panic!("Error paginating records: {:?}", error);
             });
    }
+```
+
+## DEVELOPMENT
+XXX
+
+#### Set env variables:
+Create `local.env` file at workspace folder to store the required environment variables
+```text
+    PG_DB_HOST=localhost
+    PG_DB_PORT=5432
+    PG_DB_USER=test
+    PG_DB_PASSWORD=docker
+    PG_DB_NAME=test
+```
+
+#### Setup databases:
+Run databases as Docker containers using the following commands:
+
+##### Postgres SQL:
+```bash
+    docker run --name postgres-db -e POSTGRES_PASSWORD=docker -e POSTGRES_DB=test -e POSTGRES_USER=test -p 5432:5432 postgres 
+```
+
+#### Run database migrations:
+##### Postgres SQL
+- Install sqlx-cli for postgres:
+```bash
+    cargo install sqlx-cli --no-default-features --features postgres
+```
+
+- Export DATABASE_URL:
+```bash
+    export DATABASE_URL=postgres://test:docker@localhost:5432/test 
+```
+
+- Run migrations:
+```bash
+    sqlx migrate run --source page-hunter/tests/migrations/postgres 
+```
+
+#### To test:
+```bash
+    make test
+```
+
+#### To test using tarpaulin:
+- Install cargo-tarpaulin:
+```bash
+    cargo install cargo-tarpaulin  
+```
+
+- Run tests:
+```bash
+    make test-tarpaulin
+```
+
+#### To test using llvm-cov:
+- Install llvm-cov:
+```bash
+    cargo install cargo-llvm-cov 
+```
+
+- Run tests:
+```bash
+    make test-llvm-cov
 ```
 
 ## CONTRIBUTIONS
