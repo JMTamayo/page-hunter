@@ -51,6 +51,12 @@ jobs:
       run: cargo fmt --all -- --check
 
     - name: Run tests with coverage for all features
+      env:
+        PG_DB_USER: ${{ secrets.PG_DB_USER }}
+        PG_DB_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+        PG_DB_NAME: ${{ secrets.PG_DB_NAME }}
+        PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
+        PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
       run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
     - name: Upload coverage to Codecov
