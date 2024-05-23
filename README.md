@@ -184,7 +184,7 @@ If you need to paginate records from a PostgreSQL database using the [SQLx](http
 ```
 
 ## DEVELOPMENT
-XXX
+To test `page-hunter`, follow these recommendations:
 
 #### Set env variables:
 Create `local.env` file at workspace folder to store the required environment variables
