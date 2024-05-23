@@ -29,7 +29,9 @@ use sqlx::postgres::{PgPool, PgRow, Postgres};
 /// let pagination_result: PaginationResult<Page<u32>> =
 ///     paginate_records(&records, page, size);
 ///
-/// let page: Page<u32> = pagination_result.unwrap();
+/// let page: Page<u32> = pagination_result.unwrap_or_else(|error| {
+///    panic!("Failed to paginate records: {:?}", error)
+/// });
 /// ````
 pub fn paginate_records<R>(records: &R, page: usize, size: usize) -> PaginationResult<Page<R::Item>>
 where
@@ -68,7 +70,9 @@ where
 /// let book_result: PaginationResult<Book<u32>> =
 ///     bind_records(&records, size);
 ///
-/// let book: Book<u32> = book_result.unwrap();
+/// let book: Book<u32> = book_result.unwrap_or_else(|error| {
+///    panic!("Failed to bind records: {:?}", error)
+/// });
 /// ````
 pub fn bind_records<R>(records: &R, size: usize) -> PaginationResult<Book<R::Item>>
 where
@@ -186,7 +190,9 @@ pub trait PgSqlxPagination {
 ///         .max_connections(1)
 ///         .connect("postgres://user:password@localhost:5432/db")
 ///         .await
-///         .unwrap();
+///         .unwrap_or_else(|error| {
+///             panic!("Failed to connect to Postgres: {:?}", error)
+///         });
 ///
 ///     let query: QueryBuilder<Postgres> =
 ///         QueryBuilder::<Postgres>::new("SELECT * FROM db.users.app_users");
