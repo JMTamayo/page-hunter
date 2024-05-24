@@ -19,8 +19,9 @@
 //! ```
 //!
 //! ## CRATE FEATURES
-//! - `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for [`Page`] and [`Book`] based on crate [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
-//! - `pg-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) crate for PostgreSQL database. This feature is useful for paginating records from a PostgreSQL database.
+//! - `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for [`Page`] and [`Book`] based on [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
+//! - `pg-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) for PostgreSQL database.
+//! - `mysql-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) for MySQL database.
 //!
 //! ## BASIC OPERATION
 //!
@@ -31,7 +32,6 @@
 //! The library also provides a set of functions to paginate records into a [`Page`] model and bind records into a [`Book`] model. The following examples show how to use the **page-hunter** library:
 //!
 //! #### Paginate records:
-//!
 //! If you need to paginate records and get a specific [`Page`]:
 //! ```rust,no_run
 //!     use page_hunter::*;
@@ -99,7 +99,6 @@
 //! If any of these rules are violated, a [`PaginationError`] will be returned.
 //!
 //! #### Bind records:
-//!
 //! If you need to bind records into a [`Book`] model:
 //! ```rust,no_run
 //!     use page_hunter::*;
@@ -144,8 +143,7 @@
 //! ```
 //!
 //! #### Paginate records from a PostgreSQL database with SQLx:
-//!
-//! If you need to paginate records from a PostgreSQL database using the SQLx crate:
+//! To paginate records from a PostgreSQL database:
 //! ```rust,no_run
 //!     use page_hunter::*;
 //!     use sqlx::postgres::{PgPool, Postgres};
@@ -174,7 +172,39 @@
 //!             query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
 //!                 panic!("Error paginating records: {:?}", error);
 //!             });
-//!    }
+//!     }
+//! ```
+//!
+//! To paginate records from a MySQL database:
+//! ```rust,no_run
+//!     use page_hunter::*;
+//!     use sqlx::mysql::{MySqlPool, MySql};
+//!     use sqlx::{FromRow, QueryBuilder};
+//!     use uuid::Uuid;
+//!
+//!     #[tokio::main]
+//!     async fn main() {
+//!         #[derive(Clone, Debug, FromRow)]
+//!         pub struct Country {
+//!             id: Uuid,
+//!             name: String,
+//!         }
+//!
+//!         let pool: MySqlPool = MySqlPool::connect(
+//!             "mysql://username:password@localhost/db"
+//!         ).await.unwrap_or_else(|error| {
+//!             panic!("Error connecting to database: {:?}", error);
+//!         });
+//!
+//!         let query: QueryBuilder<MySql> = QueryBuilder::new(
+//!             "SELECT * FROM db.geo.countries"
+//!         );
+//!
+//!         let page: Page<Country> =
+//!             query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
+//!                 panic!("Error paginating records: {:?}", error);
+//!             });
+//!     }
 //! ```
 //!
 //! ## CONTRIBUTIONS
