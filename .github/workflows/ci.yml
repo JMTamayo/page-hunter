@@ -12,14 +12,23 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:latest
         env:
-          POSTGRES_USER: ${{ secrets.PG_DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
           POSTGRES_DB: ${{ secrets.PG_DB_NAME }}
         ports:
-            - 5432:5432
+          - 5432:5432
 
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_USER: ${{ secrets.DB_USER }}
+          MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+        ports:
+          - 3306:3306
     steps:
     - uses: actions/checkout@v2
 
@@ -34,12 +43,17 @@ jobs:
         tool: cargo-llvm-cov
 
     - name: Install SQLx CLI
-      run: cargo install sqlx-cli --no-default-features --features postgres
+      run: cargo install sqlx-cli --no-default-features --features postgres,mysql,sqlite
 
     - name: Run migrations for Postgres
       env:
-        DATABASE_URL: postgres://${{ secrets.PG_DB_USER }}:${{ secrets.PG_DB_PASSWORD }}@${{ secrets.PG_DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.PG_DB_NAME }}
-      run: sqlx migrate run --source page-hunter/tests/migrations/postgres 
+        DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.DB_NAME }}
+      run: sqlx migrate run --source page-hunter/tests/migrations/postgres
+
+    - name: Run migrations for MySQL
+      env:
+        DATABASE_URL: mysql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.MYSQL_DB_PORT }}/${{ secrets.DB_NAME }}
+      run: sqlx migrate run --source page-hunter/tests/migrations/mysql
 
     - name: Check project
       uses: actions-rs/cargo@v1
@@ -48,15 +62,16 @@ jobs:
         args: --all-features
 
     - name: Check formatting
-      run: cargo fmt --all -- --check
+      run: cargo fmt --all --check
 
     - name: Run tests with coverage for all features
       env:
-        PG_DB_USER: ${{ secrets.PG_DB_USER }}
-        PG_DB_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
-        PG_DB_NAME: ${{ secrets.PG_DB_NAME }}
-        PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_HOST: ${{ secrets.DB_HOST }}
         PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
+        MYSQL_DB_PORT: ${{ secrets.MYSQL_DB_PORT }}
       run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
     - name: Upload coverage to Codecov
