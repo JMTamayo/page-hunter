@@ -26,7 +26,7 @@ where
     /// - **size**: The number of records per page.
     ///
     /// ### Returns:
-    /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` is a struct that implements the [`FromRow`] trait for given [`Row`] type according to the database.
+    /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` is a struct that implements the [`FromRow`] trait for given [`Database::Row`] type according to the database.
     ///
     /// Only available when the `pg-sqlx`, `mysql-sqlx` or `sqlite-sqlx` features are enabled.
     fn paginate<'p>(
