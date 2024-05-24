@@ -41,30 +41,23 @@ where
 ///
 /// At first, this function calculates the total number of records in the query result by executing a COUNT(*) query. Then, it fetches the records for the requested page and size by executing the original query with a LIMIT and OFFSET clause.
 ///
-/// The query that you build with the [`QueryBuilder`] struct must be a valid SQL query that can be executed in a MySql database according to the following rules:
-/// - Only SELECT queries are allowed.
-/// - The query mus not be closed with a semicolon.
-/// - The query must not contain a LIMIT or OFFSET clause because they are added by this API.
-/// - The query must not contain a COUNT(*) clause because it is added by this API.
-///
 /// ### Example of a valid queries:
 /// ```sql
 /// SELECT
-///     *
+///   *
 /// FROM
-///     countries
+///   countries
 /// ```
 ///
 /// ```sql
 /// SELECT
-///     *
+///   *
 /// FROM
-///    countries
+///   countries
 /// LEFT JOIN states ON
-///     countries.id = states.country_id
+///   countries.id = states.country_id
 /// WHERE
-///     1=1
-///     and contries.name = 'Brazil'
+///   contries.name = 'Brazil'
 /// ```
 ///
 /// ### Note: Query is not verified:
@@ -157,30 +150,23 @@ where
 ///
 /// At first, this function calculates the total number of records in the query result by executing a COUNT(*) query. Then, it fetches the records for the requested page and size by executing the original query with a LIMIT and OFFSET clause.
 ///
-/// The query that you build with the [`QueryBuilder`] struct must be a valid SQL query that can be executed in a Postgres SQL database according to the following rules:
-/// - Only SELECT queries are allowed.
-/// - The query mus not be closed with a semicolon.
-/// - The query must not contain a LIMIT or OFFSET clause because they are added by this API.
-/// - The query must not contain a COUNT(*) clause because it is added by this API.
-///
 /// ### Example of a valid queries:
 /// ```sql
 /// SELECT
-///     *
+///   *
 /// FROM
-///     db.geo.countries
+///   db.geo.countries
 /// ```
 ///
 /// ```sql
 /// SELECT
-///     *
+///   *
 /// FROM
-///    db.geo.countries
+///   db.geo.countries
 /// LEFT JOIN db.geo.states ON
-///     countries.id = states.country_id
+///   countries.id = states.country_id
 /// WHERE
-///     1=1
-///     and contries.name = 'Brazil'
+///   contries.name = 'Brazil'
 /// ```
 ///
 /// ### Note: Query is not verified:
