@@ -1,0 +1,8 @@
+-- Add up migration script here
+CREATE TABLE IF NOT EXISTS test.states (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  country_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP
+);
