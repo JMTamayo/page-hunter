@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🔨 Refactor of the pagination.rs module to create the records_pagination.rs and sqlx_pagination.rs modules. Renaming the test module test_sqlx_postgres_pagination.rs to test_sqlx_pagination.rs.
 
+### Removed:
+
+- ❌ Remove **From** **sqlx::Error** for `PaginationError`.
+
 ### Docs:
 
 - 📝 Update project documentation.

@@ -3,9 +3,6 @@ use std::fmt::{Debug, Display, Formatter, Result};
 #[allow(unused_imports)]
 use super::models::Page;
 
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-use sqlx::Error as SqlxError;
-
 /// Provides a way to categorize the pagination error.
 pub enum ErrorKind {
     /// Raised when a value in a field on the [`Page`] is invalid based on the pagination logic.
@@ -123,15 +120,5 @@ impl Clone for PaginationError {
 impl From<ErrorKind> for PaginationError {
     fn from(value: ErrorKind) -> Self {
         Self { kind: value }
-    }
-}
-
-/// Implementation of [`From<SqlxError>`] for [`PaginationError`].
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-impl From<SqlxError> for PaginationError {
-    fn from(value: SqlxError) -> Self {
-        Self {
-            kind: ErrorKind::DatabaseError(value.to_string()),
-        }
     }
 }

@@ -1,5 +1,6 @@
 use std::future::Future;
 
+use super::errors::*;
 use super::models::*;
 
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
@@ -115,7 +116,7 @@ where
         page: usize,
         size: usize,
     ) -> PaginationResult<Page<S>> {
-        let total: i64 = query_scalar(
+        let total: i64 = match query_scalar(
             QueryBuilder::<MySql>::new(format!(
                 "SELECT count(*) from ({}) as temp_table;",
                 self.sql()
@@ -123,9 +124,13 @@ where
             .sql(),
         )
         .fetch_one(pool)
-        .await?;
+        .await
+        {
+            Ok(total) => total,
+            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
+        };
 
-        let rows: Vec<MySqlRow> = query(
+        let rows: Vec<MySqlRow> = match query(
             QueryBuilder::<MySql>::new(format!(
                 "{} LIMIT {} OFFSET {};",
                 self.sql(),
@@ -135,12 +140,20 @@ where
             .sql(),
         )
         .fetch_all(pool)
-        .await?;
+        .await
+        {
+            Ok(rows) => rows,
+            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
+        };
 
-        let items: Vec<S> = rows
+        let items: Vec<S> = match rows
             .into_iter()
             .map(|row| S::from_row(&row))
-            .collect::<Result<Vec<S>, _>>()?;
+            .collect::<Result<Vec<S>, _>>()
+        {
+            Ok(items) => items,
+            Err(error) => return Err(ErrorKind::FromRowError(error.to_string()).into()),
+        };
 
         Ok(Page::new(&items, page, size, total as usize)?)
     }
@@ -224,7 +237,7 @@ where
         page: usize,
         size: usize,
     ) -> PaginationResult<Page<S>> {
-        let total: i64 = query_scalar(
+        let total: i64 = match query_scalar(
             QueryBuilder::<Postgres>::new(format!(
                 "WITH temp_table AS ({}) SELECT count(*) from temp_table;",
                 self.sql()
@@ -232,9 +245,13 @@ where
             .sql(),
         )
         .fetch_one(pool)
-        .await?;
+        .await
+        {
+            Ok(total) => total,
+            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
+        };
 
-        let rows: Vec<PgRow> = query(
+        let rows: Vec<PgRow> = match query(
             QueryBuilder::<Postgres>::new(format!(
                 "WITH temp_table AS ({}) SELECT * from temp_table LIMIT {} OFFSET {};",
                 self.sql(),
@@ -244,12 +261,20 @@ where
             .sql(),
         )
         .fetch_all(pool)
-        .await?;
+        .await
+        {
+            Ok(rows) => rows,
+            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
+        };
 
-        let items: Vec<S> = rows
+        let items: Vec<S> = match rows
             .into_iter()
             .map(|row| S::from_row(&row))
-            .collect::<Result<Vec<S>, _>>()?;
+            .collect::<Result<Vec<S>, _>>()
+        {
+            Ok(items) => items,
+            Err(error) => return Err(ErrorKind::FromRowError(error.to_string()).into()),
+        };
 
         Ok(Page::new(&items, page, size, total as usize)?)
     }

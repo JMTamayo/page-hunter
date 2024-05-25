@@ -2,9 +2,6 @@
 mod test_errors {
     use page_hunter::*;
 
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-    use sqlx::Error as SqlxError;
-
     /// Test [`ErrorKind`] `is_field_value_error method.
     #[test]
     fn test_error_kind_is_field_value_error() {
@@ -163,14 +160,5 @@ mod test_errors {
         let error_kind: ErrorKind = ErrorKind::FieldValueError(String::from("Unknown error"));
         let pagination_error: PaginationError = error_kind.into();
         assert!(pagination_error.get_error_kind().is_field_value_error());
-    }
-
-    /// Test [`From<SqlxError>`] for [`PaginationError`].
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-    #[test]
-    fn test_pagination_error_from_sqlx_error() {
-        let sqlx_error: SqlxError = SqlxError::RowNotFound;
-        let pagination_error: PaginationError = sqlx_error.into();
-        assert!(pagination_error.get_error_kind().is_database_error());
     }
 }
