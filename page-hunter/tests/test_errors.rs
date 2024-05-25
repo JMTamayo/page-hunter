@@ -2,7 +2,7 @@
 mod test_errors {
     use page_hunter::*;
 
-    #[cfg(any(feature = "pg-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
     use sqlx::Error as SqlxError;
 
     /// Test [`ErrorKind`] `is_field_value_error method.
@@ -15,7 +15,7 @@ mod test_errors {
     }
 
     /// Test [`ErrorKind`] `is_database_error method.
-    #[cfg(any(feature = "pg-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
     #[test]
     fn test_error_kind_is_database_error() {
         let error_kind: ErrorKind =
@@ -23,6 +23,8 @@ mod test_errors {
         assert!(error_kind.is_database_error());
 
         assert!(!error_kind.is_field_value_error());
+
+        assert!(!error_kind.is_from_row_error());
     }
 
     /// Test [`std::fmt::Display`] implementation for [`ErrorKind::FieldValueError`].
@@ -37,7 +39,7 @@ mod test_errors {
     }
 
     /// Test [`std::fmt::Display`] implementation for [`ErrorKind::DatabaseError`].
-    #[cfg(any(feature = "pg-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
     #[test]
     fn test_error_kind_database_error_display() {
         let error_kind_sqlx_error: ErrorKind =
@@ -45,6 +47,18 @@ mod test_errors {
         assert_eq!(
             format!("{}", error_kind_sqlx_error),
             "DATABASE ERROR- Invalid query string"
+        );
+    }
+
+    /// Test [`std::fmt::Display`] implementation for [`ErrorKind::FromRowError`].
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[test]
+    fn test_error_kind_from_row_error_display() {
+        let error_kind_from_row_error: ErrorKind =
+            ErrorKind::FromRowError(String::from("Row not found"));
+        assert_eq!(
+            format!("{}", error_kind_from_row_error),
+            "FROM ROW ERROR- Row not found"
         );
     }
 
@@ -61,7 +75,7 @@ mod test_errors {
     }
 
     /// Test [`std::fmt::Debug`] implementation for [`ErrorKind::DatabaseError`].
-    #[cfg(any(feature = "pg-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
     #[test]
     fn test_error_kind_sqlx_error_debug() {
         let error_kind_sqlx_error: ErrorKind =
@@ -69,6 +83,18 @@ mod test_errors {
         assert_eq!(
             format!("{:?}", error_kind_sqlx_error),
             "DatabaseError(\"Unknown error\")"
+        );
+    }
+
+    /// Test [`std::fmt::Debug`] implementation for [`ErrorKind::FromRowError`].
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[test]
+    fn test_error_kind_from_row_error_debug() {
+        let error_kind_from_row_error: ErrorKind =
+            ErrorKind::FromRowError(String::from("Row not found"));
+        assert_eq!(
+            format!("{:?}", error_kind_from_row_error),
+            "FromRowError(\"Row not found\")"
         );
     }
 
@@ -82,13 +108,23 @@ mod test_errors {
     }
 
     /// Test [`Clone`] implementation for [`ErrorKind::DatabaseError`].
-    #[cfg(any(feature = "pg-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
     #[test]
     fn test_error_kind_database_error_clone() {
         let error_kind_sqlx_error: ErrorKind =
             ErrorKind::DatabaseError(String::from("Unknown error"));
 
         let _cloned_error_kind_sqlx_error: ErrorKind = error_kind_sqlx_error.clone();
+    }
+
+    /// Test [`Clone`] implementation for [`ErrorKind::FromRowError`].
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[test]
+    fn test_error_kind_from_row_error_clone() {
+        let error_kind_from_row_error: ErrorKind =
+            ErrorKind::FromRowError(String::from("Row not found"));
+
+        let _cloned_error_kind_from_row_error: ErrorKind = error_kind_from_row_error.clone();
     }
 
     /// Test [`std::fmt::Display`] implementation for [`PaginationError`].
@@ -130,7 +166,7 @@ mod test_errors {
     }
 
     /// Test [`From<SqlxError>`] for [`PaginationError`].
-    #[cfg(any(feature = "pg-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
     #[test]
     fn test_pagination_error_from_sqlx_error() {
         let sqlx_error: SqlxError = SqlxError::RowNotFound;
