@@ -74,7 +74,7 @@ where
     let total: usize = records.clone().into_iter().count();
 
     let pages: usize = match size.eq(&0) {
-        true => return Ok(Book::default()),
+        true => 0,
         false => total.div_ceil(size).max(1),
     };
 
