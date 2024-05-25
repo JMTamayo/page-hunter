@@ -332,4 +332,25 @@ mod test_page_model {
             "FIELD VALUE ERROR- Next page index error: expected 'Some(1)', found 'Some(2)'"
         );
     }
+
+    /// Test
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_page_deserialization_error() {
+        use serde_json::json;
+
+        let invalid_json = json!({
+            "items": ["item1", "item2"],
+            "page": "invalid_page",
+            "size": 2,
+            "total": 2,
+            "pages": 1,
+            "previous_page": null,
+            "next_page": null
+        });
+
+        let result: Result<Page<String>, _> = serde_json::from_value(invalid_json);
+
+        assert!(result.is_err());
+    }
 }

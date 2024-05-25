@@ -3,9 +3,9 @@
 pub mod test_records_pagination {
     use page_hunter::*;
 
-    /// Test paginate records
+    /// Test successfull result of [`paginate_records`] function.
     #[test]
-    fn test_paginate_records() {
+    fn test_paginate_records_success() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
         let pagination_result: PaginationResult<Page<u8>> = paginate_records(&records, 1, 3);
@@ -21,9 +21,20 @@ pub mod test_records_pagination {
         assert_eq!(page_model.get_next_page(), Some(2));
     }
 
-    /// Test bind records
+    /// Test failed result of [`paginate_records`] function.
     #[test]
-    fn test_bind_records() {
+    fn test_paginate_records_error() {
+        let records: Vec<u8> = vec![1, 2, 3, 4, 5];
+        let page: usize = 10;
+        let size: usize = 2;
+
+        let pagination_result: PaginationResult<Page<u8>> = paginate_records(&records, page, size);
+        assert!(pagination_result.is_err());
+    }
+
+    /// Test failed result of [`paginate_records`] function.
+    #[test]
+    fn test_bind_records_success() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
         let pagination_result: PaginationResult<Book<u8>> = bind_records(&records, 3);
@@ -72,12 +83,15 @@ pub mod test_records_pagination {
         assert_eq!(book.get_sheets()[3].get_next_page(), None);
     }
 
-    /// Test bind records with zero size
+    /// Test successfull result of [`bind_records`] function with zero size.
     #[test]
-    fn test_bind_records_with_zero_size() {
+    fn test_bind_records_success_with_zero_size() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
         let pagination_result: PaginationResult<Book<u8>> = bind_records(&records, 0);
         assert!(pagination_result.is_ok());
+
+        let book: Book<u8> = pagination_result.unwrap();
+        assert_eq!(book.get_sheets().len(), 0);
     }
 }

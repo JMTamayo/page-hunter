@@ -18,19 +18,20 @@ To use **page-hunter** from GitHub repository with specific version, set the dep
 
 ```ini
 [dependencies]
-page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.2", features = ["serde"] }
+page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.3", features = ["serde"] }
 ```
 
 You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 
 ```ini
 [dependencies]
-page-hunter = { version = "0.1.2", features = ["serde", "pg-sqlx"] }
+page-hunter = { version = "0.1.3", features = ["serde", "pg-sqlx"] }
 ```
 
 ## CRATE FEATURES
-- `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for `Page` and `Book` based on crate [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
-- `pg-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) crate for PostgreSQL database. This feature is useful for paginating records from a PostgreSQL database.
+- `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
+- `pg-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) for PostgreSQL database.
+- `mysql-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) for MySQL database.
 
 ## BASIC OPERATION
 The **page-hunter** library provides two main models to manage pagination:
@@ -151,7 +152,7 @@ On feature `serde` enabled, you can serialize and deserialize a `Book` as follow
 ```
 
 #### Paginate records from a PostgreSQL database with SQLx:
-If you need to paginate records from a PostgreSQL database using the [SQLx](https://crates.io/crates/sqlx) crate:
+To paginate records from a PostgreSQL database:
 ```rust,no_run
     use page_hunter::*;
     use sqlx::postgres::{PgPool, Postgres};
@@ -180,7 +181,39 @@ If you need to paginate records from a PostgreSQL database using the [SQLx](http
             query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
                 panic!("Error paginating records: {:?}", error);
             });
-   }
+    }
+```
+
+To paginate records from a MySQL database:
+```rust,no_run
+    use page_hunter::*;
+    use sqlx::mysql::{MySqlPool, MySql};
+    use sqlx::{FromRow, QueryBuilder};
+    use uuid::Uuid;
+
+    #[tokio::main]
+    async fn main() {
+        #[derive(Clone, Debug, FromRow)]
+        pub struct Country {
+            id: Uuid,
+            name: String,
+        }
+
+        let pool: MySqlPool = MySqlPool::connect(
+            "mysql://username:password@localhost/db"
+        ).await.unwrap_or_else(|error| {
+            panic!("Error connecting to database: {:?}", error);
+        });
+
+        let query: QueryBuilder<MySql> = QueryBuilder::new(
+            "SELECT * FROM countries"
+        );
+
+        let page: Page<Country> =
+            query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
+               panic!("Error paginating records: {:?}", error);
+            });
+    }
 ```
 
 ## DEVELOPMENT
@@ -189,11 +222,12 @@ To test `page-hunter`, follow these recommendations:
 #### Set env variables:
 Create `local.env` file at workspace folder to store the required environment variables
 ```text
-    PG_DB_HOST=localhost
+    DB_HOST=localhost
+    DB_USER=test
+    DB_PASSWORD=docker
+    DB_NAME=test
     PG_DB_PORT=5432
-    PG_DB_USER=test
-    PG_DB_PASSWORD=docker
-    PG_DB_NAME=test
+    MYSQL_DB_PORT=3306
 ```
 
 #### Setup databases:
@@ -201,24 +235,40 @@ Run databases as Docker containers using the following commands:
 
 ##### Postgres SQL:
 ```bash
-    docker run --name postgres-db -e POSTGRES_PASSWORD=docker -e POSTGRES_DB=test -e POSTGRES_USER=test -p 5432:5432 postgres 
+    make pg-db-docker 
+```
+
+##### MySQL:
+```bash
+    make mysql-db-docker
 ```
 
 #### Run database migrations:
+- Install sqlx-cli:
+```bash
+    make install-sqlx-cli
+```
+
 ##### Postgres SQL
-- Install sqlx-cli for postgres:
-```bash
-    cargo install sqlx-cli --no-default-features --features postgres
-```
-
-- Export DATABASE_URL:
-```bash
-    export DATABASE_URL=postgres://test:docker@localhost:5432/test 
-```
-
 - Run migrations:
 ```bash
-    sqlx migrate run --source page-hunter/tests/migrations/postgres 
+    make run-postgres-migrations
+```
+
+- Revert migrations:
+```bash
+    make revert-postgres-migrations
+```
+
+##### MySQL
+- Run migrations:
+```bash
+    make run-mysql-migrations
+```
+
+- Revert migrations:
+```bash
+    make revert-mysql-migrations
 ```
 
 #### To test:
@@ -229,7 +279,7 @@ Run databases as Docker containers using the following commands:
 #### To test using tarpaulin:
 - Install cargo-tarpaulin:
 ```bash
-    cargo install cargo-tarpaulin  
+    make install-tarpaulin
 ```
 
 - Run tests:
@@ -240,7 +290,7 @@ Run databases as Docker containers using the following commands:
 #### To test using llvm-cov:
 - Install llvm-cov:
 ```bash
-    cargo install cargo-llvm-cov 
+    make install-llvm-cov
 ```
 
 - Run tests:

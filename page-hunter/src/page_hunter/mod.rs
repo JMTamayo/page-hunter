@@ -1,3 +1,4 @@
 pub mod errors;
 pub mod models;
-pub mod pagination;
+pub mod records_pagination;
+pub mod sqlx_pagination;
