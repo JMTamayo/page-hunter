@@ -10,6 +10,8 @@ mod test_errors {
     fn test_error_kind_is_field_value_error() {
         let error_kind: ErrorKind = ErrorKind::FieldValueError(String::from("Invalid value"));
         assert!(error_kind.is_field_value_error());
+
+        assert!(!error_kind.is_database_error());
     }
 
     /// Test [`ErrorKind`] `is_database_error method.
@@ -19,6 +21,8 @@ mod test_errors {
         let error_kind: ErrorKind =
             ErrorKind::DatabaseError(String::from("Could not connect to database"));
         assert!(error_kind.is_database_error());
+
+        assert!(!error_kind.is_field_value_error());
     }
 
     /// Test [`std::fmt::Display`] implementation for [`ErrorKind::FieldValueError`].
