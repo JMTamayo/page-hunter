@@ -9,6 +9,8 @@ mod test_errors {
         assert!(error_kind.is_field_value_error());
 
         assert!(!error_kind.is_database_error());
+
+        assert!(!error_kind.is_from_row_error());
     }
 
     /// Test [`ErrorKind`] `is_database_error method.
