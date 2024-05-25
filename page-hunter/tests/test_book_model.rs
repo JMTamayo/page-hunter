@@ -176,6 +176,13 @@ mod test_book {
         );
     }
 
+    /// Test [`Book`] default method.
+    #[test]
+    fn test_book_default() {
+        let book: Book<u32> = Book::default();
+        assert_eq!(book.get_sheets().len(), 0);
+    }
+
     /// Test [`Book] serialization and deserialization methods.
     #[cfg(feature = "serde")]
     #[test]
