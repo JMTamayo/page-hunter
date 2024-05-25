@@ -8,14 +8,14 @@
 //!
 //! ```ini
 //! [dependencies]
-//! page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.2", features = ["serde"] }
+//! page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.3", features = ["serde"] }
 //! ```
 //!
 //! You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 //!
 //! ```ini
 //! [dependencies]
-//! page-hunter = { version = "0.1.2", features = ["serde"] }
+//! page-hunter = { version = "0.1.3", features = ["serde"] }
 //! ```
 //!
 //! ## CRATE FEATURES
@@ -197,7 +197,7 @@
 //!         });
 //!
 //!         let query: QueryBuilder<MySql> = QueryBuilder::new(
-//!             "SELECT * FROM db.geo.countries"
+//!             "SELECT * FROM countries"
 //!         );
 //!
 //!         let page: Page<Country> =

@@ -12,6 +12,7 @@ use sqlx::postgres::{PgPool, PgRow, Postgres};
 #[cfg(feature = "mysql-sqlx")]
 use sqlx::mysql::{MySql, MySqlPool, MySqlRow};
 
+/// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
 pub trait SqlxPagination<DB, S>
 where
@@ -97,7 +98,7 @@ where
 ///         });
 ///
 ///     let query: QueryBuilder<MySql> =
-///         QueryBuilder::<MySql>::new("SELECT * FROM db.users.app_users");
+///         QueryBuilder::<MySql>::new("SELECT * FROM app_users");
 ///
 ///     let app_users_result: PaginationResult<Page<User>> =
 ///         query.paginate(&pool, 2, 2).await;
@@ -168,18 +169,18 @@ where
 /// SELECT
 ///   *
 /// FROM
-///   db.geo.countries
+///   db.geo.countries c
 /// ```
 ///
 /// ```sql
 /// SELECT
 ///   *
 /// FROM
-///   db.geo.countries
-/// LEFT JOIN db.geo.states ON
-///   countries.id = states.country_id
+///   db.geo.countries c
+/// LEFT JOIN db.geo.states s ON
+///   c.id = s.country_id
 /// WHERE
-///   contries.name = 'Brazil'
+///   c.name = 'Brazil'
 /// ```
 ///
 /// ### Note: Query is not verified:

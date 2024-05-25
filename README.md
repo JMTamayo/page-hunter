@@ -18,14 +18,14 @@ To use **page-hunter** from GitHub repository with specific version, set the dep
 
 ```ini
 [dependencies]
-page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.2", features = ["serde"] }
+page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.3", features = ["serde"] }
 ```
 
 You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 
 ```ini
 [dependencies]
-page-hunter = { version = "0.1.2", features = ["serde", "pg-sqlx"] }
+page-hunter = { version = "0.1.3", features = ["serde", "pg-sqlx"] }
 ```
 
 ## CRATE FEATURES
@@ -206,7 +206,7 @@ To paginate records from a MySQL database:
         });
 
         let query: QueryBuilder<MySql> = QueryBuilder::new(
-            "SELECT * FROM db.geo.countries"
+            "SELECT * FROM countries"
         );
 
         let page: Page<Country> =
