@@ -1,16 +1,17 @@
-use std::future::Future;
-
-use super::errors::*;
-use super::models::*;
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+use super::{
+    errors::ErrorKind,
+    models::{Page, PaginationResult},
+};
 
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
 use sqlx::{query, query_builder::QueryBuilder, query_scalar, Database, FromRow, Pool};
 
-#[cfg(feature = "pg-sqlx")]
-use sqlx::postgres::{PgPool, PgRow, Postgres};
-
 #[cfg(feature = "mysql-sqlx")]
 use sqlx::mysql::{MySql, MySqlPool, MySqlRow};
+
+#[cfg(feature = "pg-sqlx")]
+use sqlx::postgres::{PgPool, PgRow, Postgres};
 
 /// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
@@ -36,7 +37,7 @@ where
         pool: &'p Pool<DB>,
         page: usize,
         size: usize,
-    ) -> impl Future<Output = PaginationResult<Page<S>>>;
+    ) -> impl std::future::Future<Output = PaginationResult<Page<S>>>;
 }
 
 /// Implementation of the [`SqlxPagination`] trait for [`QueryBuilder<MySql>`].
