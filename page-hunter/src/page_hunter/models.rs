@@ -1,12 +1,18 @@
 use std::fmt::{Debug, Display};
 
+use super::errors::{ErrorKind, PaginationError};
+
 #[cfg(feature = "serde")]
 use serde::{
     de::{Deserialize as DeDeserialize, Deserializer as DeDeserializer, Error as DeError},
     Deserialize, Serialize, Serializer,
 };
 
-use super::errors::{ErrorKind, PaginationError};
+#[cfg(feature = "utoipa")]
+use utoipa::{
+    openapi::{schema::Schema, KnownFormat, ObjectBuilder, SchemaFormat, SchemaType},
+    ToSchema,
+};
 
 /// Result type used throughout the library for result handling.
 pub type PaginationResult<E> = Result<E, PaginationError>;
@@ -18,7 +24,7 @@ pub type PaginationResult<E> = Result<E, PaginationError>;
 /// - **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.
 /// - **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size** value for all pages except the last page, when ***items*** length could be less than or equal to ***size***.
 /// - **total**: Represents the total number of records used for pagination.
-/// - **pages**: Represents the total number of pages in a [`Page`].
+/// - **pages**: Represents the total number of pages required for paginate the items.
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
 pub struct Page<E> {
@@ -512,5 +518,88 @@ impl<E> IntoIterator for Book<E> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.sheets.into_iter()
+    }
+}
+
+/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled
+#[cfg(feature = "utoipa")]
+impl<'s, E> ToSchema<'s> for Page<E>
+where
+    E: ToSchema<'s>,
+{
+    fn schema() -> (&'s str, utoipa::openapi::RefOr<Schema>) {
+        (
+            "Page",
+            ObjectBuilder::new()
+				.description(Some("Model to represent paginated items."))
+				.property(
+					"items", 
+					E::schema().1,
+				)
+				.required("items")
+                .property(
+                    "page",
+                    ObjectBuilder::new()
+                        .description(Some(
+                            "The page index in a Page. It starts from 0 to pages - 1.",
+                        ))
+                        .schema_type(SchemaType::Integer)
+                        .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+                        .minimum(Some(0.0)),
+                )
+                .required("page")
+				.property(
+					"size",
+					ObjectBuilder::new()
+						.description(Some(
+							"The maximum number of elements per Page. items length must be equal to size value for all pages except the last page, when items length could be less than or equal to size.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+						.minimum(Some(0.0)),
+				)
+				.required("size")
+				.property(
+					"total",
+					ObjectBuilder::new()
+						.description(Some(
+							"The total number of records used for pagination.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+						.minimum(Some(0.0)),
+				)
+				.required("total")
+				.property(
+					"pages",
+					ObjectBuilder::new()
+						.description(Some(
+							"Represents the total number of pages required for paginate the items.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+						.minimum(Some(1.0)),
+				)
+				.required("pages")
+				.property(
+					"previous_page",
+					ObjectBuilder::new()
+						.description(Some(
+							"Represents the previous page index in a Page. If there is no previous page, it will be None.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64))
+				)
+				.property(
+					"next_page",
+					ObjectBuilder::new()
+						.description(Some(
+							"Represents the next page index in a Page. If there is no next page, it will be None.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+				)
+       		).into()
+		)
     }
 }

@@ -219,4 +219,6 @@ mod page_hunter;
 pub use page_hunter::errors::*;
 pub use page_hunter::models::*;
 pub use page_hunter::records_pagination::*;
+
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
 pub use page_hunter::sqlx_pagination::*;
