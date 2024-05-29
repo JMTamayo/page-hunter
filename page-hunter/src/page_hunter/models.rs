@@ -377,7 +377,7 @@ where
     }
 }
 
-/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled
+/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled.
 #[cfg(feature = "utoipa")]
 impl<'s, E> ToSchema<'s> for Page<E>
 where
@@ -604,7 +604,7 @@ where
     }
 }
 
-/// Implementation of [`ToSchema`] for [`Book`] if the feature `utoipa` is enabled
+/// Implementation of [`ToSchema`] for [`Book`] if the feature `utoipa` is enabled.
 #[cfg(feature = "utoipa")]
 impl<'s, E> ToSchema<'s> for Book<E>
 where

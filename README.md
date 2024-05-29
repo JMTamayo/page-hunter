@@ -18,20 +18,21 @@ To use **page-hunter** from GitHub repository with specific version, set the dep
 
 ```ini
 [dependencies]
-page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.3", features = ["serde"] }
+page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.4", features = ["serde"] }
 ```
 
 You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 
 ```ini
 [dependencies]
-page-hunter = { version = "0.1.3", features = ["serde", "pg-sqlx"] }
+page-hunter = { version = "0.1.4", features = ["utoipa", "pg-sqlx"] }
 ```
 
 ## CRATE FEATURES
-- `serde`: Add [Serialize](https://docs.rs/serde/1.0.197/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.197). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
-- `pg-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) for PostgreSQL database.
-- `mysql-sqlx`: Add support for pagination with [SQLx](https://crates.io/crates/sqlx) for MySQL database.
+- `serde`: Add [Serialize](https://docs.rs/serde/1.0.203/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.197/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.203). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
+- `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.3/utoipa/trait.ToSchema.html) support for `Page` and  `Book` based on [utoipa](https://crates.io/crates/utoipa/4.2.3). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
+- `pg-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.7.4/sqlx/) for PostgreSQL database.
+- `mysql-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.7.4/sqlx/) for MySQL database.
 
 ## BASIC OPERATION
 The **page-hunter** library provides two main models to manage pagination:
@@ -150,6 +151,34 @@ On feature `serde` enabled, you can serialize and deserialize a `Book` as follow
         panic!("Error deserializing book model: {:?}", error);
     });
 ```
+
+#### Generate OpenAPI schemas:
+ On feature `utoipa` enabled, you can generate OpenAPI schemas for `Page` and `Book` models as follows:
+
+ ```rust,no_run
+	use page_hunter::*;
+	use utoipa::ToSchema;
+	use serde::{Deserialize, Serialize};
+
+	#[derive(Clone, ToSchema)]
+	pub struct Person {
+		id: u16,
+		name: String,
+		last_name: String,
+		still_alive: bool,
+	}
+
+	pub type PeoplePage = Page<Person>;
+	pub type PeopleBook = Book<Person>;
+
+	#[derive(OpenApi)]
+ 	#[openapi(
+    	components(schemas(PeoplePage, PeopleBook))
+ 	)]
+ 	pub struct ApiDoc;
+```
+
+Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples) folder where you can find practical uses in REST API implementations with some web frameworks.
 
 #### Paginate records from a PostgreSQL database with SQLx:
 To paginate records from a PostgreSQL database:
