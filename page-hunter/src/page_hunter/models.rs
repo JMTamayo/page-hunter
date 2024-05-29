@@ -229,6 +229,77 @@ impl<E> Page<E> {
     }
 }
 
+/// Implementation of [`Clone`] for [`Page`].
+impl<E> Clone for Page<E>
+where
+    E: Clone,
+{
+    fn clone(&self) -> Self {
+        Page {
+            items: self.items.to_owned(),
+            page: self.page,
+            size: self.size,
+            total: self.total,
+            pages: self.pages,
+            previous_page: self.previous_page,
+            next_page: self.next_page,
+        }
+    }
+}
+
+/// Implementation of [`Debug`] for [`Page`].
+impl<E> Debug for Page<E>
+where
+    E: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Page {{ items: {:?}, page: {}, size: {}, total: {}, pages: {}, previous_page: {:?}, next_page: {:?} }}",
+            self.items, self.page, self.size, self.total, self.pages, self.previous_page, self.next_page
+        )
+    }
+}
+
+/// Implementation of [`Default`] for [`Page`].
+impl<E> Default for Page<E> {
+    fn default() -> Self {
+        Self {
+            items: Vec::new(),
+            page: 0,
+            size: 0,
+            total: 0,
+            pages: 1,
+            previous_page: None,
+            next_page: None,
+        }
+    }
+}
+
+/// Implementation of [`Display`] for [`Page`].
+impl<E> Display for Page<E>
+where
+    E: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Page {{ items: {:?}, page: {}, size: {}, total: {}, pages: {}, previous_page: {:?}, next_page: {:?} }}",
+            self.items, self.page, self.size, self.total, self.pages, self.previous_page, self.next_page
+        )
+    }
+}
+
+/// Implementation of [`IntoIterator`] for [`Page`].
+impl<E> IntoIterator for Page<E> {
+    type Item = E;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.into_iter()
+    }
+}
+
 /// Implementation of [`Serialize`] for [`Page`] if the feature `serde` is enabled.
 #[cfg(feature = "serde")]
 impl<E> Serialize for Page<E>
@@ -306,74 +377,86 @@ where
     }
 }
 
-/// Implementation of [`Clone`] for [`Page`].
-impl<E> Clone for Page<E>
+/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled
+#[cfg(feature = "utoipa")]
+impl<'s, E> ToSchema<'s> for Page<E>
 where
-    E: Clone,
+    E: ToSchema<'s>,
 {
-    fn clone(&self) -> Self {
-        Page {
-            items: self.items.to_owned(),
-            page: self.page,
-            size: self.size,
-            total: self.total,
-            pages: self.pages,
-            previous_page: self.previous_page,
-            next_page: self.next_page,
-        }
-    }
-}
-
-/// Implementation of [`Debug`] for [`Page`].
-impl<E> Debug for Page<E>
-where
-    E: Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Page {{ items: {:?}, page: {}, size: {}, total: {}, pages: {}, previous_page: {:?}, next_page: {:?} }}",
-            self.items, self.page, self.size, self.total, self.pages, self.previous_page, self.next_page
-        )
-    }
-}
-
-/// Implementation of [`Default`] for [`Page`].
-impl<E> Default for Page<E> {
-    fn default() -> Self {
-        Self {
-            items: Vec::new(),
-            page: 0,
-            size: 0,
-            total: 0,
-            pages: 1,
-            previous_page: None,
-            next_page: None,
-        }
-    }
-}
-
-/// Implementation of [`Display`] for [`Page`].
-impl<E> Display for Page<E>
-where
-    E: Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Page {{ items: {:?}, page: {}, size: {}, total: {}, pages: {}, previous_page: {:?}, next_page: {:?} }}",
-            self.items, self.page, self.size, self.total, self.pages, self.previous_page, self.next_page
-        )
-    }
-}
-
-/// Implementation of [`IntoIterator`] for [`Page`].
-impl<E> IntoIterator for Page<E> {
-    type Item = E;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.items.into_iter()
+    fn schema() -> (&'s str, utoipa::openapi::RefOr<Schema>) {
+        (
+            "Page",
+            ObjectBuilder::new()
+				.description(Some("Model to represent paginated items."))
+				.property(
+					"items", 
+					E::schema().1,
+				)
+				.required("items")
+                .property(
+                    "page",
+                    ObjectBuilder::new()
+                        .description(Some(
+                            "The page index in a Page. It starts from 0 to pages - 1.",
+                        ))
+                        .schema_type(SchemaType::Integer)
+                        .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+                        .minimum(Some(0.0)),
+                )
+                .required("page")
+				.property(
+					"size",
+					ObjectBuilder::new()
+						.description(Some(
+							"The maximum number of elements per Page. items length must be equal to size value for all pages except the last page, when items length could be less than or equal to size.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+						.minimum(Some(0.0)),
+				)
+				.required("size")
+				.property(
+					"total",
+					ObjectBuilder::new()
+						.description(Some(
+							"The total number of records used for pagination.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+						.minimum(Some(0.0)),
+				)
+				.required("total")
+				.property(
+					"pages",
+					ObjectBuilder::new()
+						.description(Some(
+							"Represents the total number of pages required for paginate the items.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+						.minimum(Some(1.0)),
+				)
+				.required("pages")
+				.property(
+					"previous_page",
+					ObjectBuilder::new()
+						.description(Some(
+							"Represents the previous page index in a Page. If there is no previous page, it will be None.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64))
+				)
+				.property(
+					"next_page",
+					ObjectBuilder::new()
+						.description(Some(
+							"Represents the next page index in a Page. If there is no next page, it will be None.",
+						))
+						.schema_type(SchemaType::Integer)
+						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+				)
+       		).into()
+		)
     }
 }
 
@@ -518,88 +601,5 @@ impl<E> IntoIterator for Book<E> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.sheets.into_iter()
-    }
-}
-
-/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled
-#[cfg(feature = "utoipa")]
-impl<'s, E> ToSchema<'s> for Page<E>
-where
-    E: ToSchema<'s>,
-{
-    fn schema() -> (&'s str, utoipa::openapi::RefOr<Schema>) {
-        (
-            "Page",
-            ObjectBuilder::new()
-				.description(Some("Model to represent paginated items."))
-				.property(
-					"items", 
-					E::schema().1,
-				)
-				.required("items")
-                .property(
-                    "page",
-                    ObjectBuilder::new()
-                        .description(Some(
-                            "The page index in a Page. It starts from 0 to pages - 1.",
-                        ))
-                        .schema_type(SchemaType::Integer)
-                        .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-                        .minimum(Some(0.0)),
-                )
-                .required("page")
-				.property(
-					"size",
-					ObjectBuilder::new()
-						.description(Some(
-							"The maximum number of elements per Page. items length must be equal to size value for all pages except the last page, when items length could be less than or equal to size.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(0.0)),
-				)
-				.required("size")
-				.property(
-					"total",
-					ObjectBuilder::new()
-						.description(Some(
-							"The total number of records used for pagination.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(0.0)),
-				)
-				.required("total")
-				.property(
-					"pages",
-					ObjectBuilder::new()
-						.description(Some(
-							"Represents the total number of pages required for paginate the items.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(1.0)),
-				)
-				.required("pages")
-				.property(
-					"previous_page",
-					ObjectBuilder::new()
-						.description(Some(
-							"Represents the previous page index in a Page. If there is no previous page, it will be None.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64))
-				)
-				.property(
-					"next_page",
-					ObjectBuilder::new()
-						.description(Some(
-							"Represents the next page index in a Page. If there is no next page, it will be None.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-				)
-       		).into()
-		)
     }
 }
