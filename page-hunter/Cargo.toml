@@ -1,7 +1,7 @@
 [package]
 name = "page-hunter"
 description = "The pagination powerhouse, built with Rust"
-version = "0.1.3"
+version = "0.1.4"
 authors = [
     "Juan Manuel Tamayo <jmtamayog23@gmail.com>",
 ]
@@ -21,16 +21,21 @@ categories = [
 ]
 
 [dependencies]
-serde = { version = "1.0.202", optional = true }
+serde = { version = "1.0.203", optional = true }
+utoipa = { version = "4.2.3", optional = true}
 sqlx = { version = "0.7.4", features = ["runtime-tokio", "uuid", "time", "chrono", "json", "postgres", "mysql"], optional = true }
 
 [dev-dependencies]
-serde_json = { version = "1.0.117" }
 tokio = { version = "1.37.0", features =["full"] }
+serde_json = { version = "1.0.117" }
 uuid = { version = "1.8.0" }
 time = { version = "0.3.36" }
 
 [features]
 serde = ["dep:serde"]
+utoipa = ["dep:utoipa", "serde"]
 pg-sqlx = ["dep:sqlx"]
 mysql-sqlx = ["dep:sqlx"]
+
+[package.metadata.docs.rs]
+all-features = true
