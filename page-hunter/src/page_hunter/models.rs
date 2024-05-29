@@ -506,55 +506,6 @@ impl<E> Book<E> {
     }
 }
 
-/// Implementation of [`Serialize`] for [`Book`] if the feature `serde` is enabled.
-#[cfg(feature = "serde")]
-impl<E> Serialize for Book<E>
-where
-    E: Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        #[derive(Serialize)]
-        struct BookModel<'a, E>
-        where
-            E: Serialize,
-        {
-            sheets: &'a Vec<Page<E>>,
-        }
-
-        let book_model: BookModel<E> = BookModel {
-            sheets: &self.sheets,
-        };
-
-        book_model.serialize(serializer)
-    }
-}
-
-/// Implementation of [`Deserialize`] for [`Book`] if the feature `serde` is enabled.
-#[cfg(feature = "serde")]
-impl<'de, E> DeDeserialize<'de> for Book<E>
-where
-    E: DeDeserialize<'de>,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Book<E>, D::Error>
-    where
-        D: DeDeserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct BookModel<E> {
-            sheets: Vec<Page<E>>,
-        }
-
-        let book_model: BookModel<E> = DeDeserialize::deserialize(deserializer)?;
-
-        Ok(Book {
-            sheets: book_model.sheets,
-        })
-    }
-}
-
 /// Implementation of [`Clone`] for [`Book`].
 impl<E> Clone for Book<E>
 where
@@ -601,5 +552,54 @@ impl<E> IntoIterator for Book<E> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.sheets.into_iter()
+    }
+}
+
+/// Implementation of [`Serialize`] for [`Book`] if the feature `serde` is enabled.
+#[cfg(feature = "serde")]
+impl<E> Serialize for Book<E>
+where
+    E: Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[derive(Serialize)]
+        struct BookModel<'a, E>
+        where
+            E: Serialize,
+        {
+            sheets: &'a Vec<Page<E>>,
+        }
+
+        let book_model: BookModel<E> = BookModel {
+            sheets: &self.sheets,
+        };
+
+        book_model.serialize(serializer)
+    }
+}
+
+/// Implementation of [`Deserialize`] for [`Book`] if the feature `serde` is enabled.
+#[cfg(feature = "serde")]
+impl<'de, E> DeDeserialize<'de> for Book<E>
+where
+    E: DeDeserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Book<E>, D::Error>
+    where
+        D: DeDeserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct BookModel<E> {
+            sheets: Vec<Page<E>>,
+        }
+
+        let book_model: BookModel<E> = DeDeserialize::deserialize(deserializer)?;
+
+        Ok(Book {
+            sheets: book_model.sheets,
+        })
     }
 }
