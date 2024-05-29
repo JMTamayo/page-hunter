@@ -1,7 +1,8 @@
+/// Test utoipa features implementation.
 #[cfg(feature = "utoipa")]
 #[cfg(test)]
 pub mod test_utoipa_features {
-	use page_hunter::Book;
+    use page_hunter::Book;
     use serde_json::to_string;
     use utoipa::ToSchema;
 
