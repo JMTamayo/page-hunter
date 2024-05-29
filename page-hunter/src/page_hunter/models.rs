@@ -10,7 +10,7 @@ use serde::{
 
 #[cfg(feature = "utoipa")]
 use utoipa::{
-    openapi::{schema::Schema, KnownFormat, ObjectBuilder, SchemaFormat, SchemaType},
+    openapi::{schema::Schema, ArrayBuilder, KnownFormat, ObjectBuilder, SchemaFormat, SchemaType},
     ToSchema,
 };
 
@@ -401,7 +401,7 @@ where
                         ))
                         .schema_type(SchemaType::Integer)
                         .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-                        .minimum(Some(0.0)),
+                        .minimum(Some(0.0))
                 )
                 .required("page")
 				.property(
@@ -412,7 +412,7 @@ where
 						))
 						.schema_type(SchemaType::Integer)
 						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(0.0)),
+						.minimum(Some(0.0))
 				)
 				.required("size")
 				.property(
@@ -423,7 +423,7 @@ where
 						))
 						.schema_type(SchemaType::Integer)
 						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(0.0)),
+						.minimum(Some(0.0))
 				)
 				.required("total")
 				.property(
@@ -434,7 +434,7 @@ where
 						))
 						.schema_type(SchemaType::Integer)
 						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(1.0)),
+						.minimum(Some(1.0))
 				)
 				.required("pages")
 				.property(
@@ -601,5 +601,30 @@ where
         Ok(Book {
             sheets: book_model.sheets,
         })
+    }
+}
+
+/// Implementation of [`ToSchema`] for [`Book`] if the feature `utoipa` is enabled
+#[cfg(feature = "utoipa")]
+impl<'s, E> ToSchema<'s> for Book<E>
+where
+    E: ToSchema<'s>,
+{
+    fn schema() -> (&'s str, utoipa::openapi::RefOr<Schema>) {
+        (
+            "Book",
+            ObjectBuilder::new()
+                .description(Some("Model to represent a book of paginated items."))
+                .property(
+                    "sheets",
+                    ArrayBuilder::new()
+                        .description(Some(
+                            "Represents a paginated items as a collection of pages",
+                        ))
+                        .items(Page::<E>::schema().1),
+                )
+                .required("sheets")
+                .into(),
+        )
     }
 }
