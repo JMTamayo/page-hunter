@@ -55,11 +55,35 @@ jobs:
         DATABASE_URL: mysql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.MYSQL_DB_PORT }}/${{ secrets.DB_NAME }}
       run: sqlx migrate run --source page-hunter/tests/migrations/mysql
 
-    - name: Check project
+    - name: Check project with all features
       uses: actions-rs/cargo@v1
       with:
         command: check
         args: --all-features
+
+    - name: Check project with feature serde
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --features serde
+
+    - name: Check project with feature utoipa
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --features utoipa
+
+    - name: Check project with feature pg-sqlx
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --features pg-sqlx
+
+    - name: Check project with feature mysql-sqlx
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --features mysql-sqlx
 
     - name: Check formatting
       run: cargo fmt --all --check
