@@ -172,9 +172,9 @@ On feature `serde` enabled, you can serialize and deserialize a `Book` as follow
 	pub type PeopleBook = Book<Person>;
 
 	#[derive(OpenApi)]
- 	#[openapi(
-    	components(schemas(PeoplePage, PeopleBook))
- 	)]
+	#[openapi(
+		components(schemas(PeoplePage, PeopleBook))
+	)]
  	pub struct ApiDoc;
 ```
 
