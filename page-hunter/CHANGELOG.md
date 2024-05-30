@@ -5,15 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 🚀 v0.1.4 [2024-05-29]
+
+### Added:
+
+- 🧑🏻‍💻 Implement **utoipa::ToSchema** for `Page` and `Book`.  Only available when ***utoipa*** feature is enabled.
+- 🧑🏻‍💻 Implement examples folder.
+
+### Fixed:
+
+- 🪚 Fix external crates importation for module sqlx_pagination.rs.
+
+### Docs:
+
+- 📝 Update project documentation.
+
 ## 🚀 v0.1.3 [2024-05-24]
 
 ### Added:
 
 - 🧑🏻‍💻 Implement `ErrorKind::FromRowError`.
 - 🧑🏻‍💻 Implement DB migrations with sqlx for the creation of the MySQL test database.
-- 🧑🏻‍💻 Implement ***SqlxPagination*** to generalize the implementation of pagination methods using *sqlx*.
-- 🧑🏻‍💻 Implement **SqlxPagination** for `QueryBuilder<MySQL>` to paginate results from a SQL query into a `Page`. Only available on ***mysql-sqlx*** feature is enabled.
-- 🧑🏻‍💻 Implement **SqlxPagination** for `QueryBuilder<Postgres>` to paginate results from a SQL query into a `Page`. Only available on ***pg-sqlx*** feature is enabled.
+- 🧑🏻‍💻 Implement `SqlxPagination` to generalize the implementation of pagination methods using *sqlx*.
+- 🧑🏻‍💻 Implement `SqlxPagination` for `QueryBuilder<MySQL>` to paginate results from a SQL query into a `Page`. Only available when ***mysql-sqlx*** feature is enabled.
+- 🧑🏻‍💻 Implement `SqlxPagination` for `QueryBuilder<Postgres>` to paginate results from a SQL query into a `Page`. Only available when ***pg-sqlx*** feature is enabled.
 - 🧑🏻‍💻 Implement integration test for pagination with ***mysql-sqlx***.
 
 
@@ -23,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed:
 
-- ❌ Remove **From** **sqlx::Error** for `PaginationError`.
+- ❌ Remove **From**<**sqlx::Error**> for `PaginationError`.
 
 ### Docs:
 
@@ -35,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🧑🏻‍💻 Implement `ErrorKind::DatabaseError`.
 - 🧑🏻‍💻 Implement **From** **sqlx::Error** for `PaginationError`.
-- 🧑🏻‍💻 Paginate results from a SQL query into a `Page` from a PostgreSQL database using *sqlx*. Implementation of the **PgSqlxPagination** for `QueryBuilder`. Only available on ***pg-sqlx*** feature is enabled.
+- 🧑🏻‍💻 Paginate results from a SQL query into a `Page` from a PostgreSQL database using *sqlx*. Implementation of the `PgSqlxPagination` for `QueryBuilder`. Only available when ***pg-sqlx*** feature is enabled.
 - 🧑🏻‍💻 Include unitary test for the **Debug** implementation for `Book`.
 - 🧑🏻‍💻 Include checking project format in ci.yml.
 - 🧑🏻‍💻 Implement DB migrations with *sqlx* for the creation of the postgres test database.
