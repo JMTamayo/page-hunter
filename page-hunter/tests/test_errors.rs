@@ -3,13 +3,12 @@ mod test_errors {
     use page_hunter::*;
 
     /// Test [`ErrorKind`] `is_field_value_error method.
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
     #[test]
     fn test_error_kind_is_field_value_error() {
         let error_kind: ErrorKind = ErrorKind::FieldValueError(String::from("Invalid value"));
         assert!(error_kind.is_field_value_error());
-
         assert!(!error_kind.is_database_error());
-
         assert!(!error_kind.is_from_row_error());
     }
 
@@ -20,9 +19,7 @@ mod test_errors {
         let error_kind: ErrorKind =
             ErrorKind::DatabaseError(String::from("Could not connect to database"));
         assert!(error_kind.is_database_error());
-
         assert!(!error_kind.is_field_value_error());
-
         assert!(!error_kind.is_from_row_error());
     }
 
