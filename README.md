@@ -171,11 +171,11 @@ On feature `serde` enabled, you can serialize and deserialize a `Book` as follow
 	pub type PeoplePage = Page<Person>;
 	pub type PeopleBook = Book<Person>;
 
-	#[derive(OpenApi)]
-	#[openapi(
-		components(schemas(PeoplePage, PeopleBook))
-	)]
- 	pub struct ApiDoc;
+    #[derive(OpenApi)]
+    #[openapi(
+        components(schemas(PeoplePage, PeopleBook))
+    )]
+    pub struct ApiDoc;
 ```
 
 Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples) folder where you can find practical uses in REST API implementations with some web frameworks.
