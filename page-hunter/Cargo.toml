@@ -21,7 +21,7 @@ categories = [
 ]
 
 [dependencies]
-serde = { version = "1.0.203", optional = true }
+serde = { version = "1.0.203", features = ["derive"],  optional = true }
 utoipa = { version = "4.2.3", optional = true}
 sqlx = { version = "0.7.4", features = ["runtime-tokio", "uuid", "time", "chrono", "json", "postgres", "mysql"], optional = true }
 
