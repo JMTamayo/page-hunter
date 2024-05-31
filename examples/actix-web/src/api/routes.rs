@@ -43,7 +43,7 @@ pub async fn search_departments_pagination(
     let page: Page<Department> =
         match paginate_records(&departments, params.get_page(), params.get_size()) {
             Ok(page) => page,
-            Err(error) => return Exception::new(500, error.to_string()).to_http_response(),
+            Err(error) => return Exception::new(417, error.to_string()).to_http_response(),
         };
 
     HttpResponse::Ok().json(page)
@@ -78,7 +78,7 @@ pub async fn search_all_departments(
 
     let book: Book<Department> = match bind_records(&departments, params.get_size()) {
         Ok(book) => book,
-        Err(error) => return Exception::new(500, error.to_string()).to_http_response(),
+        Err(error) => return Exception::new(417, error.to_string()).to_http_response(),
     };
 
     HttpResponse::Ok().json(book)
