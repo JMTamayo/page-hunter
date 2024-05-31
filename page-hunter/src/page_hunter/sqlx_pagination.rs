@@ -12,7 +12,7 @@ use sqlx::postgres::{PgPool, PgRow, Postgres};
 
 /// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-pub trait SqlxPagination<DB, S>
+pub trait SQLxPagination<DB, S>
 where
     DB: Database,
     S: for<'r> FromRow<'r, DB::Row> + Clone,
@@ -105,7 +105,7 @@ where
 ///
 /// Only available when the `mysql-sqlx` feature is enabled.
 #[cfg(feature = "mysql-sqlx")]
-impl<'q, S> SqlxPagination<MySql, S> for QueryBuilder<'q, MySql>
+impl<'q, S> SQLxPagination<MySql, S> for QueryBuilder<'q, MySql>
 where
     S: for<'r> FromRow<'r, MySqlRow> + Clone,
 {
@@ -214,7 +214,7 @@ where
 ///
 /// Only available when the `pg-sqlx` feature is enabled.
 #[cfg(feature = "pg-sqlx")]
-impl<'q, S> SqlxPagination<Postgres, S> for QueryBuilder<'q, Postgres>
+impl<'q, S> SQLxPagination<Postgres, S> for QueryBuilder<'q, Postgres>
 where
     S: for<'r> FromRow<'r, PgRow> + Clone,
 {

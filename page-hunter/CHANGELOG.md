@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed:
 
 - 🔨 **Derive** and **Display** implementations for `PaginationError` and `ErrorKind` according to the new `ErrorKind` structure **[BREAKING CHANGE]**.
+- 🔨 Rename `SqlxPagination` to `SQLxPagination` **[BREAKING CHANGE]**.
 
 ### Removed:
 
