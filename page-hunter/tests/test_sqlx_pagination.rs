@@ -125,8 +125,7 @@ pub mod test_postgres_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "SQLX ERROR- error returned from database: syntax error at or near \";\""
-                .to_string(),
+            "SQLX ERROR- error returned from database: syntax error at or near \";\"".to_string(),
         )
     }
 
