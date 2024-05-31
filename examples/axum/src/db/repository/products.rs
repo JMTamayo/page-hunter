@@ -1,5 +1,5 @@
 use log::debug;
-use page_hunter::{Page, PaginationResult, SqlxPagination};
+use page_hunter::{Page, PaginationResult, SQLxPagination};
 use sqlx::{Error as SqlxError, FromRow, PgPool, Postgres, QueryBuilder};
 use std::future::Future;
 use uuid::Uuid;
