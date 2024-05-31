@@ -8,14 +8,14 @@
 //!
 //! ```ini
 //! [dependencies]
-//! page-hunter = {git = "https://github.com/JMTamayo/page-hunter.git", version = "0.1.4", features = ["serde"] }
+//! page-hunter = { git = "https://github.com/JMTamayo/page-hunter.git", version = "0.2.0", features = ["serde"] }
 //! ```
 //!
 //! You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 //!
 //! ```ini
 //! [dependencies]
-//! page-hunter = { version = "0.1.4", features = ["utoipa", "pg-sqlx"] }
+//! page-hunter = { version = "0.2.0", features = ["utoipa", "pg-sqlx"] }
 //! ```
 //!
 //! ## CRATE FEATURES

@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 🚀 v0.2.0 [2024-XX-XX]
+
+### Added:
+
+- 🧑🏻‍💻 Implement `ErrorKind::SQLxError` when ***mysql-sqlx*** or ***pg-sqlx*** features are enabled **[BREAKING CHANGE]**.
+- 🧑🏻‍💻 Implement `is_sqlx_error()` method for `ErrorKind` according to its new structure  when ***mysql-sqlx*** or ***pg-sqlx*** features are enabled **[BREAKING CHANGE]**.
+- 🧑🏻‍💻 Implement **From**<**sqlx::Error**> for `PaginationError` when ***mysql-sqlx*** or ***pg-sqlx*** features are enabled. 
+
+### Changed:
+
+- 🔨 **Derive** and **Display** implementations for `PaginationError` and `ErrorKind` according to the new `ErrorKind` structure **[BREAKING CHANGE]**.
+
+### Removed:
+
+- ❌ Remove `ErrorKind::DatabaseError` and `ErrorKind::FromRowError` when ***mysql-sqlx*** or ***pg-sqlx*** features are enabled **[BREAKING CHANGE]**.
+- ❌ Remove `is_database_error()` and `is_from_row_error()` methods from `ErrorKind` according to its new structure **[BREAKING CHANGE]**.
+- ❌ Remove **Clone** implementation for `PaginationError` and `ErrorKind` **[BREAKING CHANGE]**.
+
 ## 🚀 v0.1.4 [2024-05-29]
 
 ### Added:
@@ -30,7 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🧑🏻‍💻 Implement `SqlxPagination` for `QueryBuilder<MySQL>` to paginate results from a SQL query into a `Page`. Only available when ***mysql-sqlx*** feature is enabled.
 - 🧑🏻‍💻 Implement `SqlxPagination` for `QueryBuilder<Postgres>` to paginate results from a SQL query into a `Page`. Only available when ***pg-sqlx*** feature is enabled.
 - 🧑🏻‍💻 Implement integration test for pagination with ***mysql-sqlx***.
-
 
 ### Changed:
 
