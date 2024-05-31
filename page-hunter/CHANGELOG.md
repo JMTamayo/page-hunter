@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🧑🏻‍💻 Implement `ErrorKind::SQLxError` when ***mysql-sqlx*** or ***pg-sqlx*** features are enabled **[BREAKING CHANGE]**.
 - 🧑🏻‍💻 Implement `is_sqlx_error()` method for `ErrorKind` according to its new structure  when ***mysql-sqlx*** or ***pg-sqlx*** features are enabled **[BREAKING CHANGE]**.
 - 🧑🏻‍💻 Implement **From**<**sqlx::Error**> for `PaginationError` when ***mysql-sqlx*** or ***pg-sqlx*** features are enabled. 
+- 🧑🏻‍💻  Including example of use with **axum**.
 
 ### Changed:
 
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🧑🏻‍💻 Implement **utoipa::ToSchema** for `Page` and `Book`.  Only available when ***utoipa*** feature is enabled.
 - 🧑🏻‍💻 Implement examples folder.
+- 🧑🏻‍💻 Including example of use with **actix-web**.
 
 ### Fixed:
 
