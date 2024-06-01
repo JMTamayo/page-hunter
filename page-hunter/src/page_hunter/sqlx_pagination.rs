@@ -18,17 +18,17 @@ where
     S: for<'r> FromRow<'r, DB::Row> + Clone,
 {
     /// Paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
-    /// Available for PostgreSQL, MySQL and SQLite databases.
+    /// Available for PostgreSQL and MySQL databases.
     ///
     /// ### Arguments:
-    /// - **pool**: A reference to a [`Pool`] of DB instance, where DB implements the [`Database`] trait.
-    /// - **page**: The page number.
+    /// - **pool**: A reference to a [`Pool`] of DB instance, where DB must implement the [`Database`] trait.
+    /// - **page**: The page index.
     /// - **size**: The number of records per page.
     ///
     /// ### Returns:
-    /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` is a struct that implements the [`FromRow`] trait for given [`Database::Row`] type according to the database.
+    /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` must implement the [`FromRow`] for given [`Database::Row`] type according to the database.
     ///
-    /// Only available when the `pg-sqlx`, `mysql-sqlx` or `sqlite-sqlx` features are enabled.
+    /// Only available when the `pg-sqlx` or `mysql-sqlx` features are enabled.
     fn paginate<'p>(
         &self,
         pool: &'p Pool<DB>,
@@ -37,7 +37,7 @@ where
     ) -> impl std::future::Future<Output = PaginationResult<Page<S>>>;
 }
 
-/// Implementation of the [`SqlxPagination`] trait for [`QueryBuilder<MySql>`].
+/// Implementation of [`SQLxPagination`]  for [`QueryBuilder`]<[`MySql`]>.
 ///
 /// At first, this function calculates the total number of records in the query result by executing a COUNT(*) query. Then, it fetches the records for the requested page and size by executing the original query with a LIMIT and OFFSET clause.
 ///
@@ -65,11 +65,11 @@ where
 ///
 /// #### Arguments:
 /// - **pool**: A reference to a [`MySqlPool`] instance.
-/// - **page**: The page number.
+/// - **page**: The page index.
 /// - **size**: The number of records per page.
 ///
 /// #### Returns:
-/// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` is a struct that implements the [`FromRow`] trait for the [`MySql`] struct.
+/// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` must implement [`FromRow`] for [`MySqlRow`].
 ///
 /// ### Example:
 /// ```rust,no_run
@@ -146,7 +146,7 @@ where
     }
 }
 
-/// Implementation of the [`SqlxPagination`] trait for [`QueryBuilder<Postgres>`].
+/// Implementation of the [`SQLxPagination`] trait for [`QueryBuilder`]<[`Postgres`]>.
 ///
 /// At first, this function calculates the total number of records in the query result by executing a COUNT(*) query. Then, it fetches the records for the requested page and size by executing the original query with a LIMIT and OFFSET clause.
 ///
@@ -178,7 +178,7 @@ where
 /// - **size**: The number of records per page.
 ///
 /// #### Returns:
-/// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` is a struct that implements the [`FromRow`] trait for the [`PgRow`] struct.
+/// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` must implement [`FromRow`] for [`PgRow`].
 ///
 /// ### Example:
 /// ```rust,no_run
