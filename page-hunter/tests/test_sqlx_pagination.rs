@@ -125,8 +125,7 @@ pub mod test_postgres_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "DATABASE ERROR- error returned from database: syntax error at or near \";\""
-                .to_string(),
+            "SQLX ERROR- error returned from database: syntax error at or near \";\"".to_string(),
         )
     }
 
@@ -179,7 +178,7 @@ pub mod test_postgres_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "FROM ROW ERROR- no column found for name: age".to_string(),
+            "SQLX ERROR- no column found for name: age".to_string(),
         )
     }
 
@@ -356,7 +355,7 @@ pub mod test_mysql_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "DATABASE ERROR- error returned from database: 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';) as temp_table' at line 1"
+            "SQLX ERROR- error returned from database: 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';) as temp_table' at line 1"
                 .to_string(),
         )
     }
@@ -407,7 +406,7 @@ pub mod test_mysql_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "FROM ROW ERROR- no column found for name: extension".to_string(),
+            "SQLX ERROR- no column found for name: extension".to_string(),
         )
     }
 

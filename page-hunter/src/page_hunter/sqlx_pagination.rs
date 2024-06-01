@@ -1,8 +1,5 @@
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-use super::{
-    errors::ErrorKind,
-    models::{Page, PaginationResult},
-};
+use super::models::{Page, PaginationResult};
 
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
 use sqlx::{query, query_builder::QueryBuilder, query_scalar, Database, FromRow, Pool};
@@ -15,7 +12,7 @@ use sqlx::postgres::{PgPool, PgRow, Postgres};
 
 /// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-pub trait SqlxPagination<DB, S>
+pub trait SQLxPagination<DB, S>
 where
     DB: Database,
     S: for<'r> FromRow<'r, DB::Row> + Clone,
@@ -108,7 +105,7 @@ where
 ///
 /// Only available when the `mysql-sqlx` feature is enabled.
 #[cfg(feature = "mysql-sqlx")]
-impl<'q, S> SqlxPagination<MySql, S> for QueryBuilder<'q, MySql>
+impl<'q, S> SQLxPagination<MySql, S> for QueryBuilder<'q, MySql>
 where
     S: for<'r> FromRow<'r, MySqlRow> + Clone,
 {
@@ -118,7 +115,7 @@ where
         page: usize,
         size: usize,
     ) -> PaginationResult<Page<S>> {
-        let total: i64 = match query_scalar(
+        let total: i64 = query_scalar(
             QueryBuilder::<MySql>::new(format!(
                 "SELECT count(*) from ({}) as temp_table;",
                 self.sql()
@@ -126,13 +123,9 @@ where
             .sql(),
         )
         .fetch_one(pool)
-        .await
-        {
-            Ok(total) => total,
-            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
-        };
+        .await?;
 
-        let rows: Vec<MySqlRow> = match query(
+        let rows: Vec<MySqlRow> = query(
             QueryBuilder::<MySql>::new(format!(
                 "{} LIMIT {} OFFSET {};",
                 self.sql(),
@@ -142,20 +135,12 @@ where
             .sql(),
         )
         .fetch_all(pool)
-        .await
-        {
-            Ok(rows) => rows,
-            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
-        };
+        .await?;
 
-        let items: Vec<S> = match rows
+        let items: Vec<S> = rows
             .into_iter()
             .map(|row| S::from_row(&row))
-            .collect::<Result<Vec<S>, _>>()
-        {
-            Ok(items) => items,
-            Err(error) => return Err(ErrorKind::FromRowError(error.to_string()).into()),
-        };
+            .collect::<Result<Vec<S>, _>>()?;
 
         Ok(Page::new(&items, page, size, total as usize)?)
     }
@@ -229,7 +214,7 @@ where
 ///
 /// Only available when the `pg-sqlx` feature is enabled.
 #[cfg(feature = "pg-sqlx")]
-impl<'q, S> SqlxPagination<Postgres, S> for QueryBuilder<'q, Postgres>
+impl<'q, S> SQLxPagination<Postgres, S> for QueryBuilder<'q, Postgres>
 where
     S: for<'r> FromRow<'r, PgRow> + Clone,
 {
@@ -239,7 +224,7 @@ where
         page: usize,
         size: usize,
     ) -> PaginationResult<Page<S>> {
-        let total: i64 = match query_scalar(
+        let total: i64 = query_scalar(
             QueryBuilder::<Postgres>::new(format!(
                 "WITH temp_table AS ({}) SELECT count(*) from temp_table;",
                 self.sql()
@@ -247,13 +232,9 @@ where
             .sql(),
         )
         .fetch_one(pool)
-        .await
-        {
-            Ok(total) => total,
-            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
-        };
+        .await?;
 
-        let rows: Vec<PgRow> = match query(
+        let rows: Vec<PgRow> = query(
             QueryBuilder::<Postgres>::new(format!(
                 "WITH temp_table AS ({}) SELECT * from temp_table LIMIT {} OFFSET {};",
                 self.sql(),
@@ -263,20 +244,12 @@ where
             .sql(),
         )
         .fetch_all(pool)
-        .await
-        {
-            Ok(rows) => rows,
-            Err(error) => return Err(ErrorKind::DatabaseError(error.to_string()).into()),
-        };
+        .await?;
 
-        let items: Vec<S> = match rows
+        let items: Vec<S> = rows
             .into_iter()
             .map(|row| S::from_row(&row))
-            .collect::<Result<Vec<S>, _>>()
-        {
-            Ok(items) => items,
-            Err(error) => return Err(ErrorKind::FromRowError(error.to_string()).into()),
-        };
+            .collect::<Result<Vec<S>, _>>()?;
 
         Ok(Page::new(&items, page, size, total as usize)?)
     }
