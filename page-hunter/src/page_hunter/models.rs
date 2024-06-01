@@ -20,9 +20,9 @@ pub type PaginationResult<E> = Result<E, PaginationError>;
 /// Model to represent paginated items.
 ///
 /// #### Fields:
-/// - **items**: Represents the ***items*** in a [`Page`] as a [`Vec`] of generic elements ***E***.
+/// - **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.
 /// - **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.
-/// - **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size** value for all pages except the last page, when ***items*** length could be less than or equal to ***size***.
+/// - **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.
 /// - **total**: Represents the total number of records used for pagination.
 /// - **pages**: Represents the total number of pages required for paginate the items.
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
@@ -73,13 +73,13 @@ impl<E> Page<E> {
         self.next_page
     }
 
-    /// Verify [`Page`] fields. It returns a [`PaginationResult`] with ***()*** if successful, otherwise a [`PaginationError`] is returned.
+    /// Verify [`Page`] fields.
     ///
     /// ### Arguments:
     /// *No arguments*
     ///
     /// ### Returns:
-    /// A [`PaginationResult`] with ***()*** if successful, otherwise a [`PaginationError`] is returned.
+    /// A [`PaginationResult`]  with a `()` if successful, otherwise a [`PaginationError`] is returned.
     ///
     /// This method is used to check if the fields of a [`Page`] are valid based on the following criteria:
     /// - ***pages*** must be equal to ***total*** divided by ***size*** rounded up. When ***size*** is 0, ***pages*** must be 1.
@@ -167,16 +167,16 @@ impl<E> Page<E> {
         Ok(())
     }
 
-    /// Create a new [`Page`] instance. It returns a [`PaginationResult`] with a [`Page`] if successful, otherwise a [`PaginationError`] is returned.
+    /// Create a new [`Page`] instance.
     ///
     /// ### Arguments:
-    /// - **items**: A reference to a collection of items `E`, where `E` implements [`Clone`] and [`Debug`].
+    /// - **items**: A reference to a collection of items `E`, where `E` must implement [`Clone`].
     /// - **page**: The page index.
     /// - **size**: The maximum number of elements per page.
     /// - **total**: The total number of records used for pagination.
     ///
     /// ### Returns:
-    /// A [`PaginationResult`] with a [`Page`] of the paginated items ***E*** if successful, otherwise a [`PaginationError`] is returned.
+    /// A [`PaginationResult`] with a [`Page`] if successful, otherwise a [`PaginationError`] is returned.
     ///
     /// ### Example:
     ///```rust,no_run
@@ -462,7 +462,7 @@ where
 
 /// Model to represent a book of paginated items.
 /// #### Fields:
-/// - **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`] of [`Page`] of generic elements ***E***.
+/// - **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].
 pub struct Book<E> {
     sheets: Vec<Page<E>>,
 }
@@ -476,10 +476,10 @@ impl<E> Book<E> {
     /// Create a new [`Book`] instance.
     ///
     /// ### Arguments:
-    /// - **sheets**: A reference to a collection of [`Page`] of items `E`, where `E` implements [`Clone`] and [`Debug`].
+    /// - **sheets**: A reference to a [`Vec`] of  [`Page`], where `E` must implement [`Clone`].
     ///
     /// ### Returns:
-    /// A [`Book`] of the paginated items ***E*** if successful, otherwise a [`PaginationError`] is returned.
+    /// A [`Book`] if successful, otherwise a [`PaginationError`] is returned.
     ///
     /// ### Example:
     /// ```rust,no_run

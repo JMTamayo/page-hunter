@@ -3,8 +3,8 @@ use super::models::*;
 /// Paginate records into a [`Page`] model.
 ///
 /// #### Arguments:
-/// - **records**: A reference to a collection of records `R`, where `R` implements [`IntoIterator`] and [`Clone`], and `R::Item` implements [`Clone`].
-/// - **page**: The page number.
+/// - **records**: A reference to a collection of records `R`, where `R` must implement [`IntoIterator`] and [`Clone`], and `R::Item` must implement [`Clone`].
+/// - **page**: The page index.
 /// - **size**: The number of records per page.
 ///
 /// #### Returns:
@@ -46,7 +46,7 @@ where
 /// Bind records into a [`Book`] model.
 ///
 /// #### Arguments:
-/// - **records**: A reference to a collection of records `R`, where `R` implements [`IntoIterator`] and [`Clone`], and `R::Item` implements [`Clone`].
+/// - **records**: A reference to a collection of records `R`, where `R` must implement [`IntoIterator`] and [`Clone`], and `R::Item` must implement [`Clone`].
 /// - **size**: The number of records per page.
 ///
 /// #### Returns:
