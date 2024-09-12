@@ -27,20 +27,18 @@ use crate::{Book, Page, PaginationResult};
 /// ````
 pub fn paginate_records<R>(records: &R, page: usize, size: usize) -> PaginationResult<Page<R::Item>>
 where
-    R: IntoIterator + Clone,
+    R: Iterator + Clone,
     R::Item: Clone,
 {
-    Page::new(
-        &records
-            .to_owned()
-            .into_iter()
-            .skip(size * page)
-            .take(size)
-            .collect::<Vec<R::Item>>(),
-        page,
-        size,
-        records.clone().into_iter().count(),
-    )
+    let selected_records: Vec<R::Item> = records
+        .to_owned()
+        .skip(size * page)
+        .take(size)
+        .collect::<Vec<R::Item>>();
+
+    let total: usize = records.to_owned().count();
+
+    Page::new(&selected_records, page, size, total)
 }
 
 /// Bind records into a [`Book`] model.
@@ -68,31 +66,30 @@ where
 /// ````
 pub fn bind_records<R>(records: &R, size: usize) -> PaginationResult<Book<R::Item>>
 where
-    R: IntoIterator + Clone,
+    R: Iterator + Clone,
     R::Item: Clone,
 {
-    let total: usize = records.clone().into_iter().count();
+    let total: usize = records.to_owned().count();
 
     let pages: usize = match size.eq(&0) {
         true => 0,
         false => total.div_ceil(size).max(1),
     };
 
-    Ok(Book::new(
-        &(0..pages)
-            .map(|page| {
-                Page::new(
-                    &records
-                        .to_owned()
-                        .into_iter()
-                        .skip(size * page)
-                        .take(size)
-                        .collect::<Vec<R::Item>>(),
-                    page,
-                    size,
-                    total,
-                )
-            })
-            .collect::<PaginationResult<Vec<Page<R::Item>>>>()?,
-    ))
+    let sheets = (0..pages)
+        .map(|page| {
+            Page::new(
+                &records
+                    .to_owned()
+                    .skip(size * page)
+                    .take(size)
+                    .collect::<Vec<R::Item>>(),
+                page,
+                size,
+                total,
+            )
+        })
+        .collect::<PaginationResult<Vec<Page<R::Item>>>>()?;
+
+    Ok(Book::new(&sheets))
 }
