@@ -1,4 +1,4 @@
-use super::models::*;
+use crate::{Book, Page, PaginationResult};
 
 /// Paginate records into a [`Page`] model.
 ///
@@ -30,7 +30,7 @@ where
     R: IntoIterator + Clone,
     R::Item: Clone,
 {
-    Ok(Page::new(
+    Page::new(
         &records
             .to_owned()
             .into_iter()
@@ -40,7 +40,7 @@ where
         page,
         size,
         records.clone().into_iter().count(),
-    )?)
+    )
 }
 
 /// Bind records into a [`Book`] model.

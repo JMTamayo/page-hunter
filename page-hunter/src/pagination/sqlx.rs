@@ -1,14 +1,12 @@
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
-use super::models::{Page, PaginationResult};
-
+#[cfg(feature = "mysql-sqlx")]
+use sqlx::mysql::{MySql, MySqlPool, MySqlRow};
+#[cfg(feature = "pg-sqlx")]
+use sqlx::postgres::{PgPool, PgRow, Postgres};
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
 use sqlx::{query, query_builder::QueryBuilder, query_scalar, Database, FromRow, Pool};
 
-#[cfg(feature = "mysql-sqlx")]
-use sqlx::mysql::{MySql, MySqlPool, MySqlRow};
-
-#[cfg(feature = "pg-sqlx")]
-use sqlx::postgres::{PgPool, PgRow, Postgres};
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+use crate::{Page, PaginationResult};
 
 /// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
