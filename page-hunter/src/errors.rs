@@ -1,10 +1,10 @@
 use std::fmt::{Debug, Display, Formatter, Result};
 
-#[allow(unused_imports)]
-use crate::Page;
-
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
 use sqlx::Error as SqlxError;
+
+#[allow(unused_imports)]
+use crate::Page;
 
 /// Provides a way to categorize the pagination error.
 pub enum ErrorKind {
