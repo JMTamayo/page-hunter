@@ -247,7 +247,6 @@ mod errors;
 mod page;
 mod pagination;
 mod results;
-mod validation;
 
 pub use book::Book;
 pub use errors::{ErrorKind, PaginationError};
