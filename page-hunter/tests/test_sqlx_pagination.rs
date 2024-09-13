@@ -230,7 +230,7 @@ pub mod test_postgres_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "FIELD VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
+            "INVALID VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
         )
     }
 }
@@ -455,7 +455,7 @@ pub mod test_mysql_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "FIELD VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
+            "INVALID VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
         )
     }
 }

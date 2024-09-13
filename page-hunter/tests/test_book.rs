@@ -211,7 +211,7 @@ mod test_book {
         assert!(book_result.is_err());
         assert_eq!(
             format!("{}", book_result.unwrap_err()),
-            "FIELD VALUE ERROR- Next page index error: expected 'None', found 'Some(3)' at line 1 column 270"
+            "INVALID VALUE ERROR- Next page index error: expected 'None', found 'Some(3)' at line 1 column 270"
         );
     }
 }
