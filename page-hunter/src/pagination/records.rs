@@ -27,16 +27,17 @@ use crate::{Book, Page, PaginationResult};
 /// ````
 pub fn paginate_records<R>(records: &R, page: usize, size: usize) -> PaginationResult<Page<R::Item>>
 where
-    R: Iterator + Clone,
+    R: IntoIterator + Clone,
     R::Item: Clone,
 {
     let selected_records: Vec<R::Item> = records
-        .to_owned()
+        .clone()
+        .into_iter()
         .skip(size * page)
         .take(size)
         .collect::<Vec<R::Item>>();
 
-    let total: usize = records.to_owned().count();
+    let total: usize = records.clone().into_iter().count();
 
     Page::new(&selected_records, page, size, total)
 }
@@ -66,10 +67,10 @@ where
 /// ````
 pub fn bind_records<R>(records: &R, size: usize) -> PaginationResult<Book<R::Item>>
 where
-    R: Iterator + Clone,
+    R: IntoIterator + Clone,
     R::Item: Clone,
 {
-    let total: usize = records.to_owned().count();
+    let total: usize = records.clone().into_iter().count();
 
     let pages: usize = match size.eq(&0) {
         true => 0,
@@ -80,7 +81,8 @@ where
         .map(|page| {
             Page::new(
                 &records
-                    .to_owned()
+                    .clone()
+                    .into_iter()
                     .skip(size * page)
                     .take(size)
                     .collect::<Vec<R::Item>>(),
