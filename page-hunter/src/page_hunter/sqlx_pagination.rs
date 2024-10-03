@@ -1,7 +1,7 @@
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 use super::models::{Page, PaginationResult};
 
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 use sqlx::{query, query_builder::QueryBuilder, query_scalar, Database, FromRow, Pool};
 
 #[cfg(feature = "mysql-sqlx")]

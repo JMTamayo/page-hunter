@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display, Formatter, Result};
 #[allow(unused_imports)]
 use super::models::Page;
 
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 use sqlx::Error as SqlxError;
 
 /// Provides a way to categorize the pagination error.
@@ -12,7 +12,7 @@ pub enum ErrorKind {
     FieldValueError(String),
 
     /// Raised during a database operation using the [`sqlx`]. Only available when the `pg-sqlx` or `mysql-sqlx` features are enabled.
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
     SQLxError(SqlxError),
 }
 
@@ -23,7 +23,7 @@ impl ErrorKind {
     }
 
     /// Check if the [`ErrorKind`] is a [`ErrorKind::SQLxError`]. Only available when the `pg-sqlx` or `mysql-sqlx` features are enabled.
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
     pub fn is_sqlx_error(&self) -> bool {
         matches!(self, ErrorKind::SQLxError(_))
     }
@@ -35,7 +35,7 @@ impl Display for ErrorKind {
         match self {
             ErrorKind::FieldValueError(detail) => write!(f, "FIELD VALUE ERROR- {}", detail),
 
-            #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+            #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
             ErrorKind::SQLxError(detail) => write!(f, "SQLX ERROR- {}", detail),
         }
     }
@@ -47,7 +47,7 @@ impl Debug for ErrorKind {
         match self {
             ErrorKind::FieldValueError(detail) => write!(f, "FieldValueError({:?})", detail),
 
-            #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+            #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
             ErrorKind::SQLxError(detail) => write!(f, "SqlxError({:?})", detail),
         }
     }
@@ -87,7 +87,7 @@ impl From<ErrorKind> for PaginationError {
 }
 
 /// Implementation of [`From`]<[`sqlx::Error`]> for [`PaginationError`]. Only available when the `pg-sqlx` or `mysql-sqlx` features are enabled.
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 impl From<SqlxError> for PaginationError {
     fn from(value: sqlx::Error) -> Self {
         Self {
