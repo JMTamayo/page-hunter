@@ -1,7 +1,7 @@
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 use super::models::{Page, PaginationResult};
 
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 use sqlx::{query, query_builder::QueryBuilder, query_scalar, Database, FromRow, Pool};
 
 #[cfg(feature = "mysql-sqlx")]
@@ -10,8 +10,11 @@ use sqlx::mysql::{MySql, MySqlPool, MySqlRow};
 #[cfg(feature = "pg-sqlx")]
 use sqlx::postgres::{PgPool, PgRow, Postgres};
 
+#[cfg(feature = "sqlite-sqlx")]
+use sqlx::sqlite::{Sqlite, SqlitePool, SqliteRow};
+
 /// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 pub trait SQLxPagination<DB, S>
 where
     DB: Database,
@@ -237,6 +240,48 @@ where
         let rows: Vec<PgRow> = query(
             QueryBuilder::<Postgres>::new(format!(
                 "WITH temp_table AS ({}) SELECT * from temp_table LIMIT {} OFFSET {};",
+                self.sql(),
+                size,
+                size * page,
+            ))
+            .sql(),
+        )
+        .fetch_all(pool)
+        .await?;
+
+        let items: Vec<S> = rows
+            .into_iter()
+            .map(|row| S::from_row(&row))
+            .collect::<Result<Vec<S>, _>>()?;
+
+        Ok(Page::new(&items, page, size, total as usize)?)
+    }
+}
+
+#[cfg(feature = "sqlite-sqlx")]
+impl<'q, S> SQLxPagination<Sqlite, S> for QueryBuilder<'q, Sqlite>
+where
+    S: for<'r> FromRow<'r, SqliteRow> + Clone,
+{
+    async fn paginate<'p>(
+        &self,
+        pool: &'p SqlitePool,
+        page: usize,
+        size: usize,
+    ) -> PaginationResult<Page<S>> {
+        let total: i64 = query_scalar(
+            QueryBuilder::<Sqlite>::new(format!(
+                "SELECT count(*) from ({}) as temp_table;",
+                self.sql()
+            ))
+            .sql(),
+        )
+        .fetch_one(pool)
+        .await?;
+
+        let rows: Vec<SqliteRow> = query(
+            QueryBuilder::<Sqlite>::new(format!(
+                "{} LIMIT {} OFFSET {};",
                 self.sql(),
                 size,
                 size * page,
