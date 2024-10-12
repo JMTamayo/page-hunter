@@ -85,8 +85,17 @@ jobs:
         command: check
         args: --features mysql-sqlx
 
+    - name: Check project with feature sqlite-sqlx
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --features sqlite-sqlx
+
     - name: Check formatting
       run: cargo fmt --all --check
+
+    - name: Check for possible errors and coding suggestions
+      run: cargo clippy --all-features
 
     - name: Run tests with coverage for all features
       env:
