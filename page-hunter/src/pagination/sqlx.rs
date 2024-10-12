@@ -145,7 +145,7 @@ where
             .map(|row| S::from_row(&row))
             .collect::<Result<Vec<S>, _>>()?;
 
-        Ok(Page::new(&items, page, size, total as usize)?)
+        Page::new(&items, page, size, total as usize)
     }
 }
 
@@ -254,7 +254,7 @@ where
             .map(|row| S::from_row(&row))
             .collect::<Result<Vec<S>, _>>()?;
 
-        Ok(Page::new(&items, page, size, total as usize)?)
+        Page::new(&items, page, size, total as usize)
     }
 }
 
@@ -296,6 +296,6 @@ where
             .map(|row| S::from_row(&row))
             .collect::<Result<Vec<S>, _>>()?;
 
-        Ok(Page::new(&items, page, size, total as usize)?)
+        Page::new(&items, page, size, total as usize)
     }
 }
