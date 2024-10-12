@@ -33,7 +33,7 @@ impl<'p> Repository<'p> for CategoriesRepository<'p> {
 
 impl<'p> CategoriesRepositoryMethods for CategoriesRepository<'p> {
     async fn get_category_by_id(&self, id: Uuid) -> Result<Category, SqlxError> {
-        Ok(Category::from_row(
+        Category::from_row(
             &QueryBuilder::<Postgres>::new(format!(
                 r#"SELECT
 						*
@@ -48,7 +48,7 @@ impl<'p> CategoriesRepositoryMethods for CategoriesRepository<'p> {
             .build()
             .fetch_one(self.get_pool())
             .await?,
-        )?)
+        )
     }
 
     async fn list_categories(
