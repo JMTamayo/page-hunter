@@ -40,6 +40,9 @@ doc:
 check:
 	cargo check --all-features
 
+clippy:
+	cargo clippy --all-features
+
 test-tarpaulin:
 	export $(shell cat local.env | xargs) && cargo tarpaulin --all-features --out Html --output-dir page-hunter/tests
 
