@@ -472,9 +472,7 @@ pub mod test_sqlite_pagination {
         use sqlx::sqlite::SqlitePoolOptions;
         use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
 
-        let pwd: String = env::var("PWD").expect("PWD var not found");
-        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
-        let filepath: String = format!("{pwd}/{filename}");
+		let filepath: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
 
         #[derive(Clone, FromRow)]
         #[allow(dead_code)]
@@ -534,9 +532,7 @@ pub mod test_sqlite_pagination {
         use sqlx::sqlite::SqlitePoolOptions;
         use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
 
-        let pwd: String = env::var("PWD").expect("PWD var not found");
-        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
-        let filepath: String = format!("{pwd}/{filename}");
+        let filepath: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
 
         #[derive(Clone, Debug, FromRow)]
         #[allow(dead_code)]
@@ -578,9 +574,7 @@ pub mod test_sqlite_pagination {
         use sqlx::sqlite::SqlitePoolOptions;
         use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
 
-        let pwd: String = env::var("PWD").expect("PWD var not found");
-        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
-        let filepath: String = format!("{pwd}/{filename}");
+        let filepath: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
 
         #[derive(Clone, Debug, FromRow)]
         #[allow(dead_code)]
@@ -622,9 +616,7 @@ pub mod test_sqlite_pagination {
         use sqlx::sqlite::SqlitePoolOptions;
         use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
 
-        let pwd: String = env::var("PWD").expect("PWD var not found");
-        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
-        let filepath: String = format!("{pwd}/{filename}");
+        let filepath: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
 
         #[derive(Clone, Debug, FromRow)]
         #[allow(dead_code)]
