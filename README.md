@@ -18,21 +18,22 @@ To use **page-hunter** from GitHub repository with specific version, set the dep
 
 ```ini
 [dependencies]
-page-hunter = { git = "https://github.com/JMTamayo/page-hunter.git", version = "0.2.0", features = ["serde"] }
+page-hunter = { git = "https://github.com/JMTamayo/page-hunter.git", version = "0.3.0", features = ["serde"] }
 ```
 
 You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 
 ```ini
 [dependencies]
-page-hunter = { version = "0.2.0", features = ["utoipa", "pg-sqlx"] }
+page-hunter = { version = "0.3.0", features = ["utoipa", "pg-sqlx"] }
 ```
 
 ## CRATE FEATURES
-- `serde`: Add [Serialize](https://docs.rs/serde/1.0.203/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.203/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.203). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
-- `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.3/utoipa/trait.ToSchema.html) support for `Page` and  `Book` based on [utoipa](https://crates.io/crates/utoipa/4.2.3). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
-- `pg-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.7.4/sqlx/) for PostgreSQL database.
-- `mysql-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.7.4/sqlx/) for MySQL database.
+- `serde`: Add [Serialize](https://docs.rs/serde/1.0.200/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.200/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.200). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
+- `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.0/utoipa/trait.ToSchema.html) support for `Page` and  `Book` based on [utoipa](https://crates.io/crates/utoipa/4.2.0). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
+- `pg-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for PostgreSQL database.
+- `mysql-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for MySQL database.
+- `sqlite-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for SQLIte database.
 
 ## BASIC OPERATION
 The **page-hunter** library provides two main models to manage pagination:
@@ -180,7 +181,7 @@ On feature `serde` enabled, you can serialize and deserialize a `Book` as follow
 
 Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples) folder where you can find practical uses in REST API implementations with some web frameworks.
 
-#### Paginate records from a PostgreSQL database with SQLx:
+#### Paginate records from a relational database with SQLx:
 To paginate records from a PostgreSQL database:
 ```rust,no_run
     use page_hunter::*;
@@ -245,11 +246,43 @@ To paginate records from a MySQL database:
     }
 ```
 
+To paginate records from a SQLite database:
+```rust,no_run
+    use page_hunter::*;
+    use sqlx::sqlite::{SqlitePool, Sqlite};
+    use sqlx::{FromRow, QueryBuilder};
+    use uuid::Uuid;
+
+    #[tokio::main]
+    async fn main() {
+        #[derive(Clone, Debug, FromRow)]
+        pub struct Country {
+            id: Uuid,
+            name: String,
+        }
+
+        let pool: SqlitePool = SqlitePool::connect(
+            "sqlite://countries.db"
+        ).await.unwrap_or_else(|error| {
+            panic!("Error connecting to database: {:?}", error);
+        });
+
+        let query: QueryBuilder<Sqlite> = QueryBuilder::new(
+            "SELECT * FROM countries"
+        );
+
+        let page: Page<Country> =
+            query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
+                panic!("Error paginating records: {:?}", error);
+       });
+    }
+```
+
 ## DEVELOPMENT
 To test `page-hunter`, follow these recommendations:
 
 #### Set env variables:
-Create `local.env` file at workspace folder to store the required environment variables
+Create `local.env` file at workspace folder to store the required environment variables. For example,
 ```text
     DB_HOST=localhost
     DB_USER=test
@@ -257,10 +290,20 @@ Create `local.env` file at workspace folder to store the required environment va
     DB_NAME=test
     PG_DB_PORT=5432
     MYSQL_DB_PORT=3306
+	SQLITE_DB_PATH=$PWD/page-hunter/tests/migrations/sqlite/test.db
+	SQLITE_MIGRATIONS_PATH=page-hunter/tests/migrations/sqlite
+	MYSQL_MIGRATIONS_PATH=page-hunter/tests/migrations/mysql
+	PG_MIGRATIONS_PATH=page-hunter/tests/migrations/postgres
 ```
 
+#### Install required tools:
+```bash
+    make install-tools
+```
+This command installs sqlx and cargo-llvm-cov.
+
 #### Setup databases:
-Run databases as Docker containers using the following commands:
+Run PostgreSQL-MySQL databases as Docker containers and create SQLite database file using the following commands:
 
 ##### Postgres SQL:
 ```bash
@@ -272,11 +315,12 @@ Run databases as Docker containers using the following commands:
     make mysql-db-docker
 ```
 
-#### Run database migrations:
-- Install sqlx-cli:
+##### SQLite:
 ```bash
-    make install-sqlx-cli
+    make sqlite-db-local
 ```
+
+#### Run database migrations:
 
 ##### Postgres SQL
 - Run migrations:
@@ -300,29 +344,23 @@ Run databases as Docker containers using the following commands:
     make revert-mysql-migrations
 ```
 
+##### SQLite
+- Run migrations:
+```bash
+    make run-sqlite-migrations
+```
+
+- Revert migrations:
+```bash
+    make revert-sqlite-migrations
+```
+
 #### To test:
 ```bash
     make test
 ```
 
-#### To test using tarpaulin:
-- Install cargo-tarpaulin:
-```bash
-    make install-tarpaulin
-```
-
-- Run tests:
-```bash
-    make test-tarpaulin
-```
-
 #### To test using llvm-cov:
-- Install llvm-cov:
-```bash
-    make install-llvm-cov
-```
-
-- Run tests:
 ```bash
     make test-llvm-cov
 ```

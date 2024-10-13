@@ -8,21 +8,22 @@
 //!
 //! ```ini
 //! [dependencies]
-//! page-hunter = { git = "https://github.com/JMTamayo/page-hunter.git", version = "0.2.0", features = ["serde"] }
+//! page-hunter = { git = "https://github.com/JMTamayo/page-hunter.git", version = "0.3.0", features = ["serde"] }
 //! ```
 //!
 //! You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
 //!
 //! ```ini
 //! [dependencies]
-//! page-hunter = { version = "0.2.0", features = ["utoipa", "pg-sqlx"] }
+//! page-hunter = { version = "0.3.0", features = ["utoipa", "pg-sqlx"] }
 //! ```
 //!
 //! ## CRATE FEATURES
-//! - `serde`: Add [Serialize](https://docs.rs/serde/1.0.203/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.203/serde/trait.Deserialize.html) support for [`Page`] and [`Book`] based on [serde](https://crates.io/crates/serde/1.0.203). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
-//!  - `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.3/utoipa/trait.ToSchema.html) support for [`Page`] and  [`Book`] based on [utoipa](https://crates.io/crates/utoipa/4.2.3). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
-//! - `pg-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.7.4/sqlx/) for PostgreSQL database.
-//! - `mysql-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.7.4/sqlx/)  for MySQL database.
+//! - `serde`: Add [Serialize](https://docs.rs/serde/1.0.200/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.200/serde/trait.Deserialize.html) support for [`Page`] and [`Book`] based on [serde](https://crates.io/crates/serde/1.0.200). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
+//!  - `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.0/utoipa/trait.ToSchema.html) support for [`Page`] and  [`Book`] based on [utoipa](https://crates.io/crates/utoipa/4.2.0). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
+//! - `pg-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for PostgreSQL database.
+//! - `mysql-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/)  for MySQL database.
+//! - `sqlite-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for SQLIte database.
 //!
 //! ## BASIC OPERATION
 //!
@@ -171,7 +172,7 @@
 //!
 //! Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples)  folder where you can find practical uses in REST API implementations with some web frameworks.
 //!
-//! #### Paginate records from a PostgreSQL database with SQLx:
+//! #### Paginate records from a relational database with SQLx:
 //! To paginate records from a PostgreSQL database:
 //! ```rust,no_run
 //!     use page_hunter::*;
@@ -226,6 +227,38 @@
 //!         });
 //!
 //!         let query: QueryBuilder<MySql> = QueryBuilder::new(
+//!             "SELECT * FROM countries"
+//!         );
+//!
+//!         let page: Page<Country> =
+//!             query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
+//!                 panic!("Error paginating records: {:?}", error);
+//!             });
+//!     }
+//! ```
+//!
+//! To paginate records from a SQLite database:
+//! ```rust,no_run
+//!     use page_hunter::*;
+//!     use sqlx::sqlite::{SqlitePool, Sqlite};
+//!     use sqlx::{FromRow, QueryBuilder};
+//!     use uuid::Uuid;
+//!
+//!     #[tokio::main]
+//!     async fn main() {
+//!         #[derive(Clone, Debug, FromRow)]
+//!         pub struct Country {
+//!             id: Uuid,
+//!             name: String,
+//!         }
+//!
+//!         let pool: SqlitePool = SqlitePool::connect(
+//!             "sqlite://countries.db"
+//!         ).await.unwrap_or_else(|error| {
+//!             panic!("Error connecting to database: {:?}", error);
+//!         });
+//!
+//!         let query: QueryBuilder<Sqlite> = QueryBuilder::new(
 //!             "SELECT * FROM countries"
 //!         );
 //!
