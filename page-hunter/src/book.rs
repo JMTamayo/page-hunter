@@ -11,7 +11,8 @@ use utoipa::{
     ToSchema,
 };
 
-use crate::Page;
+#[allow(unused_imports)]
+use crate::{Page, PaginationError};
 
 /// Model to represent a book of paginated items.
 /// #### Fields:
