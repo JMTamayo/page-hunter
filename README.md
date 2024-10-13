@@ -1,12 +1,25 @@
-# PAGE HUNTER
+<div align="center"><img src="docs/page-hunter-logo-v2.png" width="350"/></div>
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-[![dependency status](https://deps.rs/repo/github/JMTamayo/page-hunter/status.svg)](https://deps.rs/repo/github/JMTamayo/page-hunter)
-[![CI](https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml/badge.svg)](https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/JMTamayo/page-hunter/graph/badge.svg?token=R1LAPNSV5J)](https://codecov.io/gh/JMTamayo/page-hunter)
-[![crates.io](https://img.shields.io/crates/v/page-hunter.svg?label=crates.io&color=orange&logo=rust)](https://crates.io/crates/page-hunter)
-[![docs.rs](https://img.shields.io/static/v1?label=docs.rs&message=latest&color=blue&logo=docsdotrs)](http://docs.rs/page-hunter/latest/)
+<div align="center">
+	<img src="https://img.shields.io/github/license/JMTamayo/page-hunter">
+	<a href="https://deps.rs/repo/github/JMTamayo/page-hunter">
+		<img src="https://deps.rs/repo/github/JMTamayo/page-hunter/status.svg">
+	</a>
+	<a href="https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml">
+		<img src="https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml/badge.svg">
+	</a>
+	<a href="https://codecov.io/gh/JMTamayo/page-hunter">
+		<img src="https://codecov.io/gh/JMTamayo/page-hunter/graph/badge.svg?token=R1LAPNSV5J">
+	</a>
+	<a href="https://crates.io/crates/page-hunter">
+		<img src="https://img.shields.io/crates/v/page-hunter.svg?label=crates.io&color=orange&logo=rust">
+	</a>
+	<a href="http://docs.rs/page-hunter/latest/">
+		<img src="https://img.shields.io/static/v1?label=docs.rs&message=latest&color=blue&logo=docsdotrs">
+	</a>
+</div>
 
+---
 
 ***Page Hunter*** library is a Rust-based pagination tool that provides a way to manage and navigate through pages of data.
 It offers a set of resources that encapsulates all the necessary pagination information such as the current page, total pages, previous page, next page and the items on the current page.
