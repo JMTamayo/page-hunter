@@ -13,9 +13,9 @@ keywords = ["pagination", "paginator", "page_model"]
 categories = ["development-tools"]
 
 [dependencies]
-serde = { version = "1.0.210", features = ["derive"],  optional = true }
-utoipa = { version = "4.2.3", optional = true}
-sqlx = { version = ">=0.8.2", features = ["runtime-tokio"], optional = true }
+serde = { version = ">=1.0.200", features = ["derive"],  optional = true }
+utoipa = { version = ">=4.2.0", optional = true}
+sqlx = { version = ">=0.8.0", features = ["runtime-tokio"], optional = true }
 
 [dev-dependencies]
 sqlx = { version = "0.8.2", features = ["uuid", "time"] }
