@@ -49,22 +49,25 @@ jobs:
     - name: Create SQLite database
       env:
         SQLITE_DB_PATH: ${{ github.workspace }}/${{ secrets.SQLITE_DB_PATH }}
-      run: bash ./page-hunter/tests/migrations/sqlite/scripts/run_db.sh
+      run: touch ${{ env.SQLITE_DB_PATH }}
 
     - name: Run migrations for Postgres
       env:
+        MIGRATIONS_PATH: page-hunter/tests/migrations/postgres
         DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.DB_NAME }}
-      run: sqlx migrate run --source page-hunter/tests/migrations/postgres
+      run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
 
     - name: Run migrations for MySQL
       env:
+        MIGRATIONS_PATH: page-hunter/tests/migrations/mysql
         DATABASE_URL: mysql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.MYSQL_DB_PORT }}/${{ secrets.DB_NAME }}
-      run: sqlx migrate run --source page-hunter/tests/migrations/mysql
+      run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
 
     - name: Run migrations for SQLite
       env:
+        MIGRATIONS_PATH: page-hunter/tests/migrations/sqlite
         DATABASE_URL: sqlite://${{ secrets.SQLITE_DB_PATH }}
-      run: bash ./page-hunter/tests/migrations/sqlite/scripts/run_migrations.sh
+      run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
 
     - name: Check project with all features
       run: cargo check --all-features
