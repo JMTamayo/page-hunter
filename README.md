@@ -303,10 +303,10 @@ Create `local.env` file at workspace folder to store the required environment va
     DB_NAME=test
     PG_DB_PORT=5432
     MYSQL_DB_PORT=3306
-	SQLITE_DB_PATH=$PWD/page-hunter/tests/migrations/sqlite/test.db
-	SQLITE_MIGRATIONS_PATH=page-hunter/tests/migrations/sqlite
-	MYSQL_MIGRATIONS_PATH=page-hunter/tests/migrations/mysql
-	PG_MIGRATIONS_PATH=page-hunter/tests/migrations/postgres
+    SQLITE_DB_PATH=$PWD/page-hunter/tests/migrations/sqlite/test.db
+    SQLITE_MIGRATIONS_PATH=page-hunter/tests/migrations/sqlite
+    MYSQL_MIGRATIONS_PATH=page-hunter/tests/migrations/mysql
+    PG_MIGRATIONS_PATH=page-hunter/tests/migrations/postgres
 ```
 
 #### Install required tools:
