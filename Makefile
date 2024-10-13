@@ -1,53 +1,99 @@
-pg-db-docker:
-	docker run --name postgres-db -e POSTGRES_PASSWORD=docker -e POSTGRES_DB=test -e POSTGRES_USER=test -p 5432:5432 -d postgres
-
-mysql-db-docker:
-	docker run --name mysql-db -e MYSQL_ROOT_PASSWORD=docker -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=docker -p 3306:3306 -d mysql
-
-install-sqlx-cli:
-	cargo install sqlx-cli --no-default-features --features postgres,mysql,sqlite
-
-install-tarpaulin:
-	cargo install cargo-tarpaulin
-
-install-llvm-cov:
+# Install the required tools to run databases, manage migrations, and run tests
+install-tools:
+	cargo install sqlx-cli --no-default-features --features postgres,mysql,sqlite && \
 	cargo install cargo-llvm-cov
 
+# Manage PostgreSQL database:
+## Start the PostgreSQL database in a Docker container
+pg-db-docker:
+	bash ./page-hunter/tests/migrations/postgres/scripts/run_db.sh
+
+## Run the PostgreSQL migrations
 run-postgres-migrations:
-	sqlx migrate run --source page-hunter/tests/migrations/postgres --database-url postgres://test:docker@localhost:5432/test
+	bash ./page-hunter/tests/migrations/postgres/scripts/run_migrations.sh
 
-revert-postgres-migrations:
-	sqlx migrate revert --source page-hunter/tests/migrations/postgres --database-url postgres://test:docker@localhost:5432/test
+## Revert the last PostgreSQL migration
+revert-postgres-migration:
+	bash ./page-hunter/tests/migrations/postgres/scripts/revert_migration.sh
 
+# Manage MySQL database:
+## Start the MySQL database in a Docker container
+mysql-db-docker:
+	bash ./page-hunter/tests/migrations/mysql/scripts/run_db.sh
+
+## Run the MySQL migrations
 run-mysql-migrations:
-	sqlx migrate run --source page-hunter/tests/migrations/mysql --database-url mysql://test:docker@localhost:3306/test
+	bash ./page-hunter/tests/migrations/mysql/scripts/run_migrations.sh
 
-revert-mysql-migrations:
-	sqlx migrate revert --source page-hunter/tests/migrations/mysql --database-url mysql://test:docker@localhost:3306/test
+## Revert the last MySQL migration
+revert-mysql-migration:
+	bash ./page-hunter/tests/migrations/mysql/scripts/revert_migration.sh
 
-fmt-check:
-	cargo fmt --all --check
+# Manage SQLite database:
+## Create local SQLite database file
+sqlite-db-local:
+	bash ./page-hunter/tests/migrations/sqlite/scripts/run_db.sh
 
-fmt:
-	cargo fmt --all
+## Run the SQLite migrations
+run-sqlite-migrations:
+	bash ./page-hunter/tests/migrations/sqlite/scripts/run_migrations.sh
 
-doc-open:
-	cargo doc --all-features --open
+## Revert the last SQLite migration
+revert-sqlite-migrations:
+	bash ./page-hunter/tests/migrations/sqlite/scripts/revert_migrations.sh
 
-doc:
-	cargo doc --all-features
-
+# Check the rust code:
+## Check all features
 check:
 	cargo check --all-features
 
+## Check feature serde
+check-serde:
+	cargo check --features serde
+
+## Check feature utoipa
+check-utoipa:
+	cargo check --features utoipa
+
+## Check feature pg-sqlx
+check-pg-sqlx:
+	cargo check --features pg-sqlx
+
+## Check feature mysql-sqlx
+check-mysql-sqlx:
+	cargo check --features mysql-sqlx
+
+## Check feature sqlite-sqlx
+check-sqlite-sqlx:
+	cargo check --features sqlite-sqlx
+
+# Code formatting and linting:
+## Format the code
+fmt:
+	cargo fmt --all
+
+## Check the code formatting
+fmt-check:
+	cargo fmt --all --check
+
+## Run the linter for all features
 clippy:
 	cargo clippy --all-features
 
-test-tarpaulin:
-	export $(shell cat local.env | xargs) && cargo tarpaulin --all-features --out Html --output-dir page-hunter/tests
+# Documentation:
+## Create and open the documentation
+doc-open:
+	cargo doc --all-features --open
 
+## Create the documentation
+doc:
+	cargo doc --all-features
+
+# Run the tests:
+## Run the tests with coverage
 test-llvm-cov:
-	export $(shell cat local.env | xargs) && cargo llvm-cov --html --workspace --all-features
+	cargo llvm-cov --html --workspace --all-features
 
+## Run the tests
 test:
-	export $(shell cat local.env | xargs) && cargo test --all-features
+	cargo test --all-features
