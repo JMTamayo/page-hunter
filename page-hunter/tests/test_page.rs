@@ -46,7 +46,7 @@ mod test_page_model {
         let pagination_error: PaginationError = pagination_result.unwrap_err();
         assert!(pagination_error
             .to_string()
-            .eq("FIELD VALUE ERROR- Page index '3' exceeds total pages '3'"));
+            .eq("INVALID VALUE ERROR- Page index '3' exceeds total pages '3'"));
     }
 
     /// Test [`Page`] constructor with invalid `items` value: `items` length exceeds `total` elements.
@@ -64,7 +64,7 @@ mod test_page_model {
         let pagination_error: PaginationError = pagination_result.unwrap_err();
         assert!(pagination_error
             .to_string()
-            .eq("FIELD VALUE ERROR- Items length '4' is not equal to page size '2' for an intermediate page '0'",));
+            .eq("INVALID VALUE ERROR- Items length '4' is not equal to page size '2' for an intermediate page '0'",));
     }
 
     /// Test [`Page`] constructor with invalid `items` value: `items` length is not equal to `size` for an intermediate `page`.
@@ -82,7 +82,7 @@ mod test_page_model {
         let pagination_error: PaginationError = pagination_result.unwrap_err();
         assert!(pagination_error
             .to_string()
-            .eq("FIELD VALUE ERROR- Items length '1' is not equal to page size '2' for an intermediate page '0'"));
+            .eq("INVALID VALUE ERROR- Items length '1' is not equal to page size '2' for an intermediate page '0'"));
     }
 
     /// Test [`Page`] into_iter method.
@@ -119,7 +119,7 @@ mod test_page_model {
         let pagination_error: PaginationError = pagination_result.unwrap_err();
         assert!(pagination_error
             .to_string()
-            .eq("FIELD VALUE ERROR- Total elements error: expected '2', found '5'"));
+            .eq("INVALID VALUE ERROR- Total elements error: expected '2', found '5'"));
     }
 
     /// Test default [`Page`] constructor.
@@ -277,7 +277,7 @@ mod test_page_model {
         let error: SerdeJsonError = deserialized.unwrap_err();
         assert_eq!(
             error.to_string(),
-            "FIELD VALUE ERROR- Total pages error: expected '3', found '0'"
+            "INVALID VALUE ERROR- Total pages error: expected '3', found '0'"
         );
     }
 
@@ -303,7 +303,7 @@ mod test_page_model {
         let error: SerdeJsonError = deserialized.unwrap_err();
         assert_eq!(
             error.to_string(),
-            "FIELD VALUE ERROR- Previous page index error: expected 'None', found 'Some(2)'"
+            "INVALID VALUE ERROR- Previous page index error: expected 'None', found 'Some(2)'"
         );
     }
 
@@ -329,7 +329,7 @@ mod test_page_model {
         let error: SerdeJsonError = deserialized.unwrap_err();
         assert_eq!(
             error.to_string(),
-            "FIELD VALUE ERROR- Next page index error: expected 'Some(1)', found 'Some(2)'"
+            "INVALID VALUE ERROR- Next page index error: expected 'Some(1)', found 'Some(2)'"
         );
     }
 

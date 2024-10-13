@@ -1,4 +1,4 @@
-use super::models::*;
+use crate::{Book, Page, PaginationResult};
 
 /// Paginate records into a [`Page`] model.
 ///
@@ -30,17 +30,16 @@ where
     R: IntoIterator + Clone,
     R::Item: Clone,
 {
-    Ok(Page::new(
-        &records
-            .to_owned()
-            .into_iter()
-            .skip(size * page)
-            .take(size)
-            .collect::<Vec<R::Item>>(),
-        page,
-        size,
-        records.clone().into_iter().count(),
-    )?)
+    let selected_records: Vec<R::Item> = records
+        .clone()
+        .into_iter()
+        .skip(size * page)
+        .take(size)
+        .collect::<Vec<R::Item>>();
+
+    let total: usize = records.clone().into_iter().count();
+
+    Page::new(&selected_records, page, size, total)
 }
 
 /// Bind records into a [`Book`] model.
@@ -78,21 +77,21 @@ where
         false => total.div_ceil(size).max(1),
     };
 
-    Ok(Book::new(
-        &(0..pages)
-            .map(|page| {
-                Page::new(
-                    &records
-                        .to_owned()
-                        .into_iter()
-                        .skip(size * page)
-                        .take(size)
-                        .collect::<Vec<R::Item>>(),
-                    page,
-                    size,
-                    total,
-                )
-            })
-            .collect::<PaginationResult<Vec<Page<R::Item>>>>()?,
-    ))
+    let sheets = (0..pages)
+        .map(|page| {
+            Page::new(
+                &records
+                    .clone()
+                    .into_iter()
+                    .skip(size * page)
+                    .take(size)
+                    .collect::<Vec<R::Item>>(),
+                page,
+                size,
+                total,
+            )
+        })
+        .collect::<PaginationResult<Vec<Page<R::Item>>>>()?;
+
+    Ok(Book::new(&sheets))
 }

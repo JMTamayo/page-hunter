@@ -54,10 +54,7 @@ impl From<SqlxError> for HttpException {
 
         Self {
             status_code,
-            details: format!(
-                "{description}: {error}",
-                description = status_code.to_string()
-            ),
+            details: format!("{status_code}: {error}",),
         }
     }
 }
@@ -65,9 +62,9 @@ impl From<SqlxError> for HttpException {
 impl From<PaginationError> for HttpException {
     fn from(error: PaginationError) -> Self {
         match error.get_error_kind() {
-            ErrorKind::FieldValueError(details) => Self::internal_server_error(details),
+            ErrorKind::InvalidValue(details) => Self::internal_server_error(details),
 
-            ErrorKind::SQLxError(error) => match error {
+            ErrorKind::SQLx(error) => match error {
                 SqlxError::RowNotFound => Self::not_found(&error.to_string()),
                 _ => Self::internal_server_error(&error.to_string()),
             },

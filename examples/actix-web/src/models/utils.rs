@@ -9,17 +9,11 @@ pub struct PaginationParams {
 
 impl PaginationParams {
     pub fn get_page(&self) -> usize {
-        match self.page {
-            Some(page) => page,
-            None => 0,
-        }
+        self.page.unwrap_or(0)
     }
 
     pub fn get_size(&self) -> usize {
-        match self.size {
-            Some(size) => size,
-            None => 15,
-        }
+        self.size.unwrap_or(15)
     }
 }
 
@@ -30,9 +24,6 @@ pub struct BindingParams {
 
 impl BindingParams {
     pub fn get_size(&self) -> usize {
-        match self.size {
-            Some(size) => size,
-            None => 15,
-        }
+        self.size.unwrap_or(15)
     }
 }

@@ -230,7 +230,7 @@ pub mod test_postgres_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "FIELD VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
+            "INVALID VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
         )
     }
 }
@@ -455,7 +455,207 @@ pub mod test_mysql_pagination {
         let error: String = users_pagination.unwrap_err().to_string();
         assert_eq!(
             error,
-            "FIELD VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
+            "INVALID VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
+        )
+    }
+}
+
+#[cfg(feature = "sqlite-sqlx")]
+#[cfg(test)]
+pub mod test_sqlite_pagination {
+    use page_hunter::*;
+    use std::env;
+
+    /// Test successful pagination
+    #[tokio::test]
+    async fn test_pagination_success() {
+        use sqlx::sqlite::SqlitePoolOptions;
+        use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
+
+        let pwd: String = env::var("PWD").expect("PWD var not found");
+        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
+        let filepath: String = format!("{pwd}/{filename}");
+
+        #[derive(Clone, FromRow)]
+        #[allow(dead_code)]
+        pub struct Product {
+            id: i64,
+            name: String,
+            description: String,
+            price: f64,
+        }
+
+        let pool: SqlitePool = match SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect(&format!("sqlite://{}", filepath))
+            .await
+        {
+            Ok(pool) => pool,
+            Err(e) => {
+                panic!("Failed to connect to SQLite: {:?}", e);
+            }
+        };
+
+        let query: QueryBuilder<Sqlite> = QueryBuilder::<Sqlite>::new("SELECT * FROM products");
+
+        let products_pagination: PaginationResult<Page<Product>> =
+            query.paginate(&pool, 3, 2).await;
+        assert!(products_pagination.is_ok());
+
+        let products: Page<Product> = products_pagination.unwrap();
+
+        assert_eq!(products.get_items().len(), 2);
+        assert_eq!(products.get_page(), 3);
+        assert_eq!(products.get_size(), 2);
+        assert_eq!(products.get_pages(), 5);
+        assert_eq!(products.get_total(), 10);
+        assert_eq!(products.get_previous_page(), Some(2));
+        assert_eq!(products.get_next_page(), Some(4));
+
+        assert_eq!(products.get_items()[0].name, "Product 7");
+        assert_eq!(products.get_items()[1].name, "Product 8");
+
+        assert_eq!(
+            products.get_items()[0].description,
+            "Description for product 7"
+        );
+        assert_eq!(
+            products.get_items()[1].description,
+            "Description for product 8"
+        );
+
+        assert_eq!(products.get_items()[0].price, 70.0);
+        assert_eq!(products.get_items()[1].price, 80.0);
+    }
+
+    /// Test database error when is not possible to get total by invalid query
+    #[tokio::test]
+    async fn test_error_fetching_total_records() {
+        use sqlx::sqlite::SqlitePoolOptions;
+        use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
+
+        let pwd: String = env::var("PWD").expect("PWD var not found");
+        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
+        let filepath: String = format!("{pwd}/{filename}");
+
+        #[derive(Clone, Debug, FromRow)]
+        #[allow(dead_code)]
+        pub struct Product {
+            id: i64,
+            name: String,
+            description: String,
+            price: f64,
+        }
+
+        let pool: SqlitePool = match SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect(&format!("sqlite://{}", filepath))
+            .await
+        {
+            Ok(pool) => pool,
+            Err(e) => {
+                panic!("Failed to connect to SQLite: {:?}", e);
+            }
+        };
+
+        let query: QueryBuilder<Sqlite> = QueryBuilder::<Sqlite>::new("SELECT * FROM products;");
+
+        let products_pagination: PaginationResult<Page<Product>> =
+            query.paginate(&pool, 3, 2).await;
+        assert!(products_pagination.is_err());
+
+        let error: String = products_pagination.unwrap_err().to_string();
+        assert_eq!(
+            error,
+            "SQLX ERROR- error returned from database: (code: 1) near \";\": syntax error"
+                .to_string(),
+        )
+    }
+
+    /// Test from row error when is not possible to parse the result
+    #[tokio::test]
+    async fn test_from_row_error() {
+        use sqlx::sqlite::SqlitePoolOptions;
+        use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
+
+        let pwd: String = env::var("PWD").expect("PWD var not found");
+        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
+        let filepath: String = format!("{pwd}/{filename}");
+
+        #[derive(Clone, Debug, FromRow)]
+        #[allow(dead_code)]
+        pub struct Product {
+            id: i64,
+            name: String,
+            description: String,
+            price: f64,
+            quantity: i32,
+        }
+
+        let pool: SqlitePool = match SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect(&format!("sqlite://{}", filepath))
+            .await
+        {
+            Ok(pool) => pool,
+            Err(e) => {
+                panic!("Failed to connect to SQLite: {:?}", e);
+            }
+        };
+
+        let query: QueryBuilder<Sqlite> = QueryBuilder::<Sqlite>::new("SELECT * FROM products");
+
+        let products_pagination: PaginationResult<Page<Product>> =
+            query.paginate(&pool, 3, 2).await;
+        assert!(products_pagination.is_err());
+
+        let error: String = products_pagination.unwrap_err().to_string();
+        assert_eq!(
+            error,
+            "SQLX ERROR- no column found for name: quantity".to_string(),
+        )
+    }
+
+    /// Test pagination with invalid page
+    #[tokio::test]
+    async fn test_pagination_invalid_page() {
+        use sqlx::sqlite::SqlitePoolOptions;
+        use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool};
+
+        let pwd: String = env::var("PWD").expect("PWD var not found");
+        let filename: String = env::var("SQLITE_DB_PATH").expect("SQLITE_DB_PATH var not found");
+        let filepath: String = format!("{pwd}/{filename}");
+
+        #[derive(Clone, Debug, FromRow)]
+        #[allow(dead_code)]
+        pub struct Product {
+            id: i64,
+            name: String,
+            description: String,
+            price: f64,
+        }
+
+        let pool: SqlitePool = match SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect(&format!("sqlite://{}", filepath))
+            .await
+        {
+            Ok(pool) => pool,
+            Err(e) => {
+                panic!("Failed to connect to SQLite: {:?}", e);
+            }
+        };
+
+        let query: QueryBuilder<Sqlite> = QueryBuilder::<Sqlite>::new("SELECT * FROM products");
+
+        let products_pagination: PaginationResult<Page<Product>> =
+            query.paginate(&pool, 5, 30).await;
+        assert!(products_pagination.is_err());
+
+        let error: String = products_pagination.unwrap_err().to_string();
+        assert_eq!(
+            error,
+            "INVALID VALUE ERROR- Page index '5' exceeds total pages '1'".to_string(),
         )
     }
 }

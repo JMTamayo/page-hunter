@@ -31,3 +31,6 @@ venv/
 
 # Env files
 *.env
+
+# SQLite test database file:
+test.db

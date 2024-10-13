@@ -1,7 +1,7 @@
 use actix_web::{get, web, HttpResponse};
 use page_hunter::{bind_records, paginate_records, Book, Page};
 
-use crate::conf::conf::ApiColombiaV1Config;
+use crate::config::conf::ApiColombiaV1Config;
 
 use crate::models::departments::Department;
 use crate::models::errors::Exception;

@@ -6,20 +6,17 @@ use utoipa_scalar::{Scalar, Servable as ScalarServable};
 use utoipa_swagger_ui::SwaggerUi;
 
 mod api;
-use api::routes::{search_all_departments, search_departments_pagination, service_not_found};
-
-mod conf;
-use conf::conf::ApiColombiaV1Config;
-
+mod config;
 mod docs;
-use docs::open_api::ApiDoc;
-
 mod models;
-
 mod services;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    use api::routes::{search_all_departments, search_departments_pagination, service_not_found};
+    use config::conf::ApiColombiaV1Config;
+    use docs::open_api::ApiDoc;
+
     let api_colombia_v1_config: ApiColombiaV1Config = ApiColombiaV1Config::get();
 
     HttpServer::new(move || {

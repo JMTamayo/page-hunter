@@ -29,64 +29,69 @@ jobs:
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
         ports:
           - 3306:3306
+
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install Rust
-      uses: actions-rust-lang/setup-rust-toolchain@v1.8.0
+      uses: actions-rust-lang/setup-rust-toolchain@v1.10.1
       with:
         components: llvm-tools-preview
 
     - name: Install cargo-llvm-cov
-      uses: taiki-e/install-action@v2.33.22
+      uses: taiki-e/install-action@v2.44.33
       with:
         tool: cargo-llvm-cov
 
     - name: Install SQLx CLI
       run: cargo install sqlx-cli --no-default-features --features postgres,mysql,sqlite
 
+    - name: Create SQLite database
+      env:
+        SQLITE_DB_PATH: ${{ github.workspace }}/${{ secrets.SQLITE_DB_PATH }}
+      run: touch ${{ env.SQLITE_DB_PATH }}
+
     - name: Run migrations for Postgres
       env:
+        MIGRATIONS_PATH: page-hunter/tests/migrations/postgres
         DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.DB_NAME }}
-      run: sqlx migrate run --source page-hunter/tests/migrations/postgres
+      run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
 
     - name: Run migrations for MySQL
       env:
+        MIGRATIONS_PATH: page-hunter/tests/migrations/mysql
         DATABASE_URL: mysql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.MYSQL_DB_PORT }}/${{ secrets.DB_NAME }}
-      run: sqlx migrate run --source page-hunter/tests/migrations/mysql
+      run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
+
+    - name: Run migrations for SQLite
+      env:
+        MIGRATIONS_PATH: page-hunter/tests/migrations/sqlite
+        DATABASE_URL: sqlite://${{ github.workspace }}/${{ secrets.SQLITE_DB_PATH }}
+      run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
 
     - name: Check project with all features
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --all-features
+      run: cargo check --all-features
 
     - name: Check project with feature serde
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --features serde
+      run: cargo check --features serde
 
     - name: Check project with feature utoipa
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --features utoipa
+      run: cargo check --features utoipa
 
     - name: Check project with feature pg-sqlx
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --features pg-sqlx
+      run: cargo check --features pg-sqlx
 
     - name: Check project with feature mysql-sqlx
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --features mysql-sqlx
+      run: cargo check --features mysql-sqlx
 
-    - name: Check formatting
+    - name: Check project with feature sqlite-sqlx
+      run: cargo check --features sqlite-sqlx
+
+    - name: Verify project formatting
       run: cargo fmt --all --check
+
+    - name: Check for possible errors and coding suggestions
+      run: cargo clippy --all-features
 
     - name: Run tests with coverage for all features
       env:
@@ -96,6 +101,8 @@ jobs:
         DB_HOST: ${{ secrets.DB_HOST }}
         PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
         MYSQL_DB_PORT: ${{ secrets.MYSQL_DB_PORT }}
+        PWD: ${{ github.workspace }}
+        SQLITE_DB_PATH: ${{ secrets.SQLITE_DB_PATH }}
       run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
     - name: Upload coverage to Codecov

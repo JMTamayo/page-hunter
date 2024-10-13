@@ -132,7 +132,7 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
             &products_base
                 .clone()
                 .into_iter()
-                .map(|product_base| Product::from(product_base))
+                .map(|product_base| product_base.into())
                 .collect::<Vec<Product>>(),
             products_base.get_page(),
             products_base.get_size(),
@@ -143,7 +143,7 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
     }
 
     async fn delete_product(&self, id: Uuid) -> Result<ProductId, SqlxError> {
-        Ok(ProductId::from_row(
+        ProductId::from_row(
             &QueryBuilder::<Postgres>::new(format!(
                 r#"
 				DELETE FROM
@@ -158,11 +158,11 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
             .build()
             .fetch_one(self.get_pool())
             .await?,
-        )?)
+        )
     }
 
     async fn create_product(&self, product: &CreateProductRequest) -> Result<ProductId, SqlxError> {
-        Ok(ProductId::from_row(
+        ProductId::from_row(
             &QueryBuilder::<Postgres>::new(format!(
                 r#"
 				INSERT INTO inventory.products (
@@ -189,7 +189,7 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
             .build()
             .fetch_one(self.get_pool())
             .await?,
-        )?)
+        )
     }
 
     async fn update_product_quantity(
@@ -197,7 +197,7 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
         id: Uuid,
         update_by: &UpdateProductQuantityRequest,
     ) -> Result<ProductId, SqlxError> {
-        Ok(ProductId::from_row(
+        ProductId::from_row(
             &QueryBuilder::<Postgres>::new(format!(
                 r#"
 				UPDATE
@@ -214,6 +214,6 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
             .build()
             .fetch_one(self.get_pool())
             .await?,
-        )?)
+        )
     }
 }

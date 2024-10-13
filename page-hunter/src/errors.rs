@@ -1,31 +1,31 @@
 use std::fmt::{Debug, Display, Formatter, Result};
 
-#[allow(unused_imports)]
-use super::models::Page;
-
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
 use sqlx::Error as SqlxError;
 
+#[allow(unused_imports)]
+use crate::Page;
+
 /// Provides a way to categorize the pagination error.
 pub enum ErrorKind {
-    /// Raised when a value in a field on the [`Page`] is invalid based on the pagination logic.
-    FieldValueError(String),
+    /// Raised when the value of a field is invalid.
+    InvalidValue(String),
 
-    /// Raised during a database operation using the [`sqlx`]. Only available when the `pg-sqlx` or `mysql-sqlx` features are enabled.
+    /// Raised during a database operation using the [`sqlx`] crate. Only available when the `pg-sqlx`, `mysql-sqlx` or `sqlite-sqlx` features are enabled.
     #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
-    SQLxError(SqlxError),
+    SQLx(SqlxError),
 }
 
 impl ErrorKind {
-    /// Check if the [`ErrorKind`] is a [`ErrorKind::FieldValueError`].
-    pub fn is_field_value_error(&self) -> bool {
-        matches!(self, ErrorKind::FieldValueError(_))
+    /// Check if the [`ErrorKind`] is a [`ErrorKind::InvalidValue`].
+    pub fn is_invalid_value_error(&self) -> bool {
+        matches!(self, ErrorKind::InvalidValue(_))
     }
 
-    /// Check if the [`ErrorKind`] is a [`ErrorKind::SQLxError`]. Only available when the `pg-sqlx` or `mysql-sqlx` features are enabled.
+    /// Check if the [`ErrorKind`] is a [`ErrorKind::SQLx`]. Only available when the `pg-sqlx`,`mysql-sqlx` or `sqlite-sqlx` features are enabled.
     #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
     pub fn is_sqlx_error(&self) -> bool {
-        matches!(self, ErrorKind::SQLxError(_))
+        matches!(self, ErrorKind::SQLx(_))
     }
 }
 
@@ -33,10 +33,10 @@ impl ErrorKind {
 impl Display for ErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            ErrorKind::FieldValueError(detail) => write!(f, "FIELD VALUE ERROR- {}", detail),
+            ErrorKind::InvalidValue(detail) => write!(f, "INVALID VALUE ERROR- {}", detail),
 
             #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
-            ErrorKind::SQLxError(detail) => write!(f, "SQLX ERROR- {}", detail),
+            ErrorKind::SQLx(detail) => write!(f, "SQLX ERROR- {}", detail),
         }
     }
 }
@@ -45,10 +45,10 @@ impl Display for ErrorKind {
 impl Debug for ErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            ErrorKind::FieldValueError(detail) => write!(f, "FieldValueError({:?})", detail),
+            ErrorKind::InvalidValue(detail) => write!(f, "InvalidValueError({:?})", detail),
 
             #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
-            ErrorKind::SQLxError(detail) => write!(f, "SqlxError({:?})", detail),
+            ErrorKind::SQLx(detail) => write!(f, "SQLxError({:?})", detail),
         }
     }
 }
@@ -91,7 +91,7 @@ impl From<ErrorKind> for PaginationError {
 impl From<SqlxError> for PaginationError {
     fn from(value: sqlx::Error) -> Self {
         Self {
-            kind: ErrorKind::SQLxError(value),
+            kind: ErrorKind::SQLx(value),
         }
     }
 }

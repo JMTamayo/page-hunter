@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Initializing database connection and running migrations");
 
-    let pool: PgPool = db_handler.get_pool(&settings.get_database_config()).await?;
+    let pool: PgPool = db_handler.get_pool(settings.get_database_config()).await?;
     db_handler.run_migrations(&pool).await?;
 
     info!("Database connection and migrations completed successfully");

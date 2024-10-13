@@ -35,19 +35,19 @@
 //! #### Paginate records:
 //! If you need to paginate records and get a specific [`Page`]:
 //! ```rust,no_run
-//!     use page_hunter::*;
+//!   use page_hunter::*;
 //!
-//!     let records: Vec<u32> = vec![1, 2, 3, 4, 5];
-//!     let page: usize = 0;
-//!     let size: usize = 2;
+//!   let records: Vec<u32> = vec![1, 2, 3, 4, 5];
+//!   let page: usize = 0;
+//!   let size: usize = 2;
 //!
-//!     let pagination_result: PaginationResult<Page<u32>> =
-//!         paginate_records(&records, page, size);
+//!   let pagination_result: PaginationResult<Page<u32>> =
+//!     paginate_records(&records, page, size);
 //! ```
 //!
 //! To create a new `Page` instance from known parameters:
 //! ```rust,no_run
-//!     use page_hunter::*;
+//!   use page_hunter::*;
 //!
 //!     let items: Vec<u32> = vec![1, 2];
 //!     let page: usize = 0;
@@ -143,33 +143,33 @@
 //!     });
 //! ```
 //!
-//!	#### Generate OpenAPI schemas:
+//! #### Generate OpenAPI schemas:
 //! On feature `utoipa` enabled, you can generate OpenAPI schemas for [`Page`] and [`Book`] models as follows:
 //!
 //! ```rust,no_run
-//! 	use page_hunter::*;
-//! 	use utoipa::{OpenApi, ToSchema};
-//! 	use serde::{Deserialize, Serialize};
+//!     use page_hunter::*;
+//!     use utoipa::{OpenApi, ToSchema};
+//!     use serde::{Deserialize, Serialize};
 //!
-//! 	#[derive(Clone, ToSchema)]
-//! 	pub struct Person {
-//! 		id: u16,
-//! 		name: String,
-//! 		last_name: String,
-//! 		still_alive: bool,
-//! 	}
+//!     #[derive(Clone, ToSchema)]
+//!     pub struct Person {
+//!         id: u16,
+//!         name: String,
+//!         last_name: String,
+//!         still_alive: bool,
+//!     }
 //!
-//! 	pub type PeoplePage = Page<Person>;
-//! 	pub type PeopleBook = Book<Person>;
+//!     pub type PeoplePage = Page<Person>;
+//!     pub type PeopleBook = Book<Person>;
 //!
-//! 	#[derive(OpenApi)]
-//!  	#[openapi(
-//!     	components(schemas(PeoplePage, PeopleBook))
-//!  	)]
-//!  	pub struct ApiDoc;
-//!	```
+//!     #[derive(OpenApi)]
+//!     #[openapi(
+//!         components(schemas(PeoplePage, PeopleBook))
+//!     )]
+//!     pub struct ApiDoc;
+//! ```
 //!
-//!	Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples)  folder where you can find practical uses in REST API implementations with some web frameworks.
+//! Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples)  folder where you can find practical uses in REST API implementations with some web frameworks.
 //!
 //! #### Paginate records from a PostgreSQL database with SQLx:
 //! To paginate records from a PostgreSQL database:
@@ -242,12 +242,17 @@
 //! - **Bug Reports**: If you find a bug, please create an issue detailing the problem, the steps to reproduce it, and the expected behavior.
 //! - **Feature Requests**: If you have an idea for a new feature or an enhancement to an existing one, please create an issue describing your idea.
 //! - **Pull Requests**: If you've fixed a bug or implemented a new feature, we'd love to see your work! Please submit a pull request. Make sure your code follows the existing style and all tests pass.
+mod book;
+mod errors;
+mod page;
+mod pagination;
+mod results;
 
-mod page_hunter;
-
-pub use page_hunter::errors::*;
-pub use page_hunter::models::*;
-pub use page_hunter::records_pagination::*;
+pub use book::Book;
+pub use errors::{ErrorKind, PaginationError};
+pub use page::Page;
+pub use pagination::records::{bind_records, paginate_records};
+pub use results::PaginationResult;
 
 #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
-pub use page_hunter::sqlx_pagination::*;
+pub use pagination::sqlx::SQLxPagination;
