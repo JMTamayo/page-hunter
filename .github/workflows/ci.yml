@@ -48,7 +48,7 @@ jobs:
 
     - name: Create SQLite database
       env:
-        SQLITE_DB_PATH: ${PWD}/${{ secrets.SQLITE_DB_PATH }}
+        SQLITE_DB_PATH: ${{ GITHUB_WORKSPACE }}/${{ secrets.SQLITE_DB_PATH }}
       run: bash ./page-hunter/tests/migrations/sqlite/scripts/run_db.sh
 
     - name: Run migrations for Postgres
@@ -98,7 +98,7 @@ jobs:
         DB_HOST: ${{ secrets.DB_HOST }}
         PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
         MYSQL_DB_PORT: ${{ secrets.MYSQL_DB_PORT }}
-        SQLITE_DB_PATH: ${PWD}/${{ secrets.SQLITE_DB_PATH }}
+        SQLITE_DB_PATH: ${{ GITHUB_WORKSPACE }}/${{ secrets.SQLITE_DB_PATH }}
       run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
     - name: Upload coverage to Codecov
