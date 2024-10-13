@@ -66,7 +66,7 @@ jobs:
     - name: Run migrations for SQLite
       env:
         MIGRATIONS_PATH: page-hunter/tests/migrations/sqlite
-        DATABASE_URL: sqlite://${{ secrets.SQLITE_DB_PATH }}
+        DATABASE_URL: sqlite://${{ github.workspace }}/${{ secrets.SQLITE_DB_PATH }}
       run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
 
     - name: Check project with all features
