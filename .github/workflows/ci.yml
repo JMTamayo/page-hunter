@@ -101,8 +101,7 @@ jobs:
         DB_HOST: ${{ secrets.DB_HOST }}
         PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
         MYSQL_DB_PORT: ${{ secrets.MYSQL_DB_PORT }}
-        PWD: ${{ github.workspace }}
-        SQLITE_DB_PATH: ${{ secrets.SQLITE_DB_PATH }}
+        SQLITE_DB_PATH: ${{ github.workspace }}/${{ secrets.SQLITE_DB_PATH }}
       run: cargo llvm-cov --workspace --all-features --codecov --output-path codecov.json
 
     - name: Upload coverage to Codecov
