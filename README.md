@@ -27,20 +27,6 @@ It offers a set of resources that encapsulates all the necessary pagination info
 The library also includes validation methods to ensure the integrity of the pagination data.
 It's designed to be flexible and easy to integrate into any Rust project that requires pagination functionality and standard data validation.
 
-To use **page-hunter** from GitHub repository with specific version, set the dependency in Cargo.toml file as follows:
-
-```ini
-[dependencies]
-page-hunter = { git = "https://github.com/JMTamayo/page-hunter.git", version = "0.3.0", features = ["serde"] }
-```
-
-You can depend on it via cargo by adding the following dependency to your `Cargo.toml` file:
-
-```ini
-[dependencies]
-page-hunter = { version = "0.3.0", features = ["utoipa", "pg-sqlx"] }
-```
-
 ## CRATE FEATURES
 - `serde`: Add [Serialize](https://docs.rs/serde/1.0.200/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.200/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.200). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
 - `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.0/utoipa/trait.ToSchema.html) support for `Page` and  `Book` based on [utoipa](https://crates.io/crates/utoipa/4.2.0). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
