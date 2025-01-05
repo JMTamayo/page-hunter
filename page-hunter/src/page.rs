@@ -814,7 +814,6 @@ mod test_page_model {
     #[cfg(feature = "utoipa")]
     #[test]
     fn test_page_to_schema() {
-        use serde_json::to_string;
         use utoipa::ToSchema;
 
         #[derive(Clone, ToSchema)]
@@ -826,7 +825,7 @@ mod test_page_model {
         let (schema_name, schema_object) = Page::<Record>::schema();
         assert_eq!(schema_name, "Page");
 
-        let json_string: String = match to_string(&schema_object) {
+        let json_string: String = match serde_json::to_string(&schema_object) {
             Ok(json_string) => json_string,
             Err(e) => panic!("Error serializing schema: {}", e),
         };
