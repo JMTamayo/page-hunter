@@ -186,8 +186,6 @@ where
 #[cfg(test)]
 mod test_book {
     use crate::*;
-    use serde_json::to_string;
-    use utoipa::ToSchema;
 
     /// Test [`Book] constructor.
     #[test]
@@ -401,6 +399,8 @@ mod test_book {
         );
     }
 
+    /// Test [`Book] to schema.
+    #[cfg(feature = "utoipa")]
     #[test]
     fn test_book_to_schema() {
         use utoipa::ToSchema;
@@ -414,7 +414,7 @@ mod test_book {
         let (schema_name, schema_object) = Book::<Record>::schema();
         assert_eq!(schema_name, "Book");
 
-        let json_string: String = match to_string(&schema_object) {
+        let json_string: String = match serde_json::to_string(&schema_object) {
             Ok(json_string) => json_string,
             Err(e) => panic!("Error serializing schema: {}", e),
         };
