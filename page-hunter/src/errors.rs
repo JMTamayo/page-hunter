@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter, Result};
 
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
+#[cfg(feature = "sqlx")]
 use sqlx::Error as SqlxError;
 
 #[allow(unused_imports)]
@@ -11,8 +11,8 @@ pub enum ErrorKind {
     /// Raised when the value of a field is invalid.
     InvalidValue(String),
 
-    /// Raised during a database operation using the [`sqlx`] crate. Only available when the `pg-sqlx`, `mysql-sqlx` or `sqlite-sqlx` features are enabled.
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
+    /// Raised during a database operation using the [`sqlx`] crate. Only available when the `sqlx` feature is enabled.
+    #[cfg(feature = "sqlx")]
     SQLx(SqlxError),
 }
 
@@ -22,8 +22,8 @@ impl ErrorKind {
         matches!(self, ErrorKind::InvalidValue(_))
     }
 
-    /// Check if the [`ErrorKind`] is a [`ErrorKind::SQLx`]. Only available when the `pg-sqlx`,`mysql-sqlx` or `sqlite-sqlx` features are enabled.
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
+    /// Check if the [`ErrorKind`] is a [`ErrorKind::SQLx`]. Only available when the `sqlx` feature is enabled.
+    #[cfg(feature = "sqlx")]
     pub fn is_sqlx_error(&self) -> bool {
         matches!(self, ErrorKind::SQLx(_))
     }
@@ -35,7 +35,7 @@ impl Display for ErrorKind {
         match self {
             ErrorKind::InvalidValue(detail) => write!(f, "INVALID VALUE ERROR- {}", detail),
 
-            #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
+            #[cfg(feature = "sqlx")]
             ErrorKind::SQLx(detail) => write!(f, "SQLX ERROR- {}", detail),
         }
     }
@@ -47,7 +47,7 @@ impl Debug for ErrorKind {
         match self {
             ErrorKind::InvalidValue(detail) => write!(f, "InvalidValueError({:?})", detail),
 
-            #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
+            #[cfg(feature = "sqlx")]
             ErrorKind::SQLx(detail) => write!(f, "SQLxError({:?})", detail),
         }
     }
@@ -86,8 +86,8 @@ impl From<ErrorKind> for PaginationError {
     }
 }
 
-/// Implementation of [`From`]<[`sqlx::Error`]> for [`PaginationError`]. Only available when the `pg-sqlx` or `mysql-sqlx` features are enabled.
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
+/// Implementation of [`From`]<[`sqlx::Error`]> for [`PaginationError`]. Only available when the `sqlx` feature is enabled.
+#[cfg(feature = "sqlx")]
 impl From<SqlxError> for PaginationError {
     fn from(value: sqlx::Error) -> Self {
         Self {
@@ -100,11 +100,11 @@ impl From<SqlxError> for PaginationError {
 mod test_errors {
     use crate::*;
 
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[cfg(feature = "sqlx")]
     use sqlx::Error as SqlxError;
 
     /// Test [`ErrorKind`] `is_field_value_error` method.
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[cfg(feature = "sqlx")]
     #[test]
     fn test_error_kind_is_invalid_value_error() {
         let error_kind: ErrorKind = ErrorKind::InvalidValue(String::from("Invalid value"));
@@ -113,7 +113,7 @@ mod test_errors {
     }
 
     /// Test [`ErrorKind`] `is_database_error` method.
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[cfg(feature = "sqlx")]
     #[test]
     fn test_error_kind_is_sqlx_error() {
         let error_kind: ErrorKind = ErrorKind::SQLx(SqlxError::RowNotFound);
@@ -133,7 +133,7 @@ mod test_errors {
     }
 
     /// Test [`std::fmt::Display`] implementation for [`ErrorKind::SQLx`].
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[cfg(feature = "sqlx")]
     #[test]
     fn test_error_kind_sqlx_error_display() {
         let error_kind_sqlx_error: ErrorKind = ErrorKind::SQLx(SqlxError::PoolClosed);
@@ -156,7 +156,7 @@ mod test_errors {
     }
 
     /// Test [`std::fmt::Debug`] implementation for [`ErrorKind::SQLx`].
-    #[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx"))]
+    #[cfg(feature = "sqlx")]
     #[test]
     fn test_error_kind_sqlx_error_debug() {
         let error_kind_sqlx_error: ErrorKind = ErrorKind::SQLx(SqlxError::PoolTimedOut);

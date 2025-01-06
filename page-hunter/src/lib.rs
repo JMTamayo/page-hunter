@@ -273,5 +273,5 @@ pub use page::Page;
 pub use pagination::records::{bind_records, paginate_records};
 pub use results::PaginationResult;
 
-#[cfg(any(feature = "pg-sqlx", feature = "mysql-sqlx", feature = "sqlite-sqlx"))]
+#[cfg(feature = "sqlx")]
 pub use pagination::sqlx::queries::SQLxPagination;

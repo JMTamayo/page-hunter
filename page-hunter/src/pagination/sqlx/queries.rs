@@ -144,7 +144,7 @@ where
     /// ### Returns:
     /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` must implement the [`FromRow`] for given [`Database::Row`] type according to the database.
     ///
-    /// Only available when the `pg-sqlx`, `mysql-sqlx` or `sqlite-sqlx` features are enabled.
+    /// Only available when the `sqlx` feature is enabled.
     fn paginate(
         &self,
         conn: A,

@@ -27,9 +27,7 @@ time = { version = "0.3.37" }
 [features]
 serde = ["dep:serde"]
 utoipa = ["dep:utoipa", "serde"]
-pg-sqlx = ["dep:sqlx", "sqlx/postgres"]
-mysql-sqlx = ["dep:sqlx", "sqlx/mysql"]
-sqlite-sqlx = ["dep:sqlx", "sqlx/sqlite"]
+sqlx = ["dep:sqlx"]
 
 [package.metadata.docs.rs]
 all-features = true
