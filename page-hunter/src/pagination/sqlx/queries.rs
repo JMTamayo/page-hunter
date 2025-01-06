@@ -96,7 +96,7 @@ where
 ///
 /// ### Returns:
 /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` must implement the [`FromRow`] for given [`Database::Row`] type according to the database.
-async fn paginate<'q, DB, A, S>(
+async fn paginate_rows<'q, DB, A, S>(
     conn: A,
     query_builder: &QueryBuilder<'q, DB>,
     page: usize,
@@ -164,6 +164,6 @@ where
     S: for<'r> FromRow<'r, DB::Row> + Clone,
 {
     async fn paginate(&self, conn: A, page: usize, size: usize) -> PaginationResult<Page<S>> {
-        paginate(conn, self, page, size).await
+        paginate_rows(conn, self, page, size).await
     }
 }
