@@ -1,4 +1,4 @@
-<div align="center"><img src="docs/page-hunter-logo-v2.png" width="350"/></div>
+<div align="center"><img src="assets/page-hunter-logo-v2.png" width="350"/></div>
 
 <div align="center">
 	<img src="https://img.shields.io/github/license/JMTamayo/page-hunter">
