@@ -14,8 +14,24 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  Build:
+  Format:
     runs-on: ubuntu-24.04
+
+    steps:
+      - name: "Repository: Fetch"
+        uses: actions/checkout@v4
+
+      - name: "Setup: Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+
+      - name: "Step: Check Format"
+        run: cargo fmt --package page-hunter --all --check
+
+  Lints:
+    runs-on: ubuntu-24.04
+    needs: Format
     strategy:
       matrix:
         feature:
@@ -31,23 +47,7 @@ jobs:
       - name: "Setup: Install Rust"
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          components: rustfmt, clippy
-
-      - name: "Step: Build"
-        run: |
-          if [[ ${{ matrix.feature }} == all ]]; then
-            cargo build --package page-hunter --all-features
-          else
-            cargo build --package page-hunter --features ${{ matrix.feature }}
-          fi
-
-      - name: "Step: Format"
-        run: |
-          if [[ ${{ matrix.feature }} == all ]]; then
-            cargo fmt --package page-hunter --all --check
-          else
-            cargo fmt --package page-hunter --features ${{ matrix.feature }} -- --check
-          fi
+          components: clippy
 
       - name: "Step: Lints"
         run: |
@@ -55,6 +55,32 @@ jobs:
             cargo clippy --package page-hunter --all-features
           else
             cargo clippy --package page-hunter --features ${{ matrix.feature }}
+          fi
+
+  Build:
+    runs-on: ubuntu-24.04
+    needs: Lints
+    strategy:
+      matrix:
+        feature:
+          - serde
+          - utoipa
+          - sqlx
+          - all
+
+    steps:
+      - name: "Repository: Fetch"
+        uses: actions/checkout@v4
+
+      - name: "Setup: Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: "Step: Build"
+        run: |
+          if [[ ${{ matrix.feature }} == all ]]; then
+            cargo build --package page-hunter --all-features
+          else
+            cargo build --package page-hunter --features ${{ matrix.feature }}
           fi
 
   Docs:
