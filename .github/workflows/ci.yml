@@ -116,9 +116,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Setup: Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: taiki-e/install-action@v2
         with:
-          components: llvm-tools-preview,cargo-nextest
+          tool: cargo-llvm-cov,cargo-nextest
 
       - name: "Setup: Install SQLx Cli"
         run: cargo install sqlx-cli --no-default-features --features postgres
