@@ -7,9 +7,7 @@
 //! ## CRATE FEATURES
 //! - `serde`: Add [Serialize](https://docs.rs/serde/1.0.200/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.200/serde/trait.Deserialize.html) support for [`Page`] and [`Book`] based on [serde](https://crates.io/crates/serde/1.0.200). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
 //!  - `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.0/utoipa/trait.ToSchema.html) support for [`Page`] and  [`Book`] based on [utoipa](https://crates.io/crates/utoipa/4.2.0). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
-//! - `pg-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for PostgreSQL database.
-//! - `mysql-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/)  for MySQL database.
-//! - `sqlite-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for SQLIte database.
+//! - `sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for Postgres, MySQL and SQLite databases.
 //!
 //! ## BASIC OPERATION
 //!
@@ -190,77 +188,6 @@
 //!             });
 //!     }
 //! ```
-//!
-//! To paginate records from a MySQL database:
-//! ```rust,no_run
-//!     use page_hunter::*;
-//!     use sqlx::mysql::{MySqlPool, MySql};
-//!     use sqlx::{FromRow, QueryBuilder};
-//!     use uuid::Uuid;
-//!
-//!     #[tokio::main]
-//!     async fn main() {
-//!         #[derive(Clone, Debug, FromRow)]
-//!         pub struct Country {
-//!             id: Uuid,
-//!             name: String,
-//!         }
-//!
-//!         let pool: MySqlPool = MySqlPool::connect(
-//!             "mysql://username:password@localhost/db"
-//!         ).await.unwrap_or_else(|error| {
-//!             panic!("Error connecting to database: {:?}", error);
-//!         });
-//!
-//!         let query: QueryBuilder<MySql> = QueryBuilder::new(
-//!             "SELECT * FROM countries"
-//!         );
-//!
-//!         let page: Page<Country> =
-//!             query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
-//!                 panic!("Error paginating records: {:?}", error);
-//!             });
-//!     }
-//! ```
-//!
-//! To paginate records from a SQLite database:
-//! ```rust,no_run
-//!     use page_hunter::*;
-//!     use sqlx::sqlite::{SqlitePool, Sqlite};
-//!     use sqlx::{FromRow, QueryBuilder};
-//!     use uuid::Uuid;
-//!
-//!     #[tokio::main]
-//!     async fn main() {
-//!         #[derive(Clone, Debug, FromRow)]
-//!         pub struct Country {
-//!             id: Uuid,
-//!             name: String,
-//!         }
-//!
-//!         let pool: SqlitePool = SqlitePool::connect(
-//!             "sqlite://countries.db"
-//!         ).await.unwrap_or_else(|error| {
-//!             panic!("Error connecting to database: {:?}", error);
-//!         });
-//!
-//!         let query: QueryBuilder<Sqlite> = QueryBuilder::new(
-//!             "SELECT * FROM countries"
-//!         );
-//!
-//!         let page: Page<Country> =
-//!             query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
-//!                 panic!("Error paginating records: {:?}", error);
-//!             });
-//!     }
-//! ```
-//!
-//! ## CONTRIBUTIONS
-//! The ***Page Hunter*** project is open source and therefore any interested software developer can contribute to its improvement. To contribute, take a look at the following recommendations:
-//!
-//! - **Bug Reports**: If you find a bug, please create an issue detailing the problem, the steps to reproduce it, and the expected behavior.
-//! - **Feature Requests**: If you have an idea for a new feature or an enhancement to an existing one, please create an issue describing your idea.
-//! - **Pull Requests**: If you've fixed a bug or implemented a new feature, we'd love to see your work! Please submit a pull request. Make sure your code follows the existing style and all tests pass.
 mod book;
 mod errors;
 mod page;
