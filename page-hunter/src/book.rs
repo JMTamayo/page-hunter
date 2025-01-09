@@ -8,7 +8,7 @@ use serde::{
 #[cfg(feature = "utoipa")]
 use utoipa::{
     openapi::{schema::Schema, ArrayBuilder, ObjectBuilder},
-    ToSchema,
+    PartialSchema, ToSchema,
 };
 
 #[allow(unused_imports)]
@@ -158,30 +158,31 @@ where
     }
 }
 
-/// Implementation of [`ToSchema`] for [`Book`] if the feature `utoipa` is enabled.
+/// Implementation of [`PartialSchema`] for [`Book`] if the feature `utoipa` is enabled.
 #[cfg(feature = "utoipa")]
-impl<'s, E> ToSchema<'s> for Book<E>
+impl<E> PartialSchema for Book<E>
 where
-    E: ToSchema<'s>,
+    E: PartialSchema,
 {
-    fn schema() -> (&'s str, utoipa::openapi::RefOr<Schema>) {
-        (
-            "Book",
-            ObjectBuilder::new()
-                .description(Some("Model to represent a book of paginated items."))
-                .property(
-                    "sheets",
-                    ArrayBuilder::new()
-                        .description(Some(
-                            "Represents a paginated items as a collection of pages",
-                        ))
-                        .items(Page::<E>::schema().1),
-                )
-                .required("sheets")
-                .into(),
-        )
+    fn schema() -> utoipa::openapi::RefOr<Schema> {
+        ObjectBuilder::new()
+            .description(Some("Model to represent a book of paginated items."))
+            .property(
+                "sheets",
+                ArrayBuilder::new()
+                    .description(Some(
+                        "Represents a paginated items as a collection of pages",
+                    ))
+                    .items(Page::<E>::schema()),
+            )
+            .required("sheets")
+            .into()
     }
 }
+
+/// Implementation of [`ToSchema`] for [`Book`] if the feature `utoipa` is enabled.
+#[cfg(feature = "utoipa")]
+impl<E> ToSchema for Book<E> where E: ToSchema {}
 
 #[cfg(test)]
 mod test_book {
@@ -403,7 +404,10 @@ mod test_book {
     #[cfg(feature = "utoipa")]
     #[test]
     fn test_book_to_schema() {
-        use utoipa::ToSchema;
+        use utoipa::{
+            openapi::{RefOr, Schema},
+            PartialSchema, ToSchema,
+        };
 
         #[derive(Clone, ToSchema)]
         #[allow(dead_code)]
@@ -411,8 +415,7 @@ mod test_book {
             number: u8,
         }
 
-        let (schema_name, schema_object) = Book::<Record>::schema();
-        assert_eq!(schema_name, "Book");
+        let schema_object: RefOr<Schema> = Book::<Record>::schema();
 
         let json_string: String = match serde_json::to_string(&schema_object) {
             Ok(json_string) => json_string,

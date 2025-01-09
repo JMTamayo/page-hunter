@@ -7,8 +7,11 @@ use serde::{
 };
 #[cfg(feature = "utoipa")]
 use utoipa::{
-    openapi::{schema::Schema, KnownFormat, ObjectBuilder, SchemaFormat, SchemaType},
-    ToSchema,
+    openapi::{
+        schema::{Schema, SchemaType, Type},
+        KnownFormat, ObjectBuilder, SchemaFormat,
+    },
+    PartialSchema, ToSchema,
 };
 
 use crate::{ErrorKind, PaginationError, PaginationResult};
@@ -373,88 +376,89 @@ where
     }
 }
 
-/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled.
+/// Implementation of [`PartialSchema`] for [`Page`] if the feature `utoipa` is enabled.
 #[cfg(feature = "utoipa")]
-impl<'s, E> ToSchema<'s> for Page<E>
+impl<E> PartialSchema for Page<E>
 where
-    E: ToSchema<'s>,
+    E: PartialSchema,
 {
-    fn schema() -> (&'s str, utoipa::openapi::RefOr<Schema>) {
-        (
-            "Page",
-            ObjectBuilder::new()
-				.description(Some("Model to represent paginated items."))
-				.property(
-					"items", 
-					E::schema().1,
-				)
-				.required("items")
-                .property(
-                    "page",
-                    ObjectBuilder::new()
-                        .description(Some(
-                            "The page index in a Page. It starts from 0 to pages - 1.",
-                        ))
-                        .schema_type(SchemaType::Integer)
-                        .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-                        .minimum(Some(0.0))
-                )
-                .required("page")
-				.property(
-					"size",
-					ObjectBuilder::new()
-						.description(Some(
-							"The maximum number of elements per Page. items length must be equal to size value for all pages except the last page, when items length could be less than or equal to size.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(0.0))
-				)
-				.required("size")
-				.property(
-					"total",
-					ObjectBuilder::new()
-						.description(Some(
-							"The total number of records used for pagination.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(0.0))
-				)
-				.required("total")
-				.property(
-					"pages",
-					ObjectBuilder::new()
-						.description(Some(
-							"Represents the total number of pages required for paginate the items.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-						.minimum(Some(1.0))
-				)
-				.required("pages")
-				.property(
-					"previous_page",
-					ObjectBuilder::new()
-						.description(Some(
-							"Represents the previous page index in a Page. If there is no previous page, it will be None.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64))
-				)
-				.property(
-					"next_page",
-					ObjectBuilder::new()
-						.description(Some(
-							"Represents the next page index in a Page. If there is no next page, it will be None.",
-						))
-						.schema_type(SchemaType::Integer)
-						.format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-				)
-       		).into()
-		)
+    fn schema() -> utoipa::openapi::RefOr<Schema> {
+        ObjectBuilder::new()
+            .description(Some("Model to represent paginated items."))
+            .property(
+                "items", 
+                E::schema(),
+            )
+            .required("items")
+            .property(
+                "page",
+                ObjectBuilder::new()
+                    .description(Some(
+                        "The page index in a Page. It starts from 0 to pages - 1.",
+                    ))
+                    .schema_type(SchemaType::Type(Type::Integer))
+                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+                    .minimum(Some(0.0))
+            )
+            .required("page")
+            .property(
+                "size",
+                ObjectBuilder::new()
+                    .description(Some(
+                        "The maximum number of elements per Page. items length must be equal to size value for all pages except the last page, when items length could be less than or equal to size.",
+                    ))
+                    .schema_type(SchemaType::Type(Type::Integer))
+                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+                    .minimum(Some(0.0))
+            )
+            .required("size")
+            .property(
+                "total",
+                ObjectBuilder::new()
+                    .description(Some(
+                        "The total number of records used for pagination.",
+                    ))
+                    .schema_type(SchemaType::Type(Type::Integer))
+                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+                    .minimum(Some(0.0))
+            )
+            .required("total")
+            .property(
+                "pages",
+                ObjectBuilder::new()
+                    .description(Some(
+                        "Represents the total number of pages required for paginate the items.",
+                    ))
+                    .schema_type(SchemaType::Type(Type::Integer))
+                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+                    .minimum(Some(1.0))
+            )
+            .required("pages")
+            .property(
+                "previous_page",
+                ObjectBuilder::new()
+                    .description(Some(
+                        "Represents the previous page index in a Page. If there is no previous page, it will be None.",
+                    ))
+                    .schema_type(SchemaType::Type(Type::Integer))
+                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64))
+            )
+            .property(
+                "next_page",
+                ObjectBuilder::new()
+                    .description(Some(
+                        "Represents the next page index in a Page. If there is no next page, it will be None.",
+                    ))
+                    .schema_type(SchemaType::Type(Type::Integer))
+                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
+            )
+        ).into()
     }
 }
+
+/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled.
+#[cfg(feature = "utoipa")]
+impl<E> ToSchema for Page<E> where E: ToSchema {}
 
 #[cfg(test)]
 mod test_page_model {
@@ -814,7 +818,10 @@ mod test_page_model {
     #[cfg(feature = "utoipa")]
     #[test]
     fn test_page_to_schema() {
-        use utoipa::ToSchema;
+        use utoipa::{
+            openapi::{RefOr, Schema},
+            PartialSchema, ToSchema,
+        };
 
         #[derive(Clone, ToSchema)]
         #[allow(dead_code)]
@@ -822,8 +829,7 @@ mod test_page_model {
             number: u8,
         }
 
-        let (schema_name, schema_object) = Page::<Record>::schema();
-        assert_eq!(schema_name, "Page");
+        let schema_object: RefOr<Schema> = Page::<Record>::schema();
 
         let json_string: String = match serde_json::to_string(&schema_object) {
             Ok(json_string) => json_string,
