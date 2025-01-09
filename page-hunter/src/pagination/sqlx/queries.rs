@@ -153,7 +153,7 @@ where
     ) -> impl std::future::Future<Output = PaginationResult<Page<S>>>;
 }
 
-impl<'q, DB, A, S> SQLxPagination<DB, A, S> for QueryBuilder<'q, DB>
+impl<DB, A, S> SQLxPagination<DB, A, S> for QueryBuilder<'_, DB>
 where
     DB: Database,
     for<'a> A: Acquire<'a, Database = DB>,
