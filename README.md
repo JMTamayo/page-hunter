@@ -30,9 +30,7 @@ It's designed to be flexible and easy to integrate into any Rust project that re
 ## CRATE FEATURES
 - `serde`: Add [Serialize](https://docs.rs/serde/1.0.200/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.200/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.200). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
 - `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.0/utoipa/trait.ToSchema.html) support for `Page` and  `Book` based on [utoipa](https://crates.io/crates/utoipa/4.2.0). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
-- `pg-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for PostgreSQL database.
-- `mysql-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for MySQL database.
-- `sqlite-sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for SQLIte database.
+- `sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for Postgres, MySQL and SQLite databases.
 
 ## BASIC OPERATION
 The **page-hunter** library provides two main models to manage pagination:
@@ -181,7 +179,7 @@ On feature `serde` enabled, you can serialize and deserialize a `Book` as follow
 Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples) folder where you can find practical uses in REST API implementations with some web frameworks.
 
 #### Paginate records from a relational database with SQLx:
-To paginate records from a PostgreSQL database:
+To paginate records from a Postgres database:
 ```rust,no_run
     use page_hunter::*;
     use sqlx::postgres::{PgPool, Postgres};
@@ -213,70 +211,6 @@ To paginate records from a PostgreSQL database:
     }
 ```
 
-To paginate records from a MySQL database:
-```rust,no_run
-    use page_hunter::*;
-    use sqlx::mysql::{MySqlPool, MySql};
-    use sqlx::{FromRow, QueryBuilder};
-    use uuid::Uuid;
-
-    #[tokio::main]
-    async fn main() {
-        #[derive(Clone, Debug, FromRow)]
-        pub struct Country {
-            id: Uuid,
-            name: String,
-        }
-
-        let pool: MySqlPool = MySqlPool::connect(
-            "mysql://username:password@localhost/db"
-        ).await.unwrap_or_else(|error| {
-            panic!("Error connecting to database: {:?}", error);
-        });
-
-        let query: QueryBuilder<MySql> = QueryBuilder::new(
-            "SELECT * FROM countries"
-        );
-
-        let page: Page<Country> =
-            query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
-               panic!("Error paginating records: {:?}", error);
-            });
-    }
-```
-
-To paginate records from a SQLite database:
-```rust,no_run
-    use page_hunter::*;
-    use sqlx::sqlite::{SqlitePool, Sqlite};
-    use sqlx::{FromRow, QueryBuilder};
-    use uuid::Uuid;
-
-    #[tokio::main]
-    async fn main() {
-        #[derive(Clone, Debug, FromRow)]
-        pub struct Country {
-            id: Uuid,
-            name: String,
-        }
-
-        let pool: SqlitePool = SqlitePool::connect(
-            "sqlite://countries.db"
-        ).await.unwrap_or_else(|error| {
-            panic!("Error connecting to database: {:?}", error);
-        });
-
-        let query: QueryBuilder<Sqlite> = QueryBuilder::new(
-            "SELECT * FROM countries"
-        );
-
-        let page: Page<Country> =
-            query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
-                panic!("Error paginating records: {:?}", error);
-       });
-    }
-```
-
 ## DEVELOPMENT
 To test `page-hunter`, follow these recommendations:
 
@@ -288,10 +222,6 @@ Create `local.env` file at workspace folder to store the required environment va
     DB_PASSWORD=docker
     DB_NAME=test
     PG_DB_PORT=5432
-    MYSQL_DB_PORT=3306
-    SQLITE_DB_PATH=$PWD/page-hunter/tests/migrations/sqlite/test.db
-    SQLITE_MIGRATIONS_PATH=page-hunter/tests/migrations/sqlite
-    MYSQL_MIGRATIONS_PATH=page-hunter/tests/migrations/mysql
     PG_MIGRATIONS_PATH=page-hunter/tests/migrations/postgres
 ```
 
@@ -306,62 +236,35 @@ Run PostgreSQL-MySQL databases as Docker containers and create SQLite database f
 
 ##### Postgres SQL:
 ```bash
-    make pg-db-docker 
-```
-
-##### MySQL:
-```bash
-    make mysql-db-docker
-```
-
-##### SQLite:
-```bash
-    make sqlite-db-local
+    make run-pg-db-docker
 ```
 
 #### Run database migrations:
 
-##### Postgres SQL
+##### Postgres
 - Run migrations:
 ```bash
-    make run-postgres-migrations
+    make run-pg-db-migrations
 ```
 
 - Revert migrations:
 ```bash
-    make revert-postgres-migrations
+    make revert-pg-db-migration
 ```
 
-##### MySQL
-- Run migrations:
+#### To run doc tests:
 ```bash
-    make run-mysql-migrations
-```
-
-- Revert migrations:
-```bash
-    make revert-mysql-migrations
-```
-
-##### SQLite
-- Run migrations:
-```bash
-    make run-sqlite-migrations
-```
-
-- Revert migrations:
-```bash
-    make revert-sqlite-migrations
-```
-
-#### To test:
-```bash
-    make test
+    make doctests
 ```
 
 #### To test using llvm-cov:
 ```bash
-    make test-llvm-cov
+    make test-llvm-cov-report
+```
+
+### Security analysis:
+```bash
+    make deny-check
 ```
 
 ## CONTRIBUTIONS

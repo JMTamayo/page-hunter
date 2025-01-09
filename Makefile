@@ -1,8 +1,8 @@
 # Install the required tools
 install-tools:
 	cargo install sqlx-cli --no-default-features --features postgres && \
-	cargo install cargo-llvm-cov \
-	cargo install cargo-nextest \
+	cargo install cargo-llvm-cov && \
+	cargo install cargo-nextest && \
 	cargo install cargo-deny
 
 # Manage PostgreSQL database

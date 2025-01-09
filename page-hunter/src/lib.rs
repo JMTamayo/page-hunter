@@ -157,7 +157,7 @@
 //! Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples)  folder where you can find practical uses in REST API implementations with some web frameworks.
 //!
 //! #### Paginate records from a relational database with SQLx:
-//! To paginate records from a PostgreSQL database:
+//! To paginate records from a Postgres database:
 //! ```rust,no_run
 //!     use page_hunter::*;
 //!     use sqlx::postgres::{PgPool, Postgres};
