@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed:
 
 - 🔨 Include unit tests inside each module by [@JMTamayo](https://github.com/JMTamayo).
-- 🔨 Implement SQLxPagination in a more general way that applies to PostgreSQL, MySQL, and SQLite by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Implement `SqlxPagination` in a more general way that applies to PostgreSQL, MySQL, and SQLite by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Unify ***pg-sqlx***, ***mysql-sqlx*** and ***sqlite-sqlx*** features into ***sqlx*** feature by [@JMTamayo](https://github.com/JMTamayo).
 
 ## 🚀 v0.3.1 [2025-01-05]
 
