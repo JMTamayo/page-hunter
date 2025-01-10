@@ -7,8 +7,8 @@ if [ -z "$DB_HOST" ]; then
 fi
 
 # Check if DB port is set
-if [ -z "$MYSQL_DB_PORT" ]; then
-  echo "ERROR: MYSQL_DB_PORT not found"
+if [ -z "$PG_DB_PORT" ]; then
+  echo "ERROR: PG_DB_PORT not found"
   exit 1
 fi
 
@@ -30,11 +30,8 @@ if [ -z "$DB_NAME" ]; then
   exit 1
 fi
 
-# Check if migrations path is set
-if [ -z "$MYSQL_MIGRATIONS_PATH" ]; then
-  echo "ERROR: MYSQL_MIGRATIONS_PATH not found"
-  exit 1
-fi
+# Define docker container name
+CONTAINER_NAME=postgres-db
 
-# revert migration
-sqlx migrate revert --source $MYSQL_MIGRATIONS_PATH --database-url mysql://$DB_USER:$DB_PASSWORD@$DB_HOST:$MYSQL_DB_PORT/$DB_NAME
+# Create the database as a docker container
+docker run --name $CONTAINER_NAME  -e POSTGRES_PASSWORD=$DB_PASSWORD -e POSTGRES_DB=$DB_NAME -e POSTGRES_USER=$DB_USER -p $PG_DB_PORT:5432 -d postgres
