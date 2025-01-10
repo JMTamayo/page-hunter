@@ -1,9 +1,9 @@
 use actix_web::{get, web, HttpResponse};
-use page_hunter::{bind_records, paginate_records, Book, Page};
+use page_hunter::{bind_records, paginate_records};
 
 use crate::config::conf::ApiColombiaV1Config;
 
-use crate::models::departments::Department;
+use crate::models::departments::{Department, DepartmentsBook, DepartmentsPagination};
 use crate::models::errors::Exception;
 use crate::models::utils::{BindingParams, PaginationParams};
 
@@ -19,7 +19,7 @@ pub async fn service_not_found() -> HttpResponse {
         PaginationParams,
     ),
     responses(
-        (status = 200, description = "Ok", body = Page<Department>),
+        (status = 200, description = "Ok", body = DepartmentsPagination),
         (status = 417, description = "Precondition failed", body = Exception),
 		(status = 500, description = "Internal server error", body = Exception)
     )
@@ -40,7 +40,7 @@ pub async fn search_departments_pagination(
         Err(error) => return error.to_http_response(),
     };
 
-    let page: Page<Department> =
+    let page: DepartmentsPagination =
         match paginate_records(&departments, params.get_page(), params.get_size()) {
             Ok(page) => page,
             Err(error) => return Exception::new(417, error.to_string()).to_http_response(),
@@ -55,7 +55,7 @@ pub async fn search_departments_pagination(
         BindingParams,
     ),
     responses(
-        (status = 200, description = "Ok", body = Book<Department>),
+        (status = 200, description = "Ok", body = DepartmentsBook),
         (status = 417, description = "Precondition failed", body = Exception),
 		(status = 500, description = "Internal server error", body = Exception)
     )
@@ -76,7 +76,7 @@ pub async fn search_all_departments(
         Err(error) => return error.to_http_response(),
     };
 
-    let book: Book<Department> = match bind_records(&departments, params.get_size()) {
+    let book: DepartmentsBook = match bind_records(&departments, params.get_size()) {
         Ok(book) => book,
         Err(error) => return Exception::new(417, error.to_string()).to_http_response(),
     };
