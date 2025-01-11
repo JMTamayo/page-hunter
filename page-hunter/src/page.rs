@@ -176,24 +176,24 @@ impl<E> Page<E> {
     ///
     /// ### Example:
     ///```rust,no_run
-    /// use page_hunter::*;
+    ///   use page_hunter::*;
     ///
-    /// let items: Vec<u32> = vec![1, 2];
-    /// let page: usize = 0;
-    /// let size: usize = 2;
-    /// let total_elements: usize = 5;
+    ///   let items: Vec<u32> = vec![1, 2];
+    ///   let page: usize = 0;
+    ///   let size: usize = 2;
+    ///   let total_elements: usize = 5;
     ///
-    /// let pagination_result: PaginationResult<Page<u32>> = Page::new(
+    ///   let pagination_result: PaginationResult<Page<u32>> = Page::new(
     ///     &items,
     ///     page,
     ///     size,
     ///     total_elements,
-    /// );
+    ///   );
     ///
-    /// let page: Page<u32> = match pagination_result {
+    ///   let page: Page<u32> = match pagination_result {
     ///     Ok(page) => page,
     ///     Err(error) => panic!("Error: {}", error),
-    /// };
+    ///   };
     /// ````
     pub fn new(items: &Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>>
     where
@@ -674,10 +674,7 @@ mod test_page_model {
 
         let schema_object: RefOr<Schema> = Page::<Record>::schema();
 
-        let json_string: String = match serde_json::to_string(&schema_object) {
-            Ok(json_string) => json_string,
-            Err(e) => panic!("Error serializing schema: {}", e),
-        };
+        let json_string: String = serde_json::to_string(&schema_object).unwrap();
         assert_eq!(
             json_string,
             "{\"type\":\"object\",\"description\":\"Model to represent paginated items.\\n\\n#### Fields:\\n- **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.\\n- **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.\\n- **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.\\n- **total**: Represents the total number of records used for pagination.\\n- **pages**: Represents the total number of pages required for paginate the items.\\n- **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].\\n- **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].\",\"required\":[\"items\",\"page\",\"size\",\"total\",\"pages\"],\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Record\"}},\"next_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"page\":{\"type\":\"integer\",\"minimum\":0},\"pages\":{\"type\":\"integer\",\"minimum\":0},\"previous_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"size\":{\"type\":\"integer\",\"minimum\":0},\"total\":{\"type\":\"integer\",\"minimum\":0}}}"

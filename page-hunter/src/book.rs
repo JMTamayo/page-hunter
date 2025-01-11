@@ -34,18 +34,18 @@ impl<E> Book<E> {
     ///
     /// ### Example:
     /// ```rust,no_run
-    /// use page_hunter::*;
+    ///   use page_hunter::*;
     ///
-    /// let sheets: Vec<Page<u32>> = vec![
+    ///   let sheets: Vec<Page<u32>> = vec![
     ///     Page::new(&vec![1, 2], 0, 2, 5).unwrap_or_else(|error| {
-    ///         panic!("Error creating page model: {:?}", error);
+    ///       panic!("Error creating page model: {:?}", error);
     ///     }),
     ///     Page::new(&vec![3, 4], 1, 2, 5).unwrap_or_else(|error| {
-    ///         panic!("Error creating page model: {:?}", error);
+    ///       panic!("Error creating page model: {:?}", error);
     ///     }),
-    /// ];
+    ///   ];
     ///
-    /// let book: Book<u32> = Book::new(&sheets);
+    ///   let book: Book<u32> = Book::new(&sheets);
     /// ```
     pub fn new(sheets: &Vec<Page<E>>) -> Book<E>
     where
@@ -317,10 +317,7 @@ mod test_book {
 
         let schema_object: RefOr<Schema> = Book::<Record>::schema();
 
-        let json_string: String = match serde_json::to_string(&schema_object) {
-            Ok(json_string) => json_string,
-            Err(e) => panic!("Error serializing schema: {}", e),
-        };
+        let json_string: String = serde_json::to_string(&schema_object).unwrap();
         assert_eq!(
             json_string,
             "{\"type\":\"object\",\"description\":\"Model to represent a book of paginated items.\\n#### Fields:\\n- **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].\",\"required\":[\"sheets\"],\"properties\":{\"sheets\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Page_Record\"}}}}"

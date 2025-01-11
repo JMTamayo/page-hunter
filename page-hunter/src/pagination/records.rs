@@ -12,18 +12,18 @@ use crate::{Book, Page, PaginationResult};
 ///
 /// #### Example:
 /// ```rust,no_run
-/// use page_hunter::*;
+///   use page_hunter::*;
 ///
-/// let records: Vec<u32> = vec![1, 2, 3, 4, 5];
-/// let page: usize = 0;
-/// let size: usize = 2;
+///   let records: Vec<u32> = vec![1, 2, 3, 4, 5];
+///   let page: usize = 0;
+///   let size: usize = 2;
 ///
-/// let pagination_result: PaginationResult<Page<u32>> =
+///   let pagination_result: PaginationResult<Page<u32>> =
 ///     paginate_records(&records, page, size);
 ///
-/// let page: Page<u32> = pagination_result.unwrap_or_else(|error| {
-///    panic!("Failed to paginate records: {:?}", error)
-/// });
+///   let page: Page<u32> = pagination_result.unwrap_or_else(|error| {
+///     panic!("Failed to paginate records: {:?}", error)
+///   });
 /// ````
 pub fn paginate_records<R>(records: &R, page: usize, size: usize) -> PaginationResult<Page<R::Item>>
 where
@@ -53,17 +53,17 @@ where
 ///
 /// #### Example:
 /// ```rust,no_run
-/// use page_hunter::*;
+///   use page_hunter::*;
 ///
-/// let records: Vec<u32> = vec![1, 2, 3, 4, 5];
-/// let size: usize = 2;
+///   let records: Vec<u32> = vec![1, 2, 3, 4, 5];
+///   let size: usize = 2;
 ///
-/// let book_result: PaginationResult<Book<u32>> =
+///   let book_result: PaginationResult<Book<u32>> =
 ///     bind_records(&records, size);
 ///
-/// let book: Book<u32> = book_result.unwrap_or_else(|error| {
-///    panic!("Failed to bind records: {:?}", error)
-/// });
+///   let book: Book<u32> = book_result.unwrap_or_else(|error| {
+///     panic!("Failed to bind records: {:?}", error)
+///   });
 /// ````
 pub fn bind_records<R>(records: &R, size: usize) -> PaginationResult<Book<R::Item>>
 where
@@ -96,6 +96,48 @@ where
     Ok(Book::new(&sheets))
 }
 
+/// Trait for paginating records.
+pub trait RecordsPagination {
+    /// To get a specific [`Page`] from the given records.
+    ///
+    /// #### Arguments:
+    /// - **page**: The page index.
+    /// - **size**: The number of records per page.
+    ///
+    /// #### Returns:
+    /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `Self::Item`.
+    fn paginate(&self, page: usize, size: usize) -> PaginationResult<Page<Self::Item>>
+    where
+        Self: IntoIterator + Clone,
+        Self::Item: Clone;
+
+    /// To bind the given records into a [`Book`] model.
+    ///
+    /// #### Arguments:
+    /// - **size**: The number of records per page.
+    ///
+    /// #### Returns:
+    /// A [`PaginationResult`] containing a [`Book`] model of the paginated records `Self::Item`.
+    fn bind(&self, size: usize) -> PaginationResult<Book<Self::Item>>
+    where
+        Self: IntoIterator + Clone,
+        Self::Item: Clone;
+}
+
+impl<R> RecordsPagination for R
+where
+    R: IntoIterator + Clone,
+    R::Item: Clone,
+{
+    fn paginate(&self, page: usize, size: usize) -> PaginationResult<Page<R::Item>> {
+        paginate_records(self, page, size)
+    }
+
+    fn bind(&self, size: usize) -> PaginationResult<Book<R::Item>> {
+        bind_records(self, size)
+    }
+}
+
 #[cfg(test)]
 pub mod test_records_pagination {
     use crate::*;
@@ -105,7 +147,7 @@ pub mod test_records_pagination {
     fn test_paginate_records_success() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-        let pagination_result: PaginationResult<Page<u8>> = paginate_records(&records, 1, 3);
+        let pagination_result: PaginationResult<Page<u8>> = records.paginate(1, 3);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u8> = pagination_result.unwrap();
@@ -125,7 +167,7 @@ pub mod test_records_pagination {
         let page: usize = 10;
         let size: usize = 2;
 
-        let pagination_result: PaginationResult<Page<u8>> = paginate_records(&records, page, size);
+        let pagination_result: PaginationResult<Page<u8>> = records.paginate(page, size);
         assert!(pagination_result.is_err());
     }
 
@@ -134,7 +176,7 @@ pub mod test_records_pagination {
     fn test_bind_records_success() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-        let pagination_result: PaginationResult<Book<u8>> = bind_records(&records, 3);
+        let pagination_result: PaginationResult<Book<u8>> = records.bind(3);
         assert!(pagination_result.is_ok());
 
         let book: Book<u8> = pagination_result.unwrap();
@@ -185,7 +227,7 @@ pub mod test_records_pagination {
     fn test_bind_records_success_with_zero_size() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-        let pagination_result: PaginationResult<Book<u8>> = bind_records(&records, 0);
+        let pagination_result: PaginationResult<Book<u8>> = records.bind(0);
         assert!(pagination_result.is_ok());
 
         let book: Book<u8> = pagination_result.unwrap();

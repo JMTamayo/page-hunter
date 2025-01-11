@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 🚀 v0.4.0 [Unreleased]
 
+### Added:
+
+- 🧑🏻‍💻 Implement `RecordsPagination` to paginate and bind records into a `Page` and `Book` by [@JMTamayo](https://github.com/JMTamayo).
+
 ### Changed:
 
 - 🔨 Include unit tests inside each module by [@JMTamayo](https://github.com/JMTamayo).
