@@ -152,7 +152,6 @@
 //!
 //! #### Generate OpenAPI schemas:
 //! On feature `utoipa` enabled, you can generate OpenAPI schemas for [`Page`] and [`Book`] models as follows:
-//!
 //! ```rust,no_run
 //!   use page_hunter::{Book, Page};
 //!   use utoipa::{OpenApi, ToSchema};
