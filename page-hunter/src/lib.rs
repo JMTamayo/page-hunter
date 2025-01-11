@@ -210,7 +210,7 @@
 //!     });
 //!   }
 //! ```
-//! 
+//!
 //! Similar to using pagination for Postgres, [`SQLxPagination`] can be used for MySQL and SQLite.
 mod book;
 mod errors;
