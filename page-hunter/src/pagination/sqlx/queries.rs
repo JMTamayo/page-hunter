@@ -1,3 +1,5 @@
+use std::future::Future;
+
 use sqlx::{
     query, query_scalar, Acquire, ColumnIndex, Database, Decode, Error as SqlxError, Executor,
     FromRow, IntoArguments, QueryBuilder, Type,
@@ -147,7 +149,7 @@ where
         conn: A,
         page: usize,
         size: usize,
-    ) -> impl std::future::Future<Output = PaginationResult<Page<S>>>;
+    ) -> impl Future<Output = PaginationResult<Page<S>>>;
 }
 
 impl<DB, A, S> SQLxPagination<DB, A, S> for QueryBuilder<'_, DB>
@@ -162,7 +164,6 @@ where
 {
     async fn paginate(&self, conn: A, page: usize, size: usize) -> PaginationResult<Page<S>> {
         let mut acquired_conn = conn.acquire().await?;
-
         paginate_rows(&mut acquired_conn, self, page, size).await
     }
 }
