@@ -317,10 +317,7 @@ mod test_book {
 
         let schema_object: RefOr<Schema> = Book::<Record>::schema();
 
-        let json_string: String = match serde_json::to_string(&schema_object) {
-            Ok(json_string) => json_string,
-            Err(e) => panic!("Error serializing schema: {}", e),
-        };
+        let json_string: String = serde_json::to_string(&schema_object).unwrap();
         assert_eq!(
             json_string,
             "{\"type\":\"object\",\"description\":\"Model to represent a book of paginated items.\\n#### Fields:\\n- **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].\",\"required\":[\"sheets\"],\"properties\":{\"sheets\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Page_Record\"}}}}"
