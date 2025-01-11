@@ -96,25 +96,22 @@ where
 ///
 /// ### Returns:
 /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` must implement the [`FromRow`] for given [`Database::Row`] type according to the database.
-async fn paginate_rows<'q, DB, A, S>(
-    conn: A,
+async fn paginate_rows<'c, 'q, DB, S>(
+    conn: &'c mut DB::Connection,
     query_builder: &QueryBuilder<'q, DB>,
     page: usize,
     size: usize,
 ) -> PaginationResult<Page<S>>
 where
     DB: Database,
-    for<'a> A: Acquire<'a, Database = DB>,
-    for<'b> &'b mut DB::Connection: Executor<'b, Database = DB>,
-    for<'c> i64: Type<DB> + Decode<'c, DB>,
-    for<'d> DB::Arguments<'d>: IntoArguments<'d, DB>,
+    for<'e> &'e mut DB::Connection: Executor<'e, Database = DB>,
+    for<'t> i64: Type<DB> + Decode<'t, DB>,
+    for<'a> DB::Arguments<'a>: IntoArguments<'a, DB>,
     usize: ColumnIndex<<DB>::Row>,
     S: for<'r> FromRow<'r, DB::Row> + Clone,
 {
-    let mut c = conn.acquire().await?;
-
-    let total: usize = get_total_rows(&mut c, query_builder).await?;
-    let rows: Vec<DB::Row> = get_page_rows(&mut c, query_builder, page, size).await?;
+    let total: usize = get_total_rows(conn, query_builder).await?;
+    let rows: Vec<DB::Row> = get_page_rows(conn, query_builder, page, size).await?;
     let items: Vec<S> = parse_rows::<DB, S>(rows).await?;
 
     let page: Page<S> = Page::new(&items, page, size, total)?;
@@ -164,6 +161,8 @@ where
     S: for<'r> FromRow<'r, DB::Row> + Clone,
 {
     async fn paginate(&self, conn: A, page: usize, size: usize) -> PaginationResult<Page<S>> {
-        paginate_rows(conn, self, page, size).await
+        let mut acquired_conn = conn.acquire().await?;
+
+        paginate_rows(&mut acquired_conn, self, page, size).await
     }
 }
