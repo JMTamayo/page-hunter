@@ -20,7 +20,9 @@ use crate::{ErrorKind, PaginationError, PaginationResult};
 /// - **pages**: Represents the total number of pages required for paginate the items.
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
-#[derive(Clone, Debug, Serialize, ToSchema)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 pub struct Page<E> {
     items: Vec<E>,
     page: usize,

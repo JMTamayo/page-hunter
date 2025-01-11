@@ -11,7 +11,9 @@ use crate::{Page, PaginationError};
 /// Model to represent a book of paginated items.
 /// #### Fields:
 /// - **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].
-#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 pub struct Book<E> {
     sheets: Vec<Page<E>>,
 }
