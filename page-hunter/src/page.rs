@@ -176,24 +176,24 @@ impl<E> Page<E> {
     ///
     /// ### Example:
     ///```rust,no_run
-    /// use page_hunter::*;
+    ///   use page_hunter::*;
     ///
-    /// let items: Vec<u32> = vec![1, 2];
-    /// let page: usize = 0;
-    /// let size: usize = 2;
-    /// let total_elements: usize = 5;
+    ///   let items: Vec<u32> = vec![1, 2];
+    ///   let page: usize = 0;
+    ///   let size: usize = 2;
+    ///   let total_elements: usize = 5;
     ///
-    /// let pagination_result: PaginationResult<Page<u32>> = Page::new(
+    ///   let pagination_result: PaginationResult<Page<u32>> = Page::new(
     ///     &items,
     ///     page,
     ///     size,
     ///     total_elements,
-    /// );
+    ///   );
     ///
-    /// let page: Page<u32> = match pagination_result {
+    ///   let page: Page<u32> = match pagination_result {
     ///     Ok(page) => page,
     ///     Err(error) => panic!("Error: {}", error),
-    /// };
+    ///   };
     /// ````
     pub fn new(items: &Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>>
     where

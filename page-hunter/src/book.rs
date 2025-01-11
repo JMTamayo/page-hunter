@@ -34,18 +34,18 @@ impl<E> Book<E> {
     ///
     /// ### Example:
     /// ```rust,no_run
-    /// use page_hunter::*;
+    ///   use page_hunter::*;
     ///
-    /// let sheets: Vec<Page<u32>> = vec![
+    ///   let sheets: Vec<Page<u32>> = vec![
     ///     Page::new(&vec![1, 2], 0, 2, 5).unwrap_or_else(|error| {
-    ///         panic!("Error creating page model: {:?}", error);
+    ///       panic!("Error creating page model: {:?}", error);
     ///     }),
     ///     Page::new(&vec![3, 4], 1, 2, 5).unwrap_or_else(|error| {
-    ///         panic!("Error creating page model: {:?}", error);
+    ///       panic!("Error creating page model: {:?}", error);
     ///     }),
-    /// ];
+    ///   ];
     ///
-    /// let book: Book<u32> = Book::new(&sheets);
+    ///   let book: Book<u32> = Book::new(&sheets);
     /// ```
     pub fn new(sheets: &Vec<Page<E>>) -> Book<E>
     where
