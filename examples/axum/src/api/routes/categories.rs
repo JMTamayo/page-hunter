@@ -10,7 +10,7 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::api::router::ServiceRouter;
+use crate::api::router::{NestedRouter, ServiceRouter};
 use crate::db::handler::Repository;
 use crate::db::repository::categories::{CategoriesRepository, CategoriesRepositoryMethods};
 use crate::models::categories::{Category, PaginatedCategories, SearchCategoriesRequest};
@@ -20,6 +20,12 @@ pub struct CategoriesServiceHandler {
     path_base: String,
 }
 
+impl NestedRouter for CategoriesServiceHandler {
+    fn get_path_base(&self) -> &str {
+        &self.path_base
+    }
+}
+
 impl ServiceRouter for CategoriesServiceHandler {
     fn new() -> Self {
         Self {
@@ -27,15 +33,11 @@ impl ServiceRouter for CategoriesServiceHandler {
         }
     }
 
-    fn get_path_base(&self) -> &str {
-        &self.path_base
-    }
-
     fn get_router(&self) -> Router {
         Router::new().nest(
             self.get_path_base(),
             Router::new()
-                .route("/:id", get(get_category_by_id))
+                .route("/{id}", get(get_category_by_id))
                 .route("/", get(list_categories)),
         )
     }
@@ -81,7 +83,7 @@ pub async fn get_category_by_id(
 		SearchCategoriesRequest,
 	),
 	responses(
-		(status = StatusCode::OK, body = Page<Category>),
+		(status = StatusCode::OK, body = PaginatedCategories),
 		(status = StatusCode::NOT_FOUND, body = HttpException),
 		(status = StatusCode::INTERNAL_SERVER_ERROR, body = HttpException),
 	),

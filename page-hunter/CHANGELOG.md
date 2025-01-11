@@ -5,14 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 🚀 v0.4.0-alpha.1 [Unreleased]
+## 🚀 v0.4.0 [Unreleased]
 
 ### Changed:
 
 - 🔨 Include unit tests inside each module by [@JMTamayo](https://github.com/JMTamayo).
-- 🔨 Implement `SqlxPagination` in a more general way that applies to PostgreSQL, MySQL, and SQLite by [@JMTamayo](https://github.com/JMTamayo).
-- 🔨 Unify ***pg-sqlx***, ***mysql-sqlx*** and ***sqlite-sqlx*** features into ***sqlx*** feature by [@JMTamayo](https://github.com/JMTamayo).
-- 🔨 Upgrade ***utoipa*** version to greater than or equal to **0.5.0** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Implement `SqlxPagination` in a more general way that applies to PostgreSQL, MySQL, and SQLite. Unify ***pg-sqlx***, ***mysql-sqlx*** and ***sqlite-sqlx*** features into ***sqlx*** feature by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Upgrade ***utoipa*** version to greater than or equal to **0.5.3** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Upgrade ***serde*** version to greater than or equal to **1.0.210** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Optimize the implementation of the `Debug`, `Clone`, `Serialize` and `ToSchema` traits by [@JMTamayo](https://github.com/JMTamayo).
 
 ## 🚀 v0.3.1 [2025-01-05]
 

@@ -3,16 +3,10 @@ use std::fmt::{Debug, Display};
 #[cfg(feature = "serde")]
 use serde::{
     de::{Deserialize as DeDeserialize, Deserializer as DeDeserializer, Error as DeError},
-    Deserialize, Serialize, Serializer,
+    Deserialize, Serialize,
 };
 #[cfg(feature = "utoipa")]
-use utoipa::{
-    openapi::{
-        schema::{Schema, SchemaType, Type},
-        KnownFormat, ObjectBuilder, SchemaFormat,
-    },
-    PartialSchema, ToSchema,
-};
+use utoipa::ToSchema;
 
 use crate::{ErrorKind, PaginationError, PaginationResult};
 
@@ -26,6 +20,9 @@ use crate::{ErrorKind, PaginationError, PaginationResult};
 /// - **pages**: Represents the total number of pages required for paginate the items.
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(feature = "utoipa", derive(ToSchema))]
 pub struct Page<E> {
     items: Vec<E>,
     page: usize,
@@ -228,38 +225,6 @@ impl<E> Page<E> {
     }
 }
 
-/// Implementation of [`Clone`] for [`Page`].
-impl<E> Clone for Page<E>
-where
-    E: Clone,
-{
-    fn clone(&self) -> Self {
-        Page {
-            items: self.items.to_owned(),
-            page: self.page,
-            size: self.size,
-            total: self.total,
-            pages: self.pages,
-            previous_page: self.previous_page,
-            next_page: self.next_page,
-        }
-    }
-}
-
-/// Implementation of [`Debug`] for [`Page`].
-impl<E> Debug for Page<E>
-where
-    E: Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Page {{ items: {:?}, page: {}, size: {}, total: {}, pages: {}, previous_page: {:?}, next_page: {:?} }}",
-            self.items, self.page, self.size, self.total, self.pages, self.previous_page, self.next_page
-        )
-    }
-}
-
 /// Implementation of [`Default`] for [`Page`].
 impl<E> Default for Page<E> {
     fn default() -> Self {
@@ -296,44 +261,6 @@ impl<E> IntoIterator for Page<E> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.items.into_iter()
-    }
-}
-
-/// Implementation of [`Serialize`] for [`Page`] if the feature `serde` is enabled.
-#[cfg(feature = "serde")]
-impl<E> Serialize for Page<E>
-where
-    E: Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        #[derive(Serialize)]
-        struct PageModel<'a, E>
-        where
-            E: Serialize,
-        {
-            items: &'a Vec<E>,
-            page: usize,
-            size: usize,
-            total: usize,
-            pages: usize,
-            previous_page: Option<usize>,
-            next_page: Option<usize>,
-        }
-
-        let page_model: PageModel<E> = PageModel {
-            items: &self.items,
-            page: self.page,
-            size: self.size,
-            total: self.total,
-            pages: self.pages,
-            previous_page: self.previous_page,
-            next_page: self.next_page,
-        };
-
-        page_model.serialize(serializer)
     }
 }
 
@@ -375,90 +302,6 @@ where
         Ok(page)
     }
 }
-
-/// Implementation of [`PartialSchema`] for [`Page`] if the feature `utoipa` is enabled.
-#[cfg(feature = "utoipa")]
-impl<E> PartialSchema for Page<E>
-where
-    E: PartialSchema,
-{
-    fn schema() -> utoipa::openapi::RefOr<Schema> {
-        ObjectBuilder::new()
-            .description(Some("Model to represent paginated items."))
-            .property(
-                "items", 
-                E::schema(),
-            )
-            .required("items")
-            .property(
-                "page",
-                ObjectBuilder::new()
-                    .description(Some(
-                        "The page index in a Page. It starts from 0 to pages - 1.",
-                    ))
-                    .schema_type(SchemaType::Type(Type::Integer))
-                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-                    .minimum(Some(0.0))
-            )
-            .required("page")
-            .property(
-                "size",
-                ObjectBuilder::new()
-                    .description(Some(
-                        "The maximum number of elements per Page. items length must be equal to size value for all pages except the last page, when items length could be less than or equal to size.",
-                    ))
-                    .schema_type(SchemaType::Type(Type::Integer))
-                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-                    .minimum(Some(0.0))
-            )
-            .required("size")
-            .property(
-                "total",
-                ObjectBuilder::new()
-                    .description(Some(
-                        "The total number of records used for pagination.",
-                    ))
-                    .schema_type(SchemaType::Type(Type::Integer))
-                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-                    .minimum(Some(0.0))
-            )
-            .required("total")
-            .property(
-                "pages",
-                ObjectBuilder::new()
-                    .description(Some(
-                        "Represents the total number of pages required for paginate the items.",
-                    ))
-                    .schema_type(SchemaType::Type(Type::Integer))
-                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-                    .minimum(Some(1.0))
-            )
-            .required("pages")
-            .property(
-                "previous_page",
-                ObjectBuilder::new()
-                    .description(Some(
-                        "Represents the previous page index in a Page. If there is no previous page, it will be None.",
-                    ))
-                    .schema_type(SchemaType::Type(Type::Integer))
-                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64))
-            )
-            .property(
-                "next_page",
-                ObjectBuilder::new()
-                    .description(Some(
-                        "Represents the next page index in a Page. If there is no next page, it will be None.",
-                    ))
-                    .schema_type(SchemaType::Type(Type::Integer))
-                    .format(Some(SchemaFormat::KnownFormat(KnownFormat::Int64)))
-            )
-        ).into()
-    }
-}
-
-/// Implementation of [`ToSchema`] for [`Page`] if the feature `utoipa` is enabled.
-#[cfg(feature = "utoipa")]
-impl<E> ToSchema for Page<E> where E: ToSchema {}
 
 #[cfg(test)]
 mod test_page_model {
@@ -837,7 +680,7 @@ mod test_page_model {
         };
         assert_eq!(
             json_string,
-            "{\"type\":\"object\",\"description\":\"Model to represent paginated items.\",\"required\":[\"items\",\"page\",\"size\",\"total\",\"pages\"],\"properties\":{\"items\":{\"type\":\"object\",\"required\":[\"number\"],\"properties\":{\"number\":{\"type\":\"integer\",\"format\":\"int32\",\"minimum\":0}}},\"page\":{\"type\":\"integer\",\"format\":\"int64\",\"description\":\"The page index in a Page. It starts from 0 to pages - 1.\",\"minimum\":0},\"pages\":{\"type\":\"integer\",\"format\":\"int64\",\"description\":\"Represents the total number of pages required for paginate the items.\",\"minimum\":1},\"previous_page\":{\"type\":\"integer\",\"format\":\"int64\",\"description\":\"Represents the previous page index in a Page. If there is no previous page, it will be None.\",\"properties\":{\"next_page\":{\"type\":\"integer\",\"format\":\"int64\",\"description\":\"Represents the next page index in a Page. If there is no next page, it will be None.\"}}},\"size\":{\"type\":\"integer\",\"format\":\"int64\",\"description\":\"The maximum number of elements per Page. items length must be equal to size value for all pages except the last page, when items length could be less than or equal to size.\",\"minimum\":0},\"total\":{\"type\":\"integer\",\"format\":\"int64\",\"description\":\"The total number of records used for pagination.\",\"minimum\":0}}}"
+            "{\"type\":\"object\",\"description\":\"Model to represent paginated items.\\n\\n#### Fields:\\n- **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.\\n- **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.\\n- **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.\\n- **total**: Represents the total number of records used for pagination.\\n- **pages**: Represents the total number of pages required for paginate the items.\\n- **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].\\n- **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].\",\"required\":[\"items\",\"page\",\"size\",\"total\",\"pages\"],\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Record\"}},\"next_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"page\":{\"type\":\"integer\",\"minimum\":0},\"pages\":{\"type\":\"integer\",\"minimum\":0},\"previous_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"size\":{\"type\":\"integer\",\"minimum\":0},\"total\":{\"type\":\"integer\",\"minimum\":0}}}"
         );
     }
 }

@@ -10,7 +10,10 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::{api::router::ServiceRouter, models::products::UpdateProductQuantityRequest};
+use crate::{
+    api::router::{NestedRouter, ServiceRouter},
+    models::products::UpdateProductQuantityRequest,
+};
 
 use crate::db::handler::Repository;
 use crate::db::repository::products::{ProductsRepository, ProductsRepositoryMethods};
@@ -24,6 +27,12 @@ pub struct ProductsServiceHandler {
     path_base: String,
 }
 
+impl NestedRouter for ProductsServiceHandler {
+    fn get_path_base(&self) -> &str {
+        &self.path_base
+    }
+}
+
 impl ServiceRouter for ProductsServiceHandler {
     fn new() -> Self {
         Self {
@@ -31,19 +40,15 @@ impl ServiceRouter for ProductsServiceHandler {
         }
     }
 
-    fn get_path_base(&self) -> &str {
-        &self.path_base
-    }
-
     fn get_router(&self) -> Router {
         Router::new().nest(
             self.get_path_base(),
             Router::new()
                 .route("/", post(create_product))
-                .route("/:id", get(get_product_by_id))
-                .route("/:id", delete(delete_product))
+                .route("/{id}", get(get_product_by_id))
+                .route("/{id}", delete(delete_product))
                 .route("/", get(list_products))
-                .route("/:id/quantity", patch(update_product_quantity)),
+                .route("/{id}/quantity", patch(update_product_quantity)),
         )
     }
 }
@@ -119,7 +124,7 @@ pub async fn get_product_by_id(
 		SearchProductsRequest,
 	),
 	responses(
-		(status = StatusCode::OK, body = Page<Product>),
+		(status = StatusCode::OK, body = PaginatedProducts),
 		(status = StatusCode::NOT_FOUND, body = HttpException),
 		(status = StatusCode::INTERNAL_SERVER_ERROR, body = HttpException),
 	),
