@@ -181,8 +181,8 @@
 //! To paginate records from a Postgres database:
 //! ```rust,no_run
 //!   use page_hunter::{Page, SQLxPagination};
-//!   use sqlx::postgres::{PgPool, Postgres};
-//!   use sqlx::{FromRow, QueryBuilder};
+//!   use sqlx::postgres::{PgConnection, Postgres};
+//!   use sqlx::{Connection, FromRow, QueryBuilder};
 //!   use uuid::Uuid;
 //!
 //!   #[tokio::main]
@@ -193,7 +193,7 @@
 //!       name: String,
 //!     }
 //!
-//!     let pool: PgPool = PgPool::connect(
+//!     let mut conn: PgConnection = PgConnection::connect(
 //!       "postgres://username:password@localhost/db"
 //!     ).await.unwrap_or_else(|error| {
 //!       panic!("Error connecting to database: {:?}", error);
@@ -204,13 +204,13 @@
 //!     );
 //!
 //!     let page: Page<Country> =
-//!       query.paginate(&pool, 0, 10).await.unwrap_or_else(|error| {
+//!       query.paginate(&mut conn, 0, 10).await.unwrap_or_else(|error| {
 //!         panic!("Error paginating records: {:?}", error);
 //!     });
 //!   }
 //! ```
 //!
-//! Similar to using pagination for Postgres, [`SQLxPagination`] can be used for MySQL and SQLite.
+//! Similar to using pagination for Postgres, [`SQLxPagination`] can be used for MySQL and SQLite. If you are working with a connection pool, you can [Acquire](https://docs.rs/sqlx/latest/sqlx/trait.Acquire.html)  a single connection before running [paginate](`SQLxPagination::paginate`).
 mod book;
 mod errors;
 mod page;
