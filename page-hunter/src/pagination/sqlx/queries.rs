@@ -83,7 +83,7 @@ where
 /// Paginate results from a SQL query into a [`Page`] model.
 ///
 /// ### Arguments:
-/// - **conn**: A mutable reference to a connection to the database, which must implement the [`Acquire`] trait.
+/// - **conn**: A mutable reference to a connection to the database.
 /// - ***query_str**: A reference to a SQL query string.
 /// - **page**: The page index.
 /// - **size**: The number of records per page.
