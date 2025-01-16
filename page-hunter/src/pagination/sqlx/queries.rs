@@ -1,8 +1,8 @@
 use std::future::Future;
 
 use sqlx::{
-    query, query_scalar, Acquire, ColumnIndex, Database, Decode, Error as SqlxError, Executor,
-    FromRow, IntoArguments, QueryBuilder, Type,
+    query, query_scalar, ColumnIndex, Database, Decode, Error as SqlxError, Executor, FromRow,
+    IntoArguments, QueryBuilder, Type,
 };
 
 #[allow(unused_imports)]
@@ -114,10 +114,9 @@ where
 }
 
 /// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
-pub trait SQLxPagination<DB, A, S>
+pub trait SQLxPagination<DB, S>
 where
     DB: Database,
-    for<'a> A: Acquire<'a, Database = DB>,
     for<'b> &'b mut DB::Connection: Executor<'b, Database = DB>,
     for<'c> i64: Type<DB> + Decode<'c, DB>,
     for<'d> DB::Arguments<'d>: IntoArguments<'d, DB>,
@@ -128,7 +127,7 @@ where
     /// Available for Postgres, MySQL or SQLite databases.
     ///
     /// ### Arguments:
-    /// - **conn**: A mutable reference to a connection to the database, which must implement the [`Acquire`] trait.
+    /// - **conn**: A mutable reference to a connection to the database.
     /// - **page**: The page index.
     /// - **size**: The number of records per page.
     ///
@@ -138,26 +137,28 @@ where
     /// Only available when the `sqlx` feature is enabled.
     fn paginate(
         &self,
-        conn: A,
+        conn: &mut DB::Connection,
         page: usize,
         size: usize,
     ) -> impl Future<Output = PaginationResult<Page<S>>>;
 }
 
-impl<DB, A, S> SQLxPagination<DB, A, S> for QueryBuilder<'_, DB>
+impl<DB, S> SQLxPagination<DB, S> for QueryBuilder<'_, DB>
 where
     DB: Database,
-    for<'a> A: Acquire<'a, Database = DB>,
     for<'b> &'b mut DB::Connection: Executor<'b, Database = DB>,
     for<'c> i64: Type<DB> + Decode<'c, DB>,
     for<'d> DB::Arguments<'d>: IntoArguments<'d, DB>,
     usize: ColumnIndex<<DB>::Row>,
     S: for<'r> FromRow<'r, DB::Row> + Clone,
 {
-    async fn paginate(&self, conn: A, page: usize, size: usize) -> PaginationResult<Page<S>> {
+    async fn paginate(
+        &self,
+        conn: &mut DB::Connection,
+        page: usize,
+        size: usize,
+    ) -> PaginationResult<Page<S>> {
         let query_str: &str = self.sql();
-        let mut acquired_conn = conn.acquire().await?;
-
-        paginate_rows(&mut acquired_conn, query_str, page, size).await
+        paginate_rows(conn, query_str, page, size).await
     }
 }
