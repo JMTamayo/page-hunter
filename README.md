@@ -243,49 +243,131 @@ Create `local.env` file at workspace folder to store the required environment va
   DB_PASSWORD=docker
   DB_NAME=test
   PG_DB_PORT=5432
-  PG_MIGRATIONS_PATH=page-hunter/tests/migrations/postgres
+  PG_MIGRATIONS_PATH=page-hunter/src/pagination/sqlx/tests/pg/migrations
 ```
 
 #### Install required tools:
+Install the following tools required for the development process.
+
+##### [SQLx client](https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md) for Postgres:
 ```bash
-  make install-tools
+  cargo install sqlx-cli --no-default-features --features postgres
 ```
-This command installs sqlx-cli, cargo-llvm-cov, cargo-nextest and cargo-deny.
+
+##### [Cargo LLVM cov](https://github.com/taiki-e/cargo-llvm-cov/blob/main/README.md):
+```bash
+  cargo install cargo-llvm-cov
+```
+
+##### [Cargo Nextest](https://nexte.std):
+```bash
+  cargo install cargo-nextest
+```
+
+##### [Cargo Deny](https://nexte.std):
+```bash
+  cargo install cargo-deny
+```
 
 #### Setup databases:
 Run Postgres database as a Docker container:
 
-##### Postgres:
 ```bash
-  make run-pg-db-docker
+  bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_db.sh
 ```
 
 #### Run database migrations:
 
-##### Postgres
 - Run migrations:
 ```bash
-  make run-pg-db-migrations
+  bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_migrations.sh
 ```
 
 - Revert migrations:
 ```bash
-  make revert-pg-db-migration
+  bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/revert_migration.sh
+```
+
+#### To format the code:
+```bash
+  cargo fmt --package page-hunter --all
+```
+
+#### To verify the code format:
+```bash
+  cargo fmt --package page-hunter --all --check
+```
+
+#### To verify lints:
+- No features:
+```bash
+  cargo clippy --package page-hunter
+```
+
+- Feature `serde`:
+```bash
+  cargo clippy --package page-hunter --features serde
+```
+
+- Feature `utoipa`:
+```bash
+  cargo clippy --package page-hunter --features utoipa
+```
+
+- Feature `sqlx`:
+```bash
+  cargo clippy --package page-hunter --features sqlx
+```
+
+- All features:
+```bash
+  cargo clippy --package page-hunter --all-features
+```
+
+#### To check the project:
+- No features:
+```bash
+  cargo check --package page-hunter
+```
+
+- Feature `serde`:
+```bash
+  cargo check --package page-hunter --features serde
+```
+
+- Feature `utoipa`:
+```bash
+  cargo check --package page-hunter --features utoipa
+```
+
+- Feature `sqlx`:
+```bash
+  cargo check --package page-hunter --features sqlx
+```
+
+- All features:
+```bash
+  cargo check --package page-hunter --all-features
+```
+
+#### To generate the documentation:
+```bash
+  cargo doc --package page-hunter --all-features --open
 ```
 
 #### To run doc tests:
 ```bash
-  make doctests
+  cargo test --package page-hunter --all-features --doc
 ```
 
 #### To test using llvm-cov:
 ```bash
-  make test-llvm-cov-report
+  cargo llvm-cov nextest --workspace --all-features --show-missing-lines --open
 ```
 
 ### Security analysis:
 ```bash
-  make deny-check
+  cargo deny --log-level error check
 ```
 
 ## CONTRIBUTIONS
