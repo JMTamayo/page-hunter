@@ -188,7 +188,7 @@
 //!   async fn main() {
 //!     #[derive(Clone, Debug, FromRow)]
 //!     pub struct Country {
-//!       id: i8,
+//!       id: i32,
 //!       name: String,
 //!     }
 //!
