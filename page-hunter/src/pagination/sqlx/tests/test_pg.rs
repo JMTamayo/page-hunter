@@ -4,11 +4,10 @@ pub mod test_sqlx_pg_pagination {
     use std::env::var;
 
     use sqlx::{
+        pool::PoolConnection,
         postgres::{PgConnection, PgPool, PgPoolOptions, Postgres},
         Connection, FromRow, QueryBuilder,
     };
-    use time::OffsetDateTime;
-    use uuid::Uuid;
 
     use crate::*;
 
@@ -24,12 +23,10 @@ pub mod test_sqlx_pg_pagination {
         #[derive(Clone, FromRow)]
         #[allow(dead_code)]
         pub struct User {
-            id: Uuid,
+            id: i32,
             username: String,
             hashed_password: String,
             is_active: bool,
-            created_at: OffsetDateTime,
-            updated_at: Option<OffsetDateTime>,
         }
 
         let pool: PgPool = PgPoolOptions::new()
@@ -41,7 +38,7 @@ pub mod test_sqlx_pg_pagination {
             .await
             .unwrap();
 
-        let mut conn = pool.acquire().await.unwrap();
+        let mut conn: PoolConnection<Postgres> = pool.acquire().await.unwrap();
 
         let query: QueryBuilder<Postgres> =
             QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users");
@@ -59,6 +56,10 @@ pub mod test_sqlx_pg_pagination {
         assert_eq!(users.get_previous_page(), Some(1));
         assert_eq!(users.get_next_page(), Some(3));
 
+        assert_eq!(users.get_items()[0].id, 7);
+        assert_eq!(users.get_items()[1].id, 8);
+        assert_eq!(users.get_items()[2].id, 9);
+
         assert_eq!(users.get_items()[0].username, "user7");
         assert_eq!(users.get_items()[1].username, "user8");
         assert_eq!(users.get_items()[2].username, "user9");
@@ -70,10 +71,6 @@ pub mod test_sqlx_pg_pagination {
         assert_eq!(users.get_items()[0].is_active, true);
         assert_eq!(users.get_items()[1].is_active, true);
         assert_eq!(users.get_items()[2].is_active, true);
-
-        assert!(users.get_items()[0].updated_at.is_none());
-        assert!(users.get_items()[1].updated_at.is_none());
-        assert!(users.get_items()[2].updated_at.is_none());
     }
 
     /// Test database error when is not possible to get total by invalid query
@@ -88,12 +85,10 @@ pub mod test_sqlx_pg_pagination {
         #[derive(Clone, Debug, FromRow)]
         #[allow(dead_code)]
         pub struct User {
-            id: Uuid,
+            id: i32,
             username: String,
             hashed_password: String,
             is_active: bool,
-            created_at: OffsetDateTime,
-            updated_at: Option<OffsetDateTime>,
         }
 
         let mut conn: PgConnection = PgConnection::connect(&format!(
@@ -128,13 +123,11 @@ pub mod test_sqlx_pg_pagination {
         #[derive(Clone, Debug, FromRow)]
         #[allow(dead_code)]
         pub struct User {
-            id: Uuid,
+            id: i32,
             username: String,
             hashed_password: String,
             age: i32,
             is_active: bool,
-            created_at: OffsetDateTime,
-            updated_at: Option<OffsetDateTime>,
         }
 
         let pool: PgPool = PgPoolOptions::new()
@@ -146,7 +139,7 @@ pub mod test_sqlx_pg_pagination {
             .await
             .unwrap();
 
-        let mut conn = pool.acquire().await.unwrap();
+        let mut conn: PoolConnection<Postgres> = pool.acquire().await.unwrap();
 
         let query: QueryBuilder<Postgres> =
             QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users");
@@ -173,12 +166,10 @@ pub mod test_sqlx_pg_pagination {
         #[derive(Clone, Debug, FromRow)]
         #[allow(dead_code)]
         pub struct User {
-            id: Uuid,
+            id: i32,
             username: String,
             hashed_password: String,
             is_active: bool,
-            created_at: OffsetDateTime,
-            updated_at: Option<OffsetDateTime>,
         }
 
         let pool: PgPool = PgPoolOptions::new()
@@ -190,7 +181,7 @@ pub mod test_sqlx_pg_pagination {
             .await
             .unwrap();
 
-        let mut conn = pool.acquire().await.unwrap();
+        let mut conn: PoolConnection<Postgres> = pool.acquire().await.unwrap();
 
         let query: QueryBuilder<Postgres> =
             QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users");
