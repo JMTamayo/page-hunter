@@ -1,2 +1,2 @@
 -- Add down migration script here
-DROP EXTENSION "uuid-ossp";
+DROP SCHEMA IF EXISTS test_page_hunter;
