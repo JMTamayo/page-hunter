@@ -183,13 +183,12 @@
 //!   use page_hunter::{Page, SQLxPagination};
 //!   use sqlx::postgres::{PgConnection, Postgres};
 //!   use sqlx::{Connection, FromRow, QueryBuilder};
-//!   use uuid::Uuid;
 //!
 //!   #[tokio::main]
 //!   async fn main() {
 //!     #[derive(Clone, Debug, FromRow)]
 //!     pub struct Country {
-//!       id: Uuid,
+//!       id: i32,
 //!       name: String,
 //!     }
 //!

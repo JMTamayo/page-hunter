@@ -10,12 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed:
 
 - 🔨 Remove Makefile from project by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Simplify `SqlxPagination` implementation to reduce the number of lines of code by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Remove the use of uuid and time from tests by [@JMTamayo](https://github.com/JMTamayo).
 
 ### Docs:
 
 - 📝 Remove makefile commands from README.md by [@JMTamayo](https://github.com/JMTamayo).
 
-## 🚀 v0.5.0 [Pending]
+## 🚀 v0.5.0 [2025-01-15]
 
 ### Changed:
 
