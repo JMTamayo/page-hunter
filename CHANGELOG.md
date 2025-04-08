@@ -5,13 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 🚀 0.5.1 [Pending]
+## 🚀 0.5.1 [2025-04-08]
 
 ### Changed:
 
 - 🔨 Remove Makefile from project by [@JMTamayo](https://github.com/JMTamayo).
 - 🔨 Simplify `SqlxPagination` implementation to reduce the number of lines of code by [@JMTamayo](https://github.com/JMTamayo).
 - 🔨 Remove the use of uuid and time from tests by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Execute `clippy` and `build` steps for no-features in CI pipeline by [@JMTamayo](https://github.com/JMTamayo).
 
 ### Docs:
 
