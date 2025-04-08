@@ -35,10 +35,11 @@ jobs:
     strategy:
       matrix:
         feature:
+          - no-features
+          - all-features
           - serde
           - utoipa
           - sqlx
-          - all
 
     steps:
       - name: "Repository: Fetch"
@@ -51,8 +52,10 @@ jobs:
 
       - name: "Step: Lints"
         run: |
-          if [[ ${{ matrix.feature }} == all ]]; then
+          if [[ ${{ matrix.feature }} == all-features ]]; then
             cargo clippy --package page-hunter --all-features
+          elif [[ ${{ matrix.feature }} == no-features ]]; then
+            cargo clippy --package page-hunter
           else
             cargo clippy --package page-hunter --features ${{ matrix.feature }}
           fi
@@ -63,10 +66,11 @@ jobs:
     strategy:
       matrix:
         feature:
+          - no-features
+          - all-features
           - serde
           - utoipa
           - sqlx
-          - all
 
     steps:
       - name: "Repository: Fetch"
@@ -77,8 +81,10 @@ jobs:
 
       - name: "Step: Build"
         run: |
-          if [[ ${{ matrix.feature }} == all ]]; then
+          if [[ ${{ matrix.feature }} == all-features ]]; then
             cargo build --package page-hunter --all-features
+          elif [[ ${{ matrix.feature }} == no-features ]]; then
+            cargo build --package page-hunter
           else
             cargo build --package page-hunter --features ${{ matrix.feature }}
           fi
