@@ -33,10 +33,10 @@ impl ErrorKind {
 impl Display for ErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            ErrorKind::InvalidValue(detail) => write!(f, "INVALID VALUE ERROR- {}", detail),
+            ErrorKind::InvalidValue(detail) => write!(f, "INVALID VALUE ERROR- {detail}"),
 
             #[cfg(feature = "sqlx")]
-            ErrorKind::SQLx(detail) => write!(f, "SQLX ERROR- {}", detail),
+            ErrorKind::SQLx(detail) => write!(f, "SQLX ERROR- {detail}"),
         }
     }
 }
@@ -68,7 +68,7 @@ impl PaginationError {
 /// Implementation of [`Display`] for [`PaginationError`].
 impl Display for PaginationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", self.get_error_kind())
+        write!(f, "{w}", w = self.get_error_kind())
     }
 }
 
@@ -127,7 +127,7 @@ mod test_errors {
         let error_kind_field_value_error: ErrorKind =
             ErrorKind::InvalidValue(String::from("Invalid value"));
         assert_eq!(
-            format!("{}", error_kind_field_value_error),
+            format!("{error_kind_field_value_error}"),
             "INVALID VALUE ERROR- Invalid value"
         );
     }
@@ -138,7 +138,7 @@ mod test_errors {
     fn test_error_kind_sqlx_error_display() {
         let error_kind_sqlx_error: ErrorKind = ErrorKind::SQLx(SqlxError::PoolClosed);
         assert_eq!(
-            format!("{}", error_kind_sqlx_error),
+            format!("{error_kind_sqlx_error}"),
             "SQLX ERROR- attempted to acquire a connection on a closed pool"
         );
     }
@@ -172,7 +172,7 @@ mod test_errors {
         let kind: ErrorKind = ErrorKind::InvalidValue(String::from("Invalid value"));
         let pagination_error: PaginationError = PaginationError::from(kind);
         assert_eq!(
-            format!("{}", pagination_error),
+            format!("{pagination_error}"),
             "INVALID VALUE ERROR- Invalid value"
         );
     }
