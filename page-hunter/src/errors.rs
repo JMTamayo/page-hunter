@@ -45,10 +45,10 @@ impl Display for ErrorKind {
 impl Debug for ErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            ErrorKind::InvalidValue(detail) => write!(f, "InvalidValueError({:?})", detail),
+            ErrorKind::InvalidValue(detail) => write!(f, "InvalidValueError({detail:?})"),
 
             #[cfg(feature = "sqlx")]
-            ErrorKind::SQLx(detail) => write!(f, "SQLxError({:?})", detail),
+            ErrorKind::SQLx(detail) => write!(f, "SQLxError({detail:?})"),
         }
     }
 }
