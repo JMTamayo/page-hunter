@@ -6,14 +6,14 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-actix-web = { version = "4.9.0" }
-reqwest = { version = "0.12.12", features = ["json"] }
-utoipa = { version = "5.3.1", features = ["actix_extras"] }
-utoipa-swagger-ui = { version = "8.1.1", features = ["actix-web"] }
-utoipa-redoc = { version = "5.0.1", features = ["actix-web"] }
-utoipa-rapidoc = { version = "5.0.1", features = ["actix-web"] }
-utoipa-scalar = { version = "0.2.1", features = ["actix-web"] }
-serde ={ version = "1.0.217", features = ["derive"] }
+actix-web = { version = "4.11.0" }
+reqwest = { version = "0.12.20", features = ["json"] }
+utoipa = { version = "5.4.0", features = ["actix_extras"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
+utoipa-redoc = { version = "6.0.0", features = ["actix-web"] }
+utoipa-rapidoc = { version = "6.0.0", features = ["actix-web"] }
+utoipa-scalar = { version = "0.3.0", features = ["actix-web"] }
+serde ={ version = "1.0.219", features = ["derive"] }
 page-hunter = { path = "../../page-hunter", features=["utoipa"] }
 
 [workspace]

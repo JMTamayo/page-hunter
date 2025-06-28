@@ -9,7 +9,7 @@ This service uses the [API Colombia](https://api-colombia.com) project to obtain
 To try this example on your local computer, you just need to locate to the respective folder and run the following command:
 
 ```bash
-	RUST_LOG=debug cargo run
+	cargo run --release
 ```
 
 When the service is running, you can explore the documentation as follows:

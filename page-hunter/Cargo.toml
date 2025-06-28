@@ -13,12 +13,12 @@ keywords = ["pagination", "paginator", "page_model"]
 categories = ["development-tools"]
 
 [dependencies]
-serde = { version = "1.0.215", features = ["derive"],  optional = true }
-utoipa = { version = ">=5.3.0", optional = true}
-sqlx = { version = ">=0.8.1", features = ["runtime-tokio"], optional = true }
+serde = { version = ">=1.0.217", features = ["derive"],  optional = true }
+utoipa = { version = ">=5.4.0", optional = true}
+sqlx = { version = ">=0.8.3", features = ["runtime-tokio"], optional = true }
 
 [dev-dependencies]
-tokio ={ version = "1.44.2", features = ["full"] }
+tokio ={ version = "1.45.1", features = ["full"] }
 sqlx = { version = "0.8.3", features = ["postgres"] }
 serde_json = { version = "1.0.140" }
 

@@ -6,16 +6,16 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-tokio = { version = "1.43.0", features = ["full"] }
-axum = { version = "0.8.1" }
-utoipa = {version = "5.3.1", features = ["axum_extras", "uuid", "time"] }
-utoipa-swagger-ui = { version = "8.1.1", features = ["axum"] }
-sqlx = { version = "0.8.3", features = ["runtime-tokio", "uuid", "time",  "postgres"] }
-serde = { version = "1.0.217", features = ["derive"] }
-time = { version = "0.3.37", features = ["serde"] }
-uuid = { version = "1.11.1", features = ["serde"] }
-env_logger = { version = "0.11.6" }
-log = { version = "0.4.24" }
+tokio = { version = "1.45.1", features = ["full"] }
+axum = { version = "0.8.4" }
+utoipa = {version = "5.4.0", features = ["axum_extras", "uuid", "time"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "uuid", "time",  "postgres"] }
+serde = { version = "1.0.219", features = ["derive"] }
+time = { version = "0.3.41", features = ["serde"] }
+uuid = { version = "1.17.0", features = ["serde"] }
+env_logger = { version = "0.11.8" }
+log = { version = "0.4.27" }
 page-hunter = { path = "../../page-hunter", features=["utoipa", "sqlx"] }
 
 [workspace]
