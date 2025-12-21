@@ -2,18 +2,18 @@
 name = "actix-web-example"
 description = "An example of how to use actix-web with page-hunter"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 
 [dependencies]
-actix-web = { version = "4.11.0" }
-reqwest = { version = "0.12.20", features = ["json"] }
+actix-web = { version = "4.12.1" }
+reqwest = { version = "0.12.26", features = ["json"] }
 utoipa = { version = "5.4.0", features = ["actix_extras"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
 utoipa-redoc = { version = "6.0.0", features = ["actix-web"] }
 utoipa-rapidoc = { version = "6.0.0", features = ["actix-web"] }
 utoipa-scalar = { version = "0.3.0", features = ["actix-web"] }
-serde ={ version = "1.0.219", features = ["derive"] }
+serde ={ version = "1.0.228", features = ["derive"] }
 page-hunter = { path = "../../page-hunter", features=["utoipa"] }
 
 [workspace]

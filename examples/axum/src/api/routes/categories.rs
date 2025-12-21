@@ -1,9 +1,9 @@
 use axum::{
+    Extension, Json, Router,
     extract::{Path, Query},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
-    Extension, Json, Router,
 };
 use log::info;
 use sqlx::PgPool;

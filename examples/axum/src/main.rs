@@ -1,4 +1,4 @@
-use axum::{serve as axum_serve, Extension};
+use axum::{Extension, serve as axum_serve};
 use log::info;
 use sqlx::postgres::PgPool;
 use std::sync::Arc;

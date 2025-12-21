@@ -1,8 +1,8 @@
 use std::future::Future;
 
 use sqlx::{
-    query, query_scalar, ColumnIndex, Database, Decode, Error as SqlxError, Executor, FromRow,
-    IntoArguments, QueryBuilder, Type,
+    ColumnIndex, Connection, Database, Decode, Error as SqlxError, Executor, FromRow,
+    IntoArguments, QueryBuilder, Transaction, Type, query, query_scalar,
 };
 
 #[allow(unused_imports)]
@@ -56,18 +56,22 @@ where
         let query_str: &str = self.sql();
 
         async move {
+            let mut tx: Transaction<'_, DB> = conn.begin().await?;
+
             let total: usize = query_scalar::<DB, i64>(&format!(
                 "SELECT count(*) from ({query_str}) as temp_table;"
             ))
-            .fetch_one(&mut *conn)
+            .fetch_one(&mut *tx)
             .await? as usize;
 
             let rows: Vec<DB::Row> = query::<DB>(&format!(
                 "{query_str} LIMIT {size} OFFSET {offset};",
                 offset = size * page,
             ))
-            .fetch_all(&mut *conn)
+            .fetch_all(&mut *tx)
             .await?;
+
+            tx.commit().await?;
 
             let items: Vec<S> = rows
                 .into_iter()

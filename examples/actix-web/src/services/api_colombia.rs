@@ -29,7 +29,7 @@ impl ApiColombiaService {
                 return Err(Exception::new(
                     500,
                     format!("Error sending request to '{}': {}", url, error),
-                ))
+                ));
             }
         };
 
@@ -46,7 +46,7 @@ impl ApiColombiaService {
                 return Err(Exception::new(
                     500,
                     format!("Error deserializing departments: {}", error),
-                ))
+                ));
             }
         };
 

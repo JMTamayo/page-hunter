@@ -1,5 +1,5 @@
 use sqlx::postgres::{PgPool, PgPoolOptions};
-use sqlx::{migrate::MigrateError, Error as SqlxError};
+use sqlx::{Error as SqlxError, migrate::MigrateError};
 
 use crate::config::conf::DatabaseConfig;
 

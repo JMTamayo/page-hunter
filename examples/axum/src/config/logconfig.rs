@@ -1,4 +1,4 @@
-use env_logger::{fmt, Builder, Env};
+use env_logger::{Builder, Env, fmt};
 
 pub struct LogConfig {}
 
