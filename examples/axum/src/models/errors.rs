@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use page_hunter::{ErrorKind, PaginationError};
 use serde::Serialize;

@@ -1,7 +1,7 @@
 use page_hunter::Page;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use time::{serde::rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, serde::rfc3339};
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
