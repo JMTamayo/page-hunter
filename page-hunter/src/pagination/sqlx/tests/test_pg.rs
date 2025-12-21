@@ -4,9 +4,9 @@ pub mod test_sqlx_pg_pagination {
     use std::env::var;
 
     use sqlx::{
+        Connection, FromRow, QueryBuilder,
         pool::PoolConnection,
         postgres::{PgConnection, PgPool, PgPoolOptions, Postgres},
-        Connection, FromRow, QueryBuilder,
     };
 
     use crate::*;

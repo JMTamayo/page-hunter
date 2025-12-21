@@ -2,8 +2,8 @@ use std::fmt::{Debug, Display};
 
 #[cfg(feature = "serde")]
 use serde::{
-    de::{Deserialize as DeDeserialize, Deserializer as DeDeserializer, Error as DeError},
     Deserialize, Serialize,
+    de::{Deserialize as DeDeserialize, Deserializer as DeDeserializer, Error as DeError},
 };
 #[cfg(feature = "utoipa")]
 use utoipa::ToSchema;
@@ -249,7 +249,13 @@ where
         write!(
             f,
             "Page {{ items: {:?}, page: {}, size: {}, total: {}, pages: {}, previous_page: {:?}, next_page: {:?} }}",
-            self.items, self.page, self.size, self.total, self.pages, self.previous_page, self.next_page
+            self.items,
+            self.page,
+            self.size,
+            self.total,
+            self.pages,
+            self.previous_page,
+            self.next_page
         )
     }
 }
@@ -347,9 +353,11 @@ mod test_page_model {
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
-        assert!(pagination_error
-            .to_string()
-            .eq("INVALID VALUE ERROR- Page index '3' exceeds total pages '3'"));
+        assert!(
+            pagination_error
+                .to_string()
+                .eq("INVALID VALUE ERROR- Page index '3' exceeds total pages '3'")
+        );
     }
 
     /// Test [`Page`] constructor with invalid `items` value: `items` length exceeds `total` elements.
@@ -420,9 +428,11 @@ mod test_page_model {
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
-        assert!(pagination_error
-            .to_string()
-            .eq("INVALID VALUE ERROR- Total elements error: expected '2', found '5'"));
+        assert!(
+            pagination_error
+                .to_string()
+                .eq("INVALID VALUE ERROR- Total elements error: expected '2', found '5'")
+        );
     }
 
     /// Test default [`Page`] constructor.
@@ -662,8 +672,8 @@ mod test_page_model {
     #[test]
     fn test_page_to_schema() {
         use utoipa::{
-            openapi::{RefOr, Schema},
             PartialSchema, ToSchema,
+            openapi::{RefOr, Schema},
         };
 
         #[derive(Clone, ToSchema)]

@@ -305,8 +305,8 @@ mod test_book {
     #[test]
     fn test_book_to_schema() {
         use utoipa::{
-            openapi::{RefOr, Schema},
             PartialSchema, ToSchema,
+            openapi::{RefOr, Schema},
         };
 
         #[derive(Clone, ToSchema)]

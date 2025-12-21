@@ -219,7 +219,7 @@ mod results;
 pub use book::Book;
 pub use errors::{ErrorKind, PaginationError};
 pub use page::Page;
-pub use pagination::records::{bind_records, paginate_records, RecordsPagination};
+pub use pagination::records::{RecordsPagination, bind_records, paginate_records};
 pub use results::PaginationResult;
 
 #[cfg(feature = "sqlx")]
