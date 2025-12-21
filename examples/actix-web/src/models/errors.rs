@@ -1,4 +1,4 @@
-use actix_web::{http::StatusCode, HttpResponse};
+use actix_web::{HttpResponse, http::StatusCode};
 use serde::Serialize;
 use utoipa::ToSchema;
 
