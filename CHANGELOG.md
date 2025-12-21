@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🔨 Update package edition to 2024 by [@JMTamayo](https://github.com/JMTamayo).
 - 🔨 Update project dependencies to newer versions by [@JMTamayo](https://github.com/JMTamayo).
 - 🔨 Implemnt transaction management to improve the data integrity in `SqlxPagination` by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Add workflow_dispatch event to CI pipeline by [@JMTamayo](https://github.com/JMTamayo).
 
 ## 🚀 0.5.2 [2025-06-28]
 
