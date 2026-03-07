@@ -1,14 +1,16 @@
 use std::future::Future;
 
 use sqlx::{
-    ColumnIndex, Connection, Database, Decode, Error as SqlxError, Executor, FromRow,
-    IntoArguments, QueryBuilder, Transaction, Type, query, query_scalar,
+    Acquire, ColumnIndex, Database, Decode, Error as SqlxError, Executor, FromRow, IntoArguments,
+    QueryBuilder, Transaction, Type, query, query_scalar,
 };
 
-#[allow(unused_imports)]
-use crate::{ErrorKind, Page, PaginationError, PaginationResult};
+use crate::{Page, PaginationResult};
 
 /// Trait to paginate results from a SQL query into a [`Page`] model from database using [`sqlx`].
+///
+/// The implementation executes both `count(*)` and page data queries inside the same
+/// transaction created from the provided [`Acquire`] source.
 pub trait SQLxPagination<DB, S>
 where
     DB: Database,
@@ -22,7 +24,7 @@ where
     /// Available for Postgres, MySQL or SQLite databases.
     ///
     /// ### Arguments:
-    /// - **conn**: A mutable reference to a connection to the database.
+    /// - **source**: A database source implementing [`Acquire`], such as `&Pool<DB>` or `&mut DB::Connection`.
     /// - **page**: The page index.
     /// - **size**: The number of records per page.
     ///
@@ -30,12 +32,14 @@ where
     /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `S`, where `S` must implement the [`FromRow`] for given [`Database::Row`] type according to the database.
     ///
     /// Only available when the `sqlx` feature is enabled.
-    fn paginate(
+    fn paginate<'c, A>(
         &self,
-        conn: &mut DB::Connection,
+        source: A,
         page: usize,
         size: usize,
-    ) -> impl Future<Output = PaginationResult<Page<S>>>;
+    ) -> impl Future<Output = PaginationResult<Page<S>>>
+    where
+        A: Acquire<'c, Database = DB> + Send;
 }
 
 impl<DB, S> SQLxPagination<DB, S> for QueryBuilder<'_, DB>
@@ -47,16 +51,19 @@ where
     usize: ColumnIndex<<DB>::Row>,
     S: for<'r> FromRow<'r, DB::Row> + Clone,
 {
-    fn paginate(
+    fn paginate<'c, A>(
         &self,
-        conn: &mut DB::Connection,
+        source: A,
         page: usize,
         size: usize,
-    ) -> impl Future<Output = PaginationResult<Page<S>>> {
-        let query_str: &str = self.sql();
+    ) -> impl Future<Output = PaginationResult<Page<S>>>
+    where
+        A: Acquire<'c, Database = DB> + Send,
+    {
+        let query_str: String = self.sql().to_owned();
 
         async move {
-            let mut tx: Transaction<'_, DB> = conn.begin().await?;
+            let mut tx: Transaction<'_, DB> = source.begin().await?;
 
             let total: usize = query_scalar::<DB, i64>(&format!(
                 "SELECT count(*) from ({query_str}) as temp_table;"
