@@ -1,6 +1,16 @@
-# PAGE HUNTER EXAMPLES
-This folder contains a set of practical examples that can help people to get started and to implement the library's utilities.
+# Page Hunter Examples
 
-Each example folder contains its own README.md file. Take a look at this file to understand the purpose of the example and to run it on your own computer.
+This directory contains runnable projects that show how to use `page-hunter` in real API scenarios.
 
-Enjoy them!
+## Available examples
+
+- `actix-web`: in-memory pagination and binding over data fetched from an external API.
+- `axum`: database-backed pagination with PostgreSQL and `sqlx`.
+
+## How to use this folder
+
+1. Choose an example directory.
+2. Follow that example's `README.md` step by step.
+3. Run the service and open its API docs in the browser.
+
+Each example is self-contained and has its own dependencies and run commands.

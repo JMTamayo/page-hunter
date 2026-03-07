@@ -1,21 +1,36 @@
-# USING ACTIX WEB WITH PAGE HUNTER
-Use [actix-web](https://docs.rs/actix-web/4.6.0/actix_web/) to build a web server using `page-hunter` to paginate APIs responses.
+# Actix Web Example
 
-This service uses the [API Colombia](https://api-colombia.com) project to obtain data and implement page-hunter models and functions. Review the project documentation at the following links:
-- **Repository:** [https://github.com/Mteheran/api-colombia](https://github.com/Mteheran/api-colombia?tab=readme-ov-file)
-- **Web page:** [https://api-colombia.com](https://api-colombia.com)
-- **API doc:** [https://api-colombia.com/swagger/index.html](https://api-colombia.com/swagger/index.html)
+This example shows how to use `page-hunter` with [actix-web](https://docs.rs/actix-web/latest/actix_web/) for in-memory pagination APIs.
 
-To try this example on your local computer, you just need to locate to the respective folder and run the following command:
+It consumes data from [API Colombia](https://api-colombia.com) and demonstrates:
+
+- `paginate_records` for paged responses.
+- `bind_records` for grouped "book" responses.
+- OpenAPI documentation with `utoipa`.
+
+## Prerequisites
+
+- Rust toolchain (stable)
+- Internet connection (the app depends on API Colombia)
+
+## Run locally
+
+From this directory:
 
 ```bash
-	cargo run --release
+cargo run --release
 ```
 
-When the service is running, you can explore the documentation as follows:
-- **Swagger UI:** http://localhost:8080/swagger-ui/
-- **Rapidoc:** http://localhost:8080/rapidoc
-- **Redoc:** http://localhost:8080/redoc
-- **Scalar:**  http://localhost:8080/scalar
+The server starts at `http://127.0.0.1:8080`.
 
-Enjoy it! 😀
+## API documentation
+
+- Swagger UI: `http://localhost:8080/swagger-ui/`
+- RapiDoc: `http://localhost:8080/rapidoc`
+- Redoc: `http://localhost:8080/redoc`
+- Scalar: `http://localhost:8080/scalar`
+
+## Useful endpoints
+
+- `GET /departments/paged-list?page=1&size=10`
+- `GET /departments/book?size=10`
