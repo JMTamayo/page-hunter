@@ -9,28 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added:
 
-- 🧑🏻‍💻 Add `page_hunter::prelude` module to simplify common imports (`Page`, `Book`, pagination helpers, errors and `SQLxPagination` when `sqlx` feature is enabled).
+- 🧑🏻‍💻 Add `page_hunter::prelude` module to simplify common imports (`Page`, `Book`, pagination helpers, errors and `SQLxPagination` when `sqlx` feature is enabled) by [@JMTamayo](https://github.com/JMTamayo).
 
 ### Changed:
 
-- 🔨 Update `SQLxPagination::paginate` to accept a generic source implementing `Acquire`, allowing `&Pool<DB>` and `&mut DB::Connection` on the same API **[⚠️ BREAKING CHANGE]**.
-- 🔨 Update SQLx pagination internals to start transactions from the generic `Acquire` source.
-- 🔨 Update `axum` example repositories to paginate directly from `PgPool`.
-- 🔨 Restrict dependency definitions in `page-hunter/Cargo.toml` by replacing open-ended `>=` constraints with explicit versions and explicit SQLx feature flags.
-- 🔨 Refresh crate development dependencies in `page-hunter/Cargo.toml` (`tokio`, `serde_json`) and update example dependencies in `examples/axum/Cargo.toml` and `examples/actix-web/Cargo.toml`.
-- 🔨 Strengthen CI workflow with safer defaults and better reliability: minimal permissions, run concurrency control, Cargo cache, fixed Postgres image/version, DB healthcheck, explicit `--locked` usage, and strict clippy (`-D warnings`).
-- 🔨 Simplify CI feature matrix maintenance by reusing a single matrix definition for both lint and build jobs.
+- 🔨 Update `SQLxPagination::paginate` to accept a generic source implementing `Acquire`, allowing `&Pool<DB>` and `&mut DB::Connection` on the same API **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Update SQLx pagination internals to start transactions from the generic `Acquire` source by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Update `axum` example repositories to paginate directly from `PgPool` by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Restrict dependency definitions in `page-hunter/Cargo.toml` by replacing open-ended `>=` constraints with explicit versions and explicit SQLx feature flags by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Refresh crate development dependencies in `page-hunter/Cargo.toml` (`tokio`, `serde_json`) and update example dependencies in `examples/axum/Cargo.toml` and `examples/actix-web/Cargo.toml` by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Strengthen CI workflow with safer defaults and better reliability: minimal permissions, run concurrency control, Cargo cache, fixed Postgres image/version, DB healthcheck, explicit `--locked` usage, and strict clippy (`-D warnings`) by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Simplify CI feature matrix maintenance by reusing a single matrix definition for both lint and build jobs by [@JMTamayo](https://github.com/JMTamayo).
 
 ### Docs:
 
-- 📝 Rewrite `README.md` with a quicker onboarding flow, clearer examples, and more discoverable developer commands.
-- 📝 Improve crate-level docs in `lib.rs` to provide a cleaner docs.rs experience and updated SQLx usage (`Pool` or `Connection`).
-- 📝 Improve `examples/README.md`, `examples/actix-web/README.md`, and `examples/axum/README.md` with clearer prerequisites, local run steps, and quick API endpoints.
-- 📝 Note: local helper scripts are not part of the published package/changelog artifacts when ignored by repository rules.
+- 📝 Rewrite `README.md` with a quicker onboarding flow, clearer examples, and more discoverable developer commands by [@JMTamayo](https://github.com/JMTamayo).
+- 📝 Improve crate-level docs in `lib.rs` to provide a cleaner docs.rs experience and updated SQLx usage (`Pool` or `Connection`) by [@JMTamayo](https://github.com/JMTamayo).
+- 📝 Improve `examples/README.md`, `examples/actix-web/README.md`, and `examples/axum/README.md` with clearer prerequisites, local run steps, and quick API endpoints by [@JMTamayo](https://github.com/JMTamayo).
+- 📝 Note: local helper scripts are not part of the published package/changelog artifacts when ignored by repository rules by [@JMTamayo](https://github.com/JMTamayo).
 
 ### Removed:
 
-- ❌ Ignore generated local coverage artifact `codecov.json` via `.gitignore`.
+- ❌ Ignore generated local coverage artifact `codecov.json` via `.gitignore` by [@JMTamayo](https://github.com/JMTamayo).
 
 ## 🚀 0.6.0 [2025-12-20]
 
