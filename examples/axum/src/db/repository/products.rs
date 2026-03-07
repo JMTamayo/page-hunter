@@ -124,10 +124,8 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
             None => debug!("No category_name_like provided"),
         }
 
-        let mut conn = self.get_pool().acquire().await?;
-
         let products_base: PaginatedProductsBase = query
-            .paginate(&mut conn, search_by.get_page(), search_by.get_size())
+            .paginate(self.get_pool(), search_by.get_page(), search_by.get_size())
             .await?;
 
         let products: PaginatedProducts = Page::new(

@@ -1,26 +1,68 @@
-# USING AXUM WITH PAGE HUNTER AND POSTGRESQL
-Use [axum](https://docs.rs/crate/axum/0.7.5) to build a web server using `page-hunter` to paginate APIs responses and PostgreSQL to manage data.
+# Axum + SQLx Example
 
-This service uses a PostgreSQL database as a docker container to manage example data.
+This example shows how to use `page-hunter` with [axum](https://docs.rs/axum/latest/axum/) and PostgreSQL through `sqlx`.
 
-To try this example on your local computer, you just need to locate to the respective folder and run the following command:
+It demonstrates:
 
-1. Install sqlx-cli:
+- SQL-backed pagination with `SQLxPagination`.
+- API handlers for categories and products.
+- OpenAPI docs with Swagger UI.
+
+## Prerequisites
+
+- Rust toolchain (stable)
+- Docker
+- `make`
+
+## Run locally
+
+From this directory:
+
+1. Install `sqlx-cli`:
+
 ```bash
-	make install-sqlx-cli
+make install-sqlx-cli
 ```
 
-2. Run database container:
+2. Start PostgreSQL container:
+
 ```bash
-	make run-db-container
+make run-db-container
 ```
 
-3. Run the application:
+3. Run migrations:
+
 ```bash
-	make run
+make run-db-migrations
 ```
 
-When the service is running, you can explore the documentation as follows:
-- **Swagger UI:** http://localhost:8080/swagger-ui/
+4. Export environment variables:
 
-Enjoy it! 😀
+```bash
+set -a
+source local.env
+set +a
+```
+
+5. Start the API:
+
+```bash
+make run
+```
+
+The server starts on `http://localhost:8080`.
+
+## API documentation
+
+- Swagger UI: `http://localhost:8080/swagger-ui/`
+
+## Useful endpoints
+
+- `GET /categories?page=1&size=10`
+- `GET /products?page=1&size=10`
+- `GET /products/{id}`
+
+## Notes
+
+- The default PostgreSQL mapping uses port `5432`.
+- If you already have a local PostgreSQL running on `5432`, stop it or run the container with a different mapped port.

@@ -1,377 +1,300 @@
 # Page Hunter
 
 <div align="left">
-	<img src="https://img.shields.io/github/license/JMTamayo/page-hunter">
-	<a href="https://deps.rs/repo/github/JMTamayo/page-hunter">
-		<img src="https://deps.rs/repo/github/JMTamayo/page-hunter/status.svg">
-	</a>
-	<a href="https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml">
-		<img src="https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml/badge.svg">
-	</a>
-	<a href="https://codecov.io/gh/JMTamayo/page-hunter">
-		<img src="https://codecov.io/gh/JMTamayo/page-hunter/graph/badge.svg?token=R1LAPNSV5J">
-	</a>
-	<a href="https://crates.io/crates/page-hunter">
-		<img src="https://img.shields.io/crates/v/page-hunter.svg?label=crates.io&color=orange&logo=rust">
-	</a>
-	<a href="http://docs.rs/page-hunter/latest/">
-		<img src="https://img.shields.io/static/v1?label=docs.rs&message=latest&color=blue&logo=docsdotrs">
-	</a>
+  <img src="https://img.shields.io/github/license/JMTamayo/page-hunter">
+  <a href="https://deps.rs/repo/github/JMTamayo/page-hunter">
+    <img src="https://deps.rs/repo/github/JMTamayo/page-hunter/status.svg">
+  </a>
+  <a href="https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml">
+    <img src="https://github.com/JMTamayo/page-hunter/actions/workflows/ci.yml/badge.svg">
+  </a>
+  <a href="https://codecov.io/gh/JMTamayo/page-hunter">
+    <img src="https://codecov.io/gh/JMTamayo/page-hunter/graph/badge.svg?token=R1LAPNSV5J">
+  </a>
+  <a href="https://crates.io/crates/page-hunter">
+    <img src="https://img.shields.io/crates/v/page-hunter.svg?label=crates.io&color=orange&logo=rust">
+  </a>
+  <a href="https://docs.rs/page-hunter/latest/">
+    <img src="https://img.shields.io/static/v1?label=docs.rs&message=latest&color=blue&logo=docsdotrs">
+  </a>
 </div>
 
-***Page Hunter*** library is a Rust-based pagination tool that provides a way to manage and navigate through pages of data.
-It offers a set of resources that encapsulates all the necessary pagination information such as the current page, total pages, previous page, next page and the items on the current page.
+Strong, reusable pagination models for Rust APIs and services.
 
-The library also includes validation methods to ensure the integrity of the pagination data.
-It's designed to be flexible and easy to integrate into any Rust project that requires pagination functionality and standard data validation.
+`page-hunter` gives you:
 
-## CRATE FEATURES
-- `serde`: Add [Serialize](https://docs.rs/serde/1.0.200/serde/trait.Serialize.html) and [Deserialize](https://docs.rs/serde/1.0.200/serde/trait.Deserialize.html) support for `Page` and `Book` based on [serde](https://crates.io/crates/serde/1.0.200). This feature is useful for implementing pagination models as a request or response body in REST APIs, among other implementations.
-- `utoipa`: Add [ToSchema](https://docs.rs/utoipa/4.2.0/utoipa/trait.ToSchema.html) support for `Page` and  `Book` based on [utoipa](https://crates.io/crates/utoipa/4.2.0). This feature is useful for generating OpenAPI schemas for pagination models. This feature depends on the `serde` feature and therefore you only need to implement `utoipa` to get both.
-- `sqlx`: Add support for pagination with [SQLx](https://docs.rs/sqlx/0.8.1/sqlx/) for Postgres, MySQL and SQLite databases.
+- A validated `Page<T>` model for one page of records.
+- A `Book<T>` model for full paging snapshots.
+- Helpers for in-memory collections and SQLx queries.
+- Optional `serde` and `utoipa` support for API contracts.
 
-## BASIC OPERATION
-The **page-hunter** library provides two main models to manage pagination:
-- `Page`: Represents a page of records with the current page, total pages, previous page, next page, and the items on the current page.
-- `Book`: Represents a book of pages with a collection of `Page` instances.
+## Why Page Hunter?
 
-The library also provides a set of functions to paginate records into a `Page` model and bind records into a `Book` model. The following examples show how to use the **page-hunter** library:
+Most projects eventually build pagination by hand, then repeat the same logic in multiple services.
+`page-hunter` turns that into a single, tested abstraction.
 
-### Paginate records:
-If you need to paginate records and get a specific `Page`:
-```rust,no_run
-  use page_hunter::{Page, paginate_records, RecordsPagination};
+- Consistent metadata (`page`, `size`, `total`, `pages`, `previous_page`, `next_page`).
+- Validation rules enforced by construction.
+- One API that works with records in memory and SQLx queries.
 
-  let records: Vec<u32> = vec![1, 2, 3, 4, 5];
-  let page: usize = 0;
-  let size: usize = 2;
+## Quick Start
 
-  // Using the paginate_records function:
-  let page_model: Page<u32> = match paginate_records(&records, page, size) {
-    Ok(p) => p,
-    Err(e) => panic!("Error paginating records: {:?}", e),
-  };
+### 1) Add dependency
 
-  // Using RecordsPagination trait:
-  let page_model: Page<u32> = match records.paginate(page, size) {
-    Ok(p) => p,
-    Err(e) => panic!("Error paginating records: {:?}", e),
-  };
+```bash
+cargo add page-hunter
 ```
 
-To create a new instance of a `Page` from known parameters:
-```rust,no_run
-  use page_hunter::{Page, PaginationResult};
+With optional features:
 
-  let items: Vec<u32> = vec![1, 2];
-  let page: usize = 0;
-  let size: usize = 2;
-  let total_elements: usize = 5;
-
-  let page_model_result: PaginationResult<Page<u32>> = Page::new(
-    &items,
-    page,
-    size,
-    total_elements,
-  );
+```bash
+cargo add page-hunter --features serde
+cargo add page-hunter --features utoipa
+cargo add page-hunter --features sqlx
 ```
 
-On feature `serde` enabled, you can serialize and deserialize a `Page` as follows:
+### 2) Paginate a `Vec<T>` in 30 seconds
+
 ```rust,no_run
-  use page_hunter::Page;
+use page_hunter::prelude::*;
 
-  let items: Vec<u32> = vec![1, 2];
-  let page: usize = 0;
-  let size: usize = 2;
-  let total_elements: usize = 5;
+fn main() {
+    let records = vec![1_u32, 2, 3, 4, 5];
+    let page: Page<u32> = paginate_records(&records, 0, 2).unwrap();
 
-  let page_model: Page<u32> = Page::new(
-    &items,
-    page,
-    size,
-    total_elements,
-  ).unwrap_or_else(|error| {
-    panic!("Error creating page model: {:?}", error);
-  });
-
-  let serialized_page: String = serde_json::to_string(&page_model)
-    .unwrap_or_else(|error| {
-      panic!("Error serializing page model: {:?}", error);
-  });
-
-  let deserialized_page: Page<u32> = serde_json::from_str(&serialized_page)
-    .unwrap_or_else(|error| {
-      panic!("Error deserializing page model: {:?}", error);
-  });
+    assert_eq!(page.get_items(), &vec![1, 2]);
+    assert_eq!(page.get_pages(), 3);
+    assert_eq!(page.get_next_page(), Some(1));
+}
 ```
 
-When you create a new `Page` instance from the constructor or deserialization, the following rules are validated for the fields on the page:
-- ***pages*** must be equal to ***total*** divided by ***size*** rounded up. When ***size*** is 0, ***pages*** must be 1.
-- ***page*** must be less than or equal to ***pages*** - 1.
-- if ***page*** is less than ***pages*** - 1, ***items*** length must be equal to ***size***.
-- if ***page*** is equal to ***pages*** - 1, ***total*** must be equal to (***pages*** - 1) * ***size*** + ***items*** length.
-- ***previous_page*** must be equal to ***page*** - 1 if ***page*** is greater than 0, otherwise it must be `None`.
-- ***next_page*** must be equal to ***page*** + 1 if ***page*** is less than ***pages*** - 1, otherwise it must be `None`.
+`prelude` is optional. You can always import each item manually.
 
-If any of these rules are violated, a `PaginationError` will be returned.
+## Core Models
 
-### Bind records:
-If you need to bind records into a `Book` model:
+### `Page<T>`
+
+Represents one page of records, including:
+
+- `items`
+- `page`
+- `size`
+- `total`
+- `pages`
+- `previous_page`
+- `next_page`
+
+Create directly when you already know values:
+
 ```rust,no_run
-  use page_hunter::{bind_records, Book, RecordsPagination};
+use page_hunter::{Page, PaginationResult};
 
-  let records: Vec<u32> = vec![1, 2, 3, 4, 5];
-  let size: usize = 2;
-
-  // Using the bind_records function:
-  let book: Book<u32> = match bind_records(&records, size) {
-    Ok(b) => b,
-    Err(e) => panic!("Error binding records: {:?}", e),
-  };
-
-  // Using RecordsPagination trait:
-  let book: Book<u32> = match records.bind(size) {
-    Ok(b) => b,
-    Err(e) => panic!("Error binding records: {:?}", e),
-  };
+let items = vec![1, 2];
+let page_model: PaginationResult<Page<u32>> = Page::new(&items, 0, 2, 5);
 ```
 
-To create a new `Book` instance from known parameters:
-```rust,no_run
-  use page_hunter::{Book, Page};
+### `Book<T>`
 
-  let sheets: Vec<Page<u32>> = vec![
+Represents a full set of pages:
+
+```rust,no_run
+use page_hunter::{Book, Page};
+
+let sheets: Vec<Page<u32>> = vec![
     Page::new(&vec![1, 2], 0, 2, 5).unwrap(),
     Page::new(&vec![3, 4], 1, 2, 5).unwrap(),
-  ];
+    Page::new(&vec![5], 2, 2, 5).unwrap(),
+];
 
-  let book: Book<u32> = Book::new(&sheets);
+let book: Book<u32> = Book::new(&sheets);
+assert_eq!(book.get_sheets().len(), 3);
 ```
 
-On feature `serde` enabled, you can serialize and deserialize a `Book` as follows:
+## Common Use Cases
+
+### Paginate records (`Page<T>`)
+
 ```rust,no_run
-  use page_hunter::{Book, Page};
+use page_hunter::{Page, RecordsPagination, paginate_records};
 
-  let sheets: Vec<Page<u32>> = vec![
-    Page::new(&vec![1, 2], 0, 2, 5).unwrap(),
-    Page::new(&vec![3, 4], 1, 2, 5).unwrap(),
-  ];
+let records = vec![10, 20, 30, 40, 50];
+let page = 1;
+let size = 2;
 
-  let book: Book<u32> = Book::new(&sheets);
+let a: Page<i32> = paginate_records(&records, page, size).unwrap();
+let b: Page<i32> = records.paginate(page, size).unwrap();
 
-  let serialized_book: String = serde_json::to_string(&book)
-    .unwrap_or_else(|error| {
-      panic!("Error serializing book model: {:?}", error);
-  });
-
-  let deserialized_book: Book<u32> = serde_json::from_str(&serialized_book)
-    .unwrap_or_else(|error| {
-      panic!("Error deserializing book model: {:?}", error);
-  });
+assert_eq!(a.get_items(), b.get_items());
 ```
 
-#### Generate OpenAPI schemas:
- On feature `utoipa` enabled, you can generate OpenAPI schemas for `Page` and `Book` models as follows:
-```rust,no_run
-  use page_hunter::{Book, Page};
-  use utoipa::{OpenApi, ToSchema};
-  use serde::{Deserialize, Serialize};
+### Bind all records (`Book<T>`)
 
-  #[derive(Clone, ToSchema)]
-  pub struct Person {
-    id: u16,
+```rust,no_run
+use page_hunter::{Book, RecordsPagination, bind_records};
+
+let records = vec![1, 2, 3, 4, 5];
+
+let a: Book<i32> = bind_records(&records, 2).unwrap();
+let b: Book<i32> = records.bind(2).unwrap();
+
+assert_eq!(a.get_sheets().len(), b.get_sheets().len());
+```
+
+### SQLx pagination (`sqlx` feature)
+
+`SQLxPagination::paginate` accepts either:
+
+- `&Pool<DB>`
+- `&mut DB::Connection`
+
+#### Using a connection pool
+
+```rust,no_run
+use page_hunter::{Page, SQLxPagination};
+use sqlx::postgres::{PgPool, Postgres};
+use sqlx::{FromRow, QueryBuilder};
+
+#[derive(Clone, Debug, FromRow)]
+struct Country {
+    id: i32,
     name: String,
-    last_name: String,
-    still_alive: bool,
-  }
+}
 
-  pub type PeoplePage = Page<Person>;
-  pub type PeopleBook = Book<Person>;
-
-  #[derive(OpenApi)]
-  #[openapi(
-    components(schemas(PeoplePage, PeopleBook))
-  )]
-  pub struct ApiDoc;
+async fn run(pool: PgPool) {
+    let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries");
+    let page: Page<Country> = query.paginate(&pool, 0, 10).await.unwrap();
+    assert_eq!(page.get_page(), 0);
+}
 ```
 
-Take a look at the [examples](https://github.com/JMTamayo/page-hunter/tree/main/examples) folder where you can find practical uses in REST API implementations with some web frameworks.
+#### Using a single connection
 
-#### Paginate records from a relational database with SQLx:
-To paginate records from a Postgres database:
 ```rust,no_run
-  use page_hunter::{Page, SQLxPagination};
-  use sqlx::postgres::{PgConnection, Postgres};
-  use sqlx::{Connection, FromRow, QueryBuilder};
+use page_hunter::{Page, SQLxPagination};
+use sqlx::postgres::{PgConnection, Postgres};
+use sqlx::{Connection, FromRow, QueryBuilder};
 
-  #[tokio::main]
-  async fn main() {
-    #[derive(Clone, Debug, FromRow)]
-    pub struct Country {
-      id: i32,
-      name: String,
-    }
+#[derive(Clone, Debug, FromRow)]
+struct Country {
+    id: i32,
+    name: String,
+}
 
-    let mut conn: PgConnection = PgConnection::connect(
-      "postgres://username:password@localhost/db"
-    ).await.unwrap_or_else(|error| {
-      panic!("Error connecting to database: {:?}", error);
-    });
+async fn run() {
+    let mut conn = PgConnection::connect("postgres://username:password@localhost/db")
+        .await
+        .unwrap();
+    let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries");
 
-    let query: QueryBuilder<Postgres> = QueryBuilder::new(
-      "SELECT * FROM db.geo.countries"
-    );
-
-    let page: Page<Country> =
-      query.paginate(&mut conn, 0, 10).await.unwrap_or_else(|error| {
-        panic!("Error paginating records: {:?}", error);
-    });
-  }
+    let page: Page<Country> = query.paginate(&mut conn, 0, 10).await.unwrap();
+    assert_eq!(page.get_size(), 10);
+}
 ```
 
-Similar to using pagination for Postgres, `SQLxPagination` can be used for MySQL and SQLite. If you are working with a connection pool, you can [Acquire](https://docs.rs/sqlx/latest/sqlx/trait.Acquire.html)  a single connection before running `paginate`.
+## Feature Flags
 
-## DEVELOPMENT
-To test `page-hunter`, follow these recommendations:
+| Feature | What you get |
+| --- | --- |
+| `serde` | `Serialize` / `Deserialize` for `Page` and `Book` |
+| `utoipa` | OpenAPI schemas via `ToSchema` (includes `serde`) |
+| `sqlx` | SQL query pagination support for Postgres/MySQL/SQLite via SQLx |
 
-#### Set env variables:
-Create `local.env` file at workspace folder to store the required environment variables. For example,
+## Validation Rules
+
+Every `Page` is validated when created (or deserialized). Some important rules:
+
+- `pages` must match `total` and `size` (`div_ceil`, minimum 1).
+- `page` must be within range `[0, pages - 1]`.
+- Non-last pages must have `items.len() == size`.
+- Last page must satisfy total consistency.
+- `previous_page` and `next_page` must be coherent.
+
+If validation fails, you get a `PaginationError`.
+
+## Typical Developer Commands
+
+### Format and lint
+
+```bash
+cargo fmt --package page-hunter --all
+cargo fmt --package page-hunter --all --check
+cargo clippy --package page-hunter --all-features
+```
+
+### Build and test
+
+```bash
+cargo check --package page-hunter --all-features
+cargo test --package page-hunter --all-features
+cargo test --package page-hunter --all-features --doc
+```
+
+### Generate docs
+
+```bash
+cargo doc --package page-hunter --all-features --open
+```
+
+### Security scan
+
+```bash
+cargo deny --log-level error check
+```
+
+### Run full CI locally
+
+Use the local helper script to run the same core flow as the GitHub CI (format, clippy matrix, check matrix, docs, tests, coverage, and security):
+
+```bash
+bash scripts/ci-local.sh
+```
+
+Optional shortcuts:
+
+```bash
+SKIP_DB=true bash scripts/ci-local.sh
+SKIP_COVERAGE=true bash scripts/ci-local.sh
+```
+
+## Local SQLx Test Setup
+
+Create `local.env` at workspace root:
+
 ```text
-  DB_HOST=localhost
-  DB_USER=test
-  DB_PASSWORD=docker
-  DB_NAME=test
-  PG_DB_PORT=5432
-  PG_MIGRATIONS_PATH=page-hunter/src/pagination/sqlx/tests/pg/migrations
+DB_HOST=localhost
+DB_USER=test
+DB_PASSWORD=docker
+DB_NAME=test
+PG_DB_PORT=5432
+PG_MIGRATIONS_PATH=page-hunter/src/pagination/sqlx/tests/pg/migrations
 ```
 
-#### Install required tools:
-Install the following tools required for the development process.
-
-##### [SQLx client](https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md) for Postgres:
-```bash
-  cargo install sqlx-cli --no-default-features --features postgres
-```
-
-##### [Cargo LLVM cov](https://github.com/taiki-e/cargo-llvm-cov/blob/main/README.md):
-```bash
-  cargo install cargo-llvm-cov
-```
-
-##### [Cargo Nextest](https://nexte.std):
-```bash
-  cargo install cargo-nextest
-```
-
-##### [Cargo Deny](https://nexte.std):
-```bash
-  cargo install cargo-deny
-```
-
-#### Setup databases:
-Run Postgres database as a Docker container:
+Run test DB and migrations:
 
 ```bash
-  bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_db.sh
+bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_db.sh
+bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_migrations.sh
 ```
 
-#### Run database migrations:
+Revert migrations:
 
-- Run migrations:
 ```bash
-  bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_migrations.sh
+bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/revert_migration.sh
 ```
 
-- Revert migrations:
-```bash
-  bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/revert_migration.sh
-```
+## Examples
 
-#### To format the code:
-```bash
-  cargo fmt --package page-hunter --all
-```
+Real projects live in [examples/](https://github.com/JMTamayo/page-hunter/tree/main/examples):
 
-#### To verify the code format:
-```bash
-  cargo fmt --package page-hunter --all --check
-```
+- [examples/actix-web](https://github.com/JMTamayo/page-hunter/tree/main/examples/actix-web): paginate external API results.
+- [examples/axum](https://github.com/JMTamayo/page-hunter/tree/main/examples/axum): SQLx + PostgreSQL + OpenAPI.
 
-#### To verify lints:
-- No features:
-```bash
-  cargo clippy --package page-hunter
-```
+## Contributing
 
-- Feature `serde`:
-```bash
-  cargo clippy --package page-hunter --features serde
-```
+Contributions are welcome.
 
-- Feature `utoipa`:
-```bash
-  cargo clippy --package page-hunter --features utoipa
-```
+- Report bugs with reproduction steps.
+- Open feature proposals with clear use cases.
+- Send PRs with tests and consistent style.
 
-- Feature `sqlx`:
-```bash
-  cargo clippy --package page-hunter --features sqlx
-```
-
-- All features:
-```bash
-  cargo clippy --package page-hunter --all-features
-```
-
-#### To check the project:
-- No features:
-```bash
-  cargo check --package page-hunter
-```
-
-- Feature `serde`:
-```bash
-  cargo check --package page-hunter --features serde
-```
-
-- Feature `utoipa`:
-```bash
-  cargo check --package page-hunter --features utoipa
-```
-
-- Feature `sqlx`:
-```bash
-  cargo check --package page-hunter --features sqlx
-```
-
-- All features:
-```bash
-  cargo check --package page-hunter --all-features
-```
-
-#### To generate the documentation:
-```bash
-  cargo doc --package page-hunter --all-features --open
-```
-
-#### To run doc tests:
-```bash
-  cargo test --package page-hunter --all-features --doc
-```
-
-#### To test using llvm-cov:
-```bash
-  cargo llvm-cov nextest --workspace --all-features --show-missing-lines --open
-```
-
-### Security analysis:
-```bash
-  cargo deny --log-level error check
-```
-
-## CONTRIBUTIONS
-The ***Page Hunter*** project is open source and therefore any interested software developer can contribute to its improvement. To contribute, take a look at the following recommendations:
-
-- **Bug Reports**: If you find a bug, please create an issue detailing the problem, the steps to reproduce it, and the expected behavior.
-- **Feature Requests**: If you have an idea for a new feature or an enhancement to an existing one, please create an issue describing your idea.
-- **Pull Requests**: If you've fixed a bug or implemented a new feature, we'd love to see your work! Please submit a pull request. Make sure your code follows the existing style and all tests pass.
+If you are building APIs in Rust and want predictable pagination behavior, `page-hunter` is ready for production workflows.

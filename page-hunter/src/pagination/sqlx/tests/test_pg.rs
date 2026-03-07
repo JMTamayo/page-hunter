@@ -5,7 +5,6 @@ pub mod test_sqlx_pg_pagination {
 
     use sqlx::{
         Connection, FromRow, QueryBuilder,
-        pool::PoolConnection,
         postgres::{PgConnection, PgPool, PgPoolOptions, Postgres},
     };
 
@@ -38,12 +37,10 @@ pub mod test_sqlx_pg_pagination {
             .await
             .unwrap();
 
-        let mut conn: PoolConnection<Postgres> = pool.acquire().await.unwrap();
-
         let query: QueryBuilder<Postgres> =
             QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users");
 
-        let users_pagination: PaginationResult<Page<User>> = query.paginate(&mut conn, 2, 3).await;
+        let users_pagination: PaginationResult<Page<User>> = query.paginate(&pool, 2, 3).await;
         assert!(users_pagination.is_ok());
 
         let users: Page<User> = users_pagination.unwrap();
@@ -139,12 +136,10 @@ pub mod test_sqlx_pg_pagination {
             .await
             .unwrap();
 
-        let mut conn: PoolConnection<Postgres> = pool.acquire().await.unwrap();
-
         let query: QueryBuilder<Postgres> =
             QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users");
 
-        let users_pagination: PaginationResult<Page<User>> = query.paginate(&mut conn, 2, 3).await;
+        let users_pagination: PaginationResult<Page<User>> = query.paginate(&pool, 2, 3).await;
         assert!(users_pagination.is_err());
 
         let error: String = users_pagination.unwrap_err().to_string();
@@ -181,12 +176,10 @@ pub mod test_sqlx_pg_pagination {
             .await
             .unwrap();
 
-        let mut conn: PoolConnection<Postgres> = pool.acquire().await.unwrap();
-
         let query: QueryBuilder<Postgres> =
             QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users");
 
-        let users_pagination: PaginationResult<Page<User>> = query.paginate(&mut conn, 5, 30).await;
+        let users_pagination: PaginationResult<Page<User>> = query.paginate(&pool, 5, 30).await;
         assert!(users_pagination.is_err());
 
         let error: String = users_pagination.unwrap_err().to_string();
