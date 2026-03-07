@@ -37,3 +37,6 @@ test.db
 
 # Local scripts
 scripts/
+
+# Code coverage
+codecov.json

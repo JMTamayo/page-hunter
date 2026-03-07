@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🔨 Update SQLx pagination internals to start transactions from the generic `Acquire` source.
 - 🔨 Update `axum` example repositories to paginate directly from `PgPool`.
 - 🔨 Restrict dependency definitions in `page-hunter/Cargo.toml` by replacing open-ended `>=` constraints with explicit versions and explicit SQLx feature flags.
+- 🔨 Refresh crate development dependencies in `page-hunter/Cargo.toml` (`tokio`, `serde_json`) and update example dependencies in `examples/axum/Cargo.toml` and `examples/actix-web/Cargo.toml`.
 - 🔨 Strengthen CI workflow with safer defaults and better reliability: minimal permissions, run concurrency control, Cargo cache, fixed Postgres image/version, DB healthcheck, explicit `--locked` usage, and strict clippy (`-D warnings`).
 - 🔨 Simplify CI feature matrix maintenance by reusing a single matrix definition for both lint and build jobs.
 
@@ -24,7 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 📝 Rewrite `README.md` with a quicker onboarding flow, clearer examples, and more discoverable developer commands.
 - 📝 Improve crate-level docs in `lib.rs` to provide a cleaner docs.rs experience and updated SQLx usage (`Pool` or `Connection`).
+- 📝 Improve `examples/README.md`, `examples/actix-web/README.md`, and `examples/axum/README.md` with clearer prerequisites, local run steps, and quick API endpoints.
 - 📝 Note: local helper scripts are not part of the published package/changelog artifacts when ignored by repository rules.
+
+### Removed:
+
+- ❌ Ignore generated local coverage artifact `codecov.json` via `.gitignore`.
 
 ## 🚀 0.6.0 [2025-12-20]
 
