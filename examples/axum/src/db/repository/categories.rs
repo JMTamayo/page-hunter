@@ -73,10 +73,8 @@ impl<'p> CategoriesRepositoryMethods for CategoriesRepository<'p> {
             None => debug!("No name_like provided"),
         }
 
-        let mut conn = self.get_pool().acquire().await?;
-
         let categories: PaginatedCategories = query
-            .paginate(&mut conn, search_by.get_page(), search_by.get_size())
+            .paginate(self.get_pool(), search_by.get_page(), search_by.get_size())
             .await?;
 
         Ok(categories)
