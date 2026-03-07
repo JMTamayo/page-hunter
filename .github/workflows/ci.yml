@@ -11,12 +11,20 @@ on:
     - cron: "0 5 * * 0"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   Format:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
       - name: "Repository: Fetch"
@@ -27,20 +35,29 @@ jobs:
         with:
           components: rustfmt
 
+      - name: "Setup: Cargo Cache"
+        uses: Swatinem/rust-cache@v2
+
       - name: "Step: Check Format"
-        run: cargo fmt --package page-hunter --all --check
+        run: cargo fmt --package page-hunter --all --check --verbose
 
   Lints:
     runs-on: ubuntu-24.04
-    needs: Format
+    timeout-minutes: 20
     strategy:
-      matrix:
-        feature:
-          - no-features
-          - all-features
-          - serde
-          - utoipa
-          - sqlx
+      fail-fast: false
+      matrix: &feature_matrix
+        include:
+          - feature: no-features
+            cargo_flags: ""
+          - feature: all-features
+            cargo_flags: "--all-features"
+          - feature: serde
+            cargo_flags: "--features serde"
+          - feature: utoipa
+            cargo_flags: "--features utoipa"
+          - feature: sqlx
+            cargo_flags: "--features sqlx"
 
     steps:
       - name: "Repository: Fetch"
@@ -51,27 +68,18 @@ jobs:
         with:
           components: clippy
 
+      - name: "Setup: Cargo Cache"
+        uses: Swatinem/rust-cache@v2
+
       - name: "Step: Lints"
-        run: |
-          if [[ ${{ matrix.feature }} == all-features ]]; then
-            cargo clippy --package page-hunter --all-features
-          elif [[ ${{ matrix.feature }} == no-features ]]; then
-            cargo clippy --package page-hunter
-          else
-            cargo clippy --package page-hunter --features ${{ matrix.feature }}
-          fi
+        run: cargo clippy --package page-hunter ${{ matrix.cargo_flags }} --locked -- -D warnings
 
   Build:
     runs-on: ubuntu-24.04
-    needs: Lints
+    timeout-minutes: 20
     strategy:
-      matrix:
-        feature:
-          - no-features
-          - all-features
-          - serde
-          - utoipa
-          - sqlx
+      fail-fast: false
+      matrix: *feature_matrix
 
     steps:
       - name: "Repository: Fetch"
@@ -80,19 +88,15 @@ jobs:
       - name: "Setup: Install Rust"
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
+      - name: "Setup: Cargo Cache"
+        uses: Swatinem/rust-cache@v2
+
       - name: "Step: Build"
-        run: |
-          if [[ ${{ matrix.feature }} == all-features ]]; then
-            cargo build --package page-hunter --all-features
-          elif [[ ${{ matrix.feature }} == no-features ]]; then
-            cargo build --package page-hunter
-          else
-            cargo build --package page-hunter --features ${{ matrix.feature }}
-          fi
+        run: cargo check --package page-hunter ${{ matrix.cargo_flags }} --locked --verbose
 
   Docs:
     runs-on: ubuntu-24.04
-    needs: Build
+    timeout-minutes: 20
 
     steps:
       - name: "Repository: Fetch"
@@ -101,22 +105,30 @@ jobs:
       - name: "Setup: Install Rust"
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
+      - name: "Setup: Cargo Cache"
+        uses: Swatinem/rust-cache@v2
+
       - name: "Step: Build Doc"
-        run: cargo doc --package page-hunter --all-features --document-private-items --verbose
+        run: cargo doc --package page-hunter --all-features --document-private-items --locked --verbose
 
   Tests:
     runs-on: ubuntu-24.04
-    needs: Docs
+    timeout-minutes: 30
 
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:16
         env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: docker
+          POSTGRES_DB: test
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: "Repository: Fetch"
@@ -125,7 +137,10 @@ jobs:
       - name: "Setup: Install Rust"
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-llvm-cov,cargo-nextest
+          tool: cargo-llvm-cov
+
+      - name: "Setup: Cargo Cache"
+        uses: Swatinem/rust-cache@v2
 
       - name: "Setup: Install SQLx Cli"
         run: cargo install sqlx-cli --no-default-features --features postgres
@@ -133,20 +148,20 @@ jobs:
       - name: "Setup: Postgres Database Migrations"
         env:
           MIGRATIONS_PATH: page-hunter/src/pagination/sqlx/tests/pg/migrations
-          DATABASE_URL: postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.DB_NAME }}
+          DATABASE_URL: postgres://test:docker@127.0.0.1:5432/test
         run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
 
       - name: "Step: Doc Tests"
-        run: cargo test --package page-hunter --all-features --doc
+        run: cargo test --package page-hunter --all-features --doc --locked
 
       - name: "Step: Unit & Integration Tests"
         env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
-        run: cargo llvm-cov --package page-hunter --all-features --codecov --output-path codecov.json
+          DB_USER: test
+          DB_PASSWORD: docker
+          DB_NAME: test
+          DB_HOST: 127.0.0.1
+          PG_DB_PORT: 5432
+        run: cargo llvm-cov --package page-hunter --all-features --locked --codecov --output-path codecov.json
 
       - name: "Step: Publish Results"
         uses: codecov/codecov-action@v4
@@ -158,7 +173,7 @@ jobs:
 
   Security:
     runs-on: ubuntu-24.04
-    needs: Tests
+    timeout-minutes: 15
 
     steps:
       - name: "Repository: Fetch"

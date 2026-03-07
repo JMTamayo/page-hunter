@@ -34,3 +34,6 @@ venv/
 
 # SQLite test database file:
 test.db
+
+# Local scripts
+scripts/
