@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 🚀 0.7.0 [2026-03-07]
+
+### Added:
+
+- 🧑🏻‍💻 Add `page_hunter::prelude` module to simplify common imports (`Page`, `Book`, pagination helpers, errors and `SQLxPagination` when `sqlx` feature is enabled).
+
+### Changed:
+
+- 🔨 Update `SQLxPagination::paginate` to accept a generic source implementing `Acquire`, allowing `&Pool<DB>` and `&mut DB::Connection` on the same API **[⚠️ BREAKING CHANGE]**.
+- 🔨 Update SQLx pagination internals to start transactions from the generic `Acquire` source.
+- 🔨 Update `axum` example repositories to paginate directly from `PgPool`.
+- 🔨 Restrict dependency definitions in `page-hunter/Cargo.toml` by replacing open-ended `>=` constraints with explicit versions and explicit SQLx feature flags.
+- 🔨 Strengthen CI workflow with safer defaults and better reliability: minimal permissions, run concurrency control, Cargo cache, fixed Postgres image/version, DB healthcheck, explicit `--locked` usage, and strict clippy (`-D warnings`).
+- 🔨 Simplify CI feature matrix maintenance by reusing a single matrix definition for both lint and build jobs.
+
+### Docs:
+
+- 📝 Rewrite `README.md` with a quicker onboarding flow, clearer examples, and more discoverable developer commands.
+- 📝 Improve crate-level docs in `lib.rs` to provide a cleaner docs.rs experience and updated SQLx usage (`Pool` or `Connection`).
+- 📝 Note: local helper scripts are not part of the published package/changelog artifacts when ignored by repository rules.
+
 ## 🚀 0.6.0 [2025-12-20]
 
 ### Changed:
@@ -154,7 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed:
 
-- ❌ Remove **From**<**sqlx::Error**> for `PaginationError` by [@JMTamayo](https://github.com/JMTamayo).
+- ❌ Remove `From<sqlx::Error>` for `PaginationError` by [@JMTamayo](https://github.com/JMTamayo).
 
 ### Docs:
 
