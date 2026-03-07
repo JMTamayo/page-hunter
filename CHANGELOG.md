@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🔨 Refresh crate development dependencies in `page-hunter/Cargo.toml` (`tokio`, `serde_json`) and update example dependencies in `examples/axum/Cargo.toml` and `examples/actix-web/Cargo.toml` by [@JMTamayo](https://github.com/JMTamayo).
 - 🔨 Strengthen CI workflow with safer defaults and better reliability: minimal permissions, run concurrency control, Cargo cache, fixed Postgres image/version, DB healthcheck, explicit `--locked` usage, and strict clippy (`-D warnings`) by [@JMTamayo](https://github.com/JMTamayo).
 - 🔨 Simplify CI feature matrix maintenance by reusing a single matrix definition for both lint and build jobs by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Track the workspace `Cargo.lock` and align `.gitignore` accordingly so CI commands using `--locked` resolve dependencies from the repository lockfile by [@JMTamayo](https://github.com/JMTamayo).
 
 ### Docs:
 
