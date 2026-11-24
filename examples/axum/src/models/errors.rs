@@ -31,6 +31,13 @@ impl HttpException {
         }
     }
 
+    pub fn bad_request(details: &str) -> Self {
+        Self {
+            status_code: StatusCode::BAD_REQUEST,
+            details: format!("Bad request: {details}"),
+        }
+    }
+
     pub fn not_found(details: &str) -> Self {
         Self {
             status_code: StatusCode::NOT_FOUND,
@@ -62,7 +69,7 @@ impl From<SqlxError> for HttpException {
 impl From<PaginationError> for HttpException {
     fn from(error: PaginationError) -> Self {
         match error.get_error_kind() {
-            ErrorKind::InvalidValue(details) => Self::internal_server_error(details),
+            ErrorKind::InvalidValue(details) => Self::bad_request(details),
 
             ErrorKind::SQLx(error) => match error {
                 SqlxError::RowNotFound => Self::not_found(&error.to_string()),

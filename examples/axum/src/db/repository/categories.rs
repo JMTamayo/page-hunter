@@ -34,17 +34,16 @@ impl<'p> Repository<'p> for CategoriesRepository<'p> {
 impl<'p> CategoriesRepositoryMethods for CategoriesRepository<'p> {
     async fn get_category_by_id(&self, id: Uuid) -> Result<Category, SqlxError> {
         Category::from_row(
-            &QueryBuilder::<Postgres>::new(format!(
+            &QueryBuilder::<Postgres>::new(
                 r#"SELECT
 						*
 					FROM
 						inventory.categories
 					WHERE
 						1=1
-						AND id = '{}';
-				"#,
-                id
-            ))
+						AND id = "#,
+            )
+            .push_bind(id)
             .build()
             .fetch_one(self.get_pool())
             .await?,
@@ -68,7 +67,9 @@ impl<'p> CategoriesRepositoryMethods for CategoriesRepository<'p> {
         match search_by.get_name_like() {
             Some(name_like) => {
                 debug!("filtering by name_like: {}", name_like);
-                query.push(format!("AND LOWER(name) ILIKE '%{name_like}%'"));
+                query
+                    .push(" AND LOWER(name) ILIKE ")
+                    .push_bind(format!("%{}%", name_like.to_lowercase()));
             }
             None => debug!("No name_like provided"),
         }
