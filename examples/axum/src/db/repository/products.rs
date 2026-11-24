@@ -127,6 +127,9 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
             None => debug!("No category_name_like provided"),
         }
 
+        // A unique sort key keeps every row on exactly one page.
+        query.push(" ORDER BY p.name, p.id");
+
         let products_base: PaginatedProductsBase = query
             .paginate(self.get_pool(), search_by.get_page(), search_by.get_size())
             .await?;

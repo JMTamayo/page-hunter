@@ -74,6 +74,9 @@ impl<'p> CategoriesRepositoryMethods for CategoriesRepository<'p> {
             None => debug!("No name_like provided"),
         }
 
+        // A unique sort key keeps every row on exactly one page.
+        query.push(" ORDER BY name, id");
+
         let categories: PaginatedCategories = query
             .paginate(self.get_pool(), search_by.get_page(), search_by.get_size())
             .await?;

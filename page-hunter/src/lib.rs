@@ -74,6 +74,9 @@
 //! formatted into the SQL. It works with Postgres, MySQL and SQLite: enable the database in your
 //! own `sqlx` dependency (e.g. `sqlx = { version = "0.9", features = ["postgres"] }`).
 //!
+//! The query must not include `LIMIT` or `OFFSET` (they are appended by `paginate`) and should
+//! have an `ORDER BY` on a unique key, so every row appears on exactly one page.
+//!
 //! Example with a connection:
 //!
 //! ```rust,no_run
@@ -92,7 +95,7 @@
 //! let mut conn = PgConnection::connect("postgres://username:password@localhost/db")
 //!     .await
 //!     .unwrap();
-//! let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries");
+//! let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries ORDER BY id");
 //!
 //! let page: Page<Country> = query.paginate(&mut conn, 0, 10).await.unwrap();
 //! assert_eq!(page.get_size(), 10);

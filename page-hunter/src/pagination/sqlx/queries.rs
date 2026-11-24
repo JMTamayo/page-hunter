@@ -15,6 +15,12 @@ use crate::{ErrorKind, Page, PaginationError, PaginationResult};
 ///
 /// It is implemented for the [`QueryBuilder`] of any [`sqlx`] database (Postgres, MySQL and
 /// SQLite). Enable the database in your own `sqlx` dependency.
+///
+/// ### Query requirements:
+/// - Do not add `LIMIT` or `OFFSET`: `paginate` appends them to the query.
+/// - Add an `ORDER BY` with a unique key (e.g. `ORDER BY id`). Without it the database may return
+///   rows in a different order on each query, so a row can appear on two pages or on none.
+/// - Pass user input with [`QueryBuilder::push_bind`], never by formatting it into the SQL.
 pub trait SQLxPagination<DB, S>
 where
     DB: Database,
