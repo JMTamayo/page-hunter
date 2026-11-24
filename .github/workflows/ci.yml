@@ -142,15 +142,6 @@ jobs:
       - name: "Setup: Cargo Cache"
         uses: Swatinem/rust-cache@v2
 
-      - name: "Setup: Install SQLx Cli"
-        run: cargo install sqlx-cli --no-default-features --features postgres
-
-      - name: "Setup: Postgres Database Migrations"
-        env:
-          MIGRATIONS_PATH: page-hunter/src/pagination/sqlx/tests/pg/migrations
-          DATABASE_URL: postgres://test:docker@127.0.0.1:5432/test
-        run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
-
       - name: "Step: Doc Tests"
         run: cargo test --package page-hunter --all-features --doc --locked
 
