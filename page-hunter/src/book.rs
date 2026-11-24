@@ -57,13 +57,6 @@ impl<E> Book<E> {
     }
 }
 
-/// Implementation of [`Default`] for [`Book`].
-impl<E> Default for Book<E> {
-    fn default() -> Self {
-        Self { sheets: Vec::new() }
-    }
-}
-
 /// Implementation of [`Display`] for [`Book`].
 impl<E> Display for Book<E>
 where
@@ -259,13 +252,6 @@ mod test_book {
             format!("{:?}", book),
             "Book { sheets: [Page { items: [1, 2], page: 0, size: 2, total: 5, pages: 3, previous_page: None, next_page: Some(1) }, Page { items: [3, 4], page: 1, size: 2, total: 5, pages: 3, previous_page: Some(0), next_page: Some(2) }] }"
         );
-    }
-
-    /// Test [`Book`] default method.
-    #[test]
-    fn test_book_default() {
-        let book: Book<u32> = Book::default();
-        assert_eq!(book.get_sheets().len(), 0);
     }
 
     /// Test [`Book] serialization and deserialization methods.

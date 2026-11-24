@@ -233,21 +233,6 @@ impl<E> Page<E> {
     }
 }
 
-/// Implementation of [`Default`] for [`Page`].
-impl<E> Default for Page<E> {
-    fn default() -> Self {
-        Self {
-            items: Vec::new(),
-            page: 0,
-            size: 0,
-            total: 0,
-            pages: 1,
-            previous_page: None,
-            next_page: None,
-        }
-    }
-}
-
 /// Implementation of [`Display`] for [`Page`].
 impl<E> Display for Page<E>
 where
@@ -443,26 +428,33 @@ mod test_page_model {
         );
     }
 
-    /// Test default [`Page`] constructor.
+    /// Test an empty [`Page`], as returned for a query without results.
     #[test]
-    fn test_default_page_model_constructor() {
-        let expected_items: Vec<u32> = vec![];
-        let expected_page: usize = 0;
-        let expected_size: usize = 0;
-        let expected_total_elements: usize = 0;
-        let expected_total_pages: usize = 1;
-        let expected_previous_page: Option<usize> = None;
-        let expected_next_page: Option<usize> = None;
+    fn test_empty_page_model() {
+        let page_model: Page<u32> = Page::new(vec![], 0, 20, 0).unwrap();
 
-        let page_model: Page<u32> = Page::default();
+        assert!(page_model.get_items().is_empty());
+        assert_eq!(page_model.get_page(), 0);
+        assert_eq!(page_model.get_size(), 20);
+        assert_eq!(page_model.get_total(), 0);
+        assert_eq!(page_model.get_pages(), 1);
+        assert_eq!(page_model.get_previous_page(), None);
+        assert_eq!(page_model.get_next_page(), None);
+    }
 
-        assert_eq!(page_model.get_items(), &expected_items);
-        assert_eq!(page_model.get_page(), expected_page);
-        assert_eq!(page_model.get_size(), expected_size);
-        assert_eq!(page_model.get_total(), expected_total_elements);
-        assert_eq!(page_model.get_pages(), expected_total_pages);
-        assert_eq!(page_model.get_previous_page(), expected_previous_page);
-        assert_eq!(page_model.get_next_page(), expected_next_page);
+    /// Test that an empty [`Page`] survives a serialization round trip.
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_empty_page_model_serialization_round_trip() {
+        let page_model: Page<u32> = Page::new(vec![], 0, 20, 0).unwrap();
+
+        let json: String = serde_json::to_string(&page_model).unwrap();
+        let deserialized: Page<u32> = serde_json::from_str(&json).unwrap();
+
+        assert!(deserialized.get_items().is_empty());
+        assert_eq!(deserialized.get_size(), 20);
+        assert_eq!(deserialized.get_total(), 0);
+        assert_eq!(deserialized.get_pages(), 1);
     }
 
     /// Test ['Page'] display method.
