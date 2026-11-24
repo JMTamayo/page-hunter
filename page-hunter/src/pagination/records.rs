@@ -32,10 +32,16 @@ where
 {
     validate_size(size)?;
 
+    let offset: usize = size.checked_mul(page).ok_or_else(|| {
+        PaginationError::from(ErrorKind::InvalidValue(format!(
+            "Offset overflow for page '{page}' and size '{size}'"
+        )))
+    })?;
+
     let selected_records: Vec<R::Item> = records
         .clone()
         .into_iter()
-        .skip(size * page)
+        .skip(offset)
         .take(size)
         .collect::<Vec<R::Item>>();
 
@@ -254,6 +260,20 @@ pub mod test_records_pagination {
         assert_eq!(
             pagination_result.unwrap_err().to_string(),
             "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
+    }
+
+    /// Test failed result of [`paginate_records`] function when the offset overflows.
+    #[test]
+    fn test_paginate_records_error_with_offset_overflow() {
+        let records: Vec<u8> = vec![1, 2, 3];
+
+        let pagination_result: PaginationResult<Page<u8>> = records.paginate(usize::MAX, 2);
+        assert!(
+            pagination_result
+                .unwrap_err()
+                .to_string()
+                .starts_with("INVALID VALUE ERROR- Offset overflow")
         );
     }
 }
