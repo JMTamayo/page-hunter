@@ -1,12 +1,14 @@
+use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result};
 
 #[cfg(feature = "sqlx")]
 use sqlx::Error as SqlxError;
 
-#[allow(unused_imports)]
-use crate::Page;
-
 /// Provides a way to categorize the pagination error.
+///
+/// New variants may be added in future versions, so a `match` on [`ErrorKind`] outside this
+/// crate needs a wildcard arm (`_ => ...`).
+#[non_exhaustive]
 pub enum ErrorKind {
     /// Raised when the value of a field is invalid.
     InvalidValue(String),
@@ -54,6 +56,10 @@ impl Debug for ErrorKind {
 }
 
 /// Error type used throughout the library for error handling.
+///
+/// It implements [`std::error::Error`], so it works with `?`, `Box<dyn Error>` and error
+/// handling crates. For [`ErrorKind::SQLx`], [`Error::source`] returns the original [`sqlx`]
+/// error.
 pub struct PaginationError {
     kind: ErrorKind,
 }
@@ -76,6 +82,18 @@ impl Display for PaginationError {
 impl Debug for PaginationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "PaginationError {{ kind: {:?} }}", self.get_error_kind())
+    }
+}
+
+/// Implementation of [`std::error::Error`] for [`PaginationError`].
+impl Error for PaginationError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self.get_error_kind() {
+            ErrorKind::InvalidValue(_) => None,
+
+            #[cfg(feature = "sqlx")]
+            ErrorKind::SQLx(error) => Some(error),
+        }
     }
 }
 
@@ -194,5 +212,35 @@ mod test_errors {
         let error_kind: ErrorKind = ErrorKind::InvalidValue(String::from("Unknown error"));
         let pagination_error: PaginationError = error_kind.into();
         assert!(pagination_error.get_error_kind().is_invalid_value_error());
+    }
+
+    /// Test that [`PaginationError`] works as a boxed [`std::error::Error`].
+    #[test]
+    fn test_pagination_error_is_std_error() {
+        fn fails() -> Result<(), Box<dyn std::error::Error>> {
+            paginate_records(&vec![1_u8], 0, 0)?;
+            Ok(())
+        }
+
+        let error: Box<dyn std::error::Error> = fails().unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
+        assert!(error.source().is_none());
+    }
+
+    /// Test that [`PaginationError::source`] returns the original SQLx error.
+    #[cfg(feature = "sqlx")]
+    #[test]
+    fn test_pagination_error_source_sqlx() {
+        use std::error::Error;
+
+        let pagination_error: PaginationError = PaginationError::from(SqlxError::PoolClosed);
+        let source = pagination_error.source().unwrap();
+        assert_eq!(
+            source.to_string(),
+            "attempted to acquire a connection on a closed pool"
+        );
     }
 }
