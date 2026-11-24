@@ -128,15 +128,20 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
             .paginate(self.get_pool(), search_by.get_page(), search_by.get_size())
             .await?;
 
-        let products: PaginatedProducts = Page::new(
-            &products_base
-                .clone()
-                .into_iter()
-                .map(|product_base| product_base.into())
-                .collect::<Vec<Product>>(),
+        let (page, size, total) = (
             products_base.get_page(),
             products_base.get_size(),
             products_base.get_total(),
+        );
+
+        let products: PaginatedProducts = Page::new(
+            products_base
+                .into_iter()
+                .map(|product_base| product_base.into())
+                .collect::<Vec<Product>>(),
+            page,
+            size,
+            total,
         )?;
 
         Ok(products)

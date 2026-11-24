@@ -70,7 +70,7 @@ pub async fn get_category_by_id(
         Err(error) => return HttpException::from(error).into(),
     };
 
-    info!("Category found: {:?}", &category);
+    info!("Category found: {:?}", category);
 
     (StatusCode::OK, Json(category)).into_response()
 }
@@ -92,7 +92,7 @@ pub async fn list_categories(
     Extension(pool): Extension<Arc<PgPool>>,
     Query(params): Query<SearchCategoriesRequest>,
 ) -> Response {
-    info!("Searching categories by: {:?}", &params);
+    info!("Searching categories by: {:?}", params);
 
     let categories: PaginatedCategories = match CategoriesRepository::new(&pool)
         .list_categories(&params)
@@ -102,7 +102,7 @@ pub async fn list_categories(
         Err(error) => return HttpException::from(error).into(),
     };
 
-    info!("Categories found: {:?}", &categories);
+    info!("Categories found: {:?}", categories);
 
     (StatusCode::OK, Json(categories)).into_response()
 }

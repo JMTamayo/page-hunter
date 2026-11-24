@@ -68,6 +68,9 @@ impl From<PaginationError> for HttpException {
                 SqlxError::RowNotFound => Self::not_found(&error.to_string()),
                 _ => Self::internal_server_error(&error.to_string()),
             },
+
+            // `ErrorKind` is non-exhaustive: future error kinds are reported as internal errors.
+            _ => Self::internal_server_error(&error.to_string()),
         }
     }
 }
