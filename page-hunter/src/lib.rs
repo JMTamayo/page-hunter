@@ -105,20 +105,28 @@
 //! ## Feature Flags
 //!
 //! - `serde`: adds `Serialize` and `Deserialize` support for [`Page`] and [`Book`].
-//! - `utoipa`: adds `ToSchema` support for [`Page`] and [`Book`] (depends on `serde`).
-//! - `sqlx`: enables SQL query pagination support via [`SQLxPagination`].
+//! - `utoipa`: adds `ToSchema` support for [`Page`] and [`Book`] with `utoipa` 6 (depends on `serde`,
+//!   requires Rust 1.88 or newer).
+//! - `sqlx`: enables SQL query pagination via [`SQLxPagination`] with `sqlx` 0.9
+//!   (requires Rust 1.94 or newer).
 //!
 //! ## Validation Rules
 //!
 //! Every [`Page`] is validated on construction (and on deserialization when `serde` is enabled).
-//! Validation ensures internal consistency for pagination metadata, including page ranges,
-//! element counts, and previous/next pointers.
+//! Validation ensures internal consistency for pagination metadata, including a page size
+//! greater than 0, page ranges, element counts, and previous/next pointers.
 //!
 //! Invalid data returns [`PaginationError`].
+//!
+//! Paginating a collection or query without results returns a single empty page (index 0, with
+//! `total` 0 and `pages` 1). Requesting a page beyond the last one returns an error.
 //!
 //! ## See Also
 //!
 //! - Repository examples: <https://github.com/JMTamayo/page-hunter/tree/main/examples>
+// Links to SQLx items only resolve with the `sqlx` feature (docs.rs builds with all features).
+#![cfg_attr(not(feature = "sqlx"), allow(rustdoc::broken_intra_doc_links))]
+
 mod book;
 mod errors;
 mod page;

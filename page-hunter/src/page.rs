@@ -15,9 +15,9 @@ use crate::{ErrorKind, PaginationError, PaginationResult};
 /// #### Fields:
 /// - **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.
 /// - **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.
-/// - **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.
+/// - **size**: Represents the maximum number of elements per [`Page`]. It must be greater than 0. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.
 /// - **total**: Represents the total number of records used for pagination.
-/// - **pages**: Represents the total number of pages required for paginate the items.
+/// - **pages**: Represents the total number of pages required to paginate the items. It is at least 1, so an empty result is a single empty page.
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -110,7 +110,7 @@ impl<E> Page<E> {
             ))));
         }
 
-        // page must be less than pages - 1.
+        // page must be less than or equal to pages - 1.
         if self.get_page().gt(&(self.get_pages() - 1)) {
             return Err(PaginationError::from(ErrorKind::InvalidValue(format!(
                 "Page index '{}' exceeds total pages '{}'",
@@ -185,7 +185,7 @@ impl<E> Page<E> {
     /// A [`PaginationResult`] with a [`Page`] if successful, otherwise a [`PaginationError`] is returned.
     ///
     /// ### Example:
-    ///```rust,no_run
+    /// ```rust,no_run
     ///   use page_hunter::*;
     ///
     ///   let items: Vec<u32> = vec![1, 2];
@@ -204,7 +204,7 @@ impl<E> Page<E> {
     ///     Ok(page) => page,
     ///     Err(error) => panic!("Error: {}", error),
     ///   };
-    /// ````
+    /// ```
     pub fn new(items: Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>> {
         // A size of 0 is rejected by `verify_fields`; use 1 page here to avoid dividing by zero.
         let pages: usize = match size.eq(&0) {
@@ -739,7 +739,7 @@ mod test_page_model {
         let json_string: String = serde_json::to_string(&schema_object).unwrap();
         assert_eq!(
             json_string,
-            "{\"type\":\"object\",\"description\":\"Model to represent paginated items.\\n\\n#### Fields:\\n- **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.\\n- **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.\\n- **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.\\n- **total**: Represents the total number of records used for pagination.\\n- **pages**: Represents the total number of pages required for paginate the items.\\n- **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].\\n- **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].\",\"required\":[\"items\",\"page\",\"size\",\"total\",\"pages\"],\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Record\"}},\"next_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"page\":{\"type\":\"integer\",\"minimum\":0},\"pages\":{\"type\":\"integer\",\"minimum\":0},\"previous_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"size\":{\"type\":\"integer\",\"minimum\":0},\"total\":{\"type\":\"integer\",\"minimum\":0}}}"
+            "{\"type\":\"object\",\"description\":\"Model to represent paginated items.\\n\\n#### Fields:\\n- **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.\\n- **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.\\n- **size**: Represents the maximum number of elements per [`Page`]. It must be greater than 0. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.\\n- **total**: Represents the total number of records used for pagination.\\n- **pages**: Represents the total number of pages required to paginate the items. It is at least 1, so an empty result is a single empty page.\\n- **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].\\n- **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].\",\"required\":[\"items\",\"page\",\"size\",\"total\",\"pages\"],\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Record\"}},\"next_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"page\":{\"type\":\"integer\",\"minimum\":0},\"pages\":{\"type\":\"integer\",\"minimum\":0},\"previous_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"size\":{\"type\":\"integer\",\"minimum\":0},\"total\":{\"type\":\"integer\",\"minimum\":0}}}"
         );
     }
 }

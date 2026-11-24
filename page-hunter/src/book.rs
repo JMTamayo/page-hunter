@@ -5,12 +5,15 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "utoipa")]
 use utoipa::ToSchema;
 
-#[allow(unused_imports)]
-use crate::{Page, PaginationError};
+use crate::Page;
 
 /// Model to represent a book of paginated items.
+///
+/// Each [`Page`] in the book is validated on its own. [`Book::new`] does not check that the
+/// pages are consistent with each other; use `bind_records` to build a complete book.
+///
 /// #### Fields:
-/// - **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].
+/// - **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`] of [`Page`].
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "utoipa", derive(ToSchema))]
@@ -306,7 +309,7 @@ mod test_book {
         let json_string: String = serde_json::to_string(&schema_object).unwrap();
         assert_eq!(
             json_string,
-            "{\"type\":\"object\",\"description\":\"Model to represent a book of paginated items.\\n#### Fields:\\n- **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].\",\"required\":[\"sheets\"],\"properties\":{\"sheets\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Page_Record\"}}}}"
+            "{\"type\":\"object\",\"description\":\"Model to represent a book of paginated items.\\n\\nEach [`Page`] in the book is validated on its own. [`Book::new`] does not check that the\\npages are consistent with each other; use `bind_records` to build a complete book.\\n\\n#### Fields:\\n- **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`] of [`Page`].\",\"required\":[\"sheets\"],\"properties\":{\"sheets\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Page_Record\"}}}}"
         );
     }
 
