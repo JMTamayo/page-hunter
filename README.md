@@ -51,6 +51,7 @@ With optional features:
 cargo add page-hunter --features serde
 cargo add page-hunter --features utoipa
 cargo add page-hunter --features sqlx
+cargo add sqlx --features postgres   # or mysql, sqlite
 ```
 
 ### 2) Paginate a `Vec<T>` in 30 seconds
@@ -62,7 +63,7 @@ fn main() {
     let records = vec![1_u32, 2, 3, 4, 5];
     let page: Page<u32> = paginate_records(&records, 0, 2).unwrap();
 
-    assert_eq!(page.get_items(), &vec![1, 2]);
+    assert_eq!(page.get_items(), &[1, 2]);
     assert_eq!(page.get_pages(), 3);
     assert_eq!(page.get_next_page(), Some(1));
 }
@@ -90,7 +91,7 @@ Create directly when you already know values:
 use page_hunter::{Page, PaginationResult};
 
 let items = vec![1, 2];
-let page_model: PaginationResult<Page<u32>> = Page::new(&items, 0, 2, 5);
+let page_model: PaginationResult<Page<u32>> = Page::new(items, 0, 2, 5);
 ```
 
 ### `Book<T>`
@@ -101,12 +102,12 @@ Represents a full set of pages:
 use page_hunter::{Book, Page};
 
 let sheets: Vec<Page<u32>> = vec![
-    Page::new(&vec![1, 2], 0, 2, 5).unwrap(),
-    Page::new(&vec![3, 4], 1, 2, 5).unwrap(),
-    Page::new(&vec![5], 2, 2, 5).unwrap(),
+    Page::new(vec![1, 2], 0, 2, 5).unwrap(),
+    Page::new(vec![3, 4], 1, 2, 5).unwrap(),
+    Page::new(vec![5], 2, 2, 5).unwrap(),
 ];
 
-let book: Book<u32> = Book::new(&sheets);
+let book: Book<u32> = Book::new(sheets);
 assert_eq!(book.get_sheets().len(), 3);
 ```
 
@@ -127,6 +128,10 @@ let b: Page<i32> = records.paginate(page, size).unwrap();
 assert_eq!(a.get_items(), b.get_items());
 ```
 
+Records are read by reference and only the items of the requested page are cloned. Any
+collection whose reference can be iterated works: `Vec`, slices, arrays, `VecDeque`, `HashSet`...
+To paginate a range or an iterator, collect it into a `Vec` first.
+
 ### Bind all records (`Book<T>`)
 
 ```rust,no_run
@@ -142,10 +147,45 @@ assert_eq!(a.get_sheets().len(), b.get_sheets().len());
 
 ### SQLx pagination (`sqlx` feature)
 
-`SQLxPagination::paginate` accepts either:
+`SQLxPagination::paginate` consumes a `QueryBuilder` and accepts either:
 
 - `&Pool<DB>`
 - `&mut DB::Connection`
+
+Values added with `push_bind` are sent as query parameters to both the `count(*)` query and
+the page query. Always use `push_bind` for user input instead of formatting it into the SQL.
+
+Query requirements:
+
+- Do not add `LIMIT` or `OFFSET`: `paginate` appends them.
+- Add an `ORDER BY` on a unique key (e.g. `ORDER BY id`). Without it the database may return rows
+  in a different order on each query, so a row can appear on two pages or on none.
+
+Works with Postgres, MySQL and SQLite using `sqlx` 0.9 (Rust 1.94 or newer): enable the database
+in your own `sqlx` dependency.
+
+#### Using bound parameters
+
+```rust,no_run
+use page_hunter::{Page, SQLxPagination};
+use sqlx::postgres::{PgPool, Postgres};
+use sqlx::{FromRow, QueryBuilder};
+
+#[derive(Clone, Debug, FromRow)]
+struct Country {
+    id: i32,
+    name: String,
+}
+
+async fn run(pool: PgPool, name_like: String) {
+    let mut query: QueryBuilder<Postgres> =
+        QueryBuilder::new("SELECT * FROM geo.countries WHERE name ILIKE ");
+    query.push_bind(format!("%{name_like}%")).push(" ORDER BY id");
+
+    let page: Page<Country> = query.paginate(&pool, 0, 10).await.unwrap();
+    assert!(page.get_items().len() <= 10);
+}
+```
 
 #### Using a connection pool
 
@@ -161,7 +201,7 @@ struct Country {
 }
 
 async fn run(pool: PgPool) {
-    let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries");
+    let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries ORDER BY id");
     let page: Page<Country> = query.paginate(&pool, 0, 10).await.unwrap();
     assert_eq!(page.get_page(), 0);
 }
@@ -184,7 +224,7 @@ async fn run() {
     let mut conn = PgConnection::connect("postgres://username:password@localhost/db")
         .await
         .unwrap();
-    let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries");
+    let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries ORDER BY id");
 
     let page: Page<Country> = query.paginate(&mut conn, 0, 10).await.unwrap();
     assert_eq!(page.get_size(), 10);
@@ -196,13 +236,14 @@ async fn run() {
 | Feature | What you get |
 | --- | --- |
 | `serde` | `Serialize` / `Deserialize` for `Page` and `Book` |
-| `utoipa` | OpenAPI schemas via `ToSchema` (includes `serde`) |
-| `sqlx` | SQL query pagination support for Postgres/MySQL/SQLite via SQLx |
+| `utoipa` | OpenAPI schemas via `ToSchema` with utoipa 6 (includes `serde`, Rust 1.88+) |
+| `sqlx` | SQL query pagination for Postgres/MySQL/SQLite via SQLx 0.9 (Rust 1.94+) |
 
 ## Validation Rules
 
 Every `Page` is validated when created (or deserialized). Some important rules:
 
+- `size` must be greater than 0.
 - `pages` must match `total` and `size` (`div_ceil`, minimum 1).
 - `page` must be within range `[0, pages - 1]`.
 - Non-last pages must have `items.len() == size`.
@@ -211,75 +252,84 @@ Every `Page` is validated when created (or deserialized). Some important rules:
 
 If validation fails, you get a `PaginationError`.
 
+Paginating a collection or query without results returns a single empty page (`page` 0,
+`total` 0, `pages` 1). Requesting a page beyond the last one returns an error.
+
+The crate uses Rust edition 2024 (Rust 1.85 or newer). The `utoipa` feature needs Rust 1.88+ and
+the `sqlx` feature needs Rust 1.94+, as required by those dependencies.
+
+## Migrating from 0.7 to 0.8
+
+- `Page::new` and `Book::new` take their `Vec` by value: `Page::new(items, page, size, total)`.
+- `Page::get_items` returns `&[E]` and `Book::get_sheets` returns `&[Page<E>]`. Use
+  `into_items` / `into_sheets` to take ownership of the contents.
+- A `size` of 0 is now an error everywhere (`Page::new`, deserialization, `paginate_records`,
+  `bind_records` and `SQLxPagination::paginate`).
+- `Page` and `Book` no longer implement `Default` (the `Page` default had `size` 0, which is not
+  a valid page). Build an empty page with `Page::new(vec![], 0, size, 0)`. Paginating or binding
+  a query or collection without results already returns one empty page.
+- `SQLxPagination::paginate` consumes the `QueryBuilder` and now sends `push_bind` values as
+  parameters. Queries that interpolated values into the SQL should switch to `push_bind`.
+- `paginate_records`, `bind_records` and `RecordsPagination` read the records by reference and
+  clone only the selected items: they accept any collection whose reference can be iterated
+  (`Vec`, slices, arrays, `VecDeque`...). `RecordsPagination` is now generic over the item type
+  (`RecordsPagination<T>`). Ranges and iterators must be collected into a `Vec` first.
+- `ErrorKind` is `#[non_exhaustive]`: a `match` on it needs a wildcard arm (`_ => ...`).
+- `PaginationError` implements `std::error::Error`, and `Page` and `Book` implement `PartialEq`
+  and `Eq` when their items do.
+- The `sqlx` feature now uses `sqlx` 0.9: update your own `sqlx` dependency to 0.9 and your
+  toolchain to Rust 1.94 or newer.
+- The `utoipa` feature now uses `utoipa` 6 (Rust 1.88+): update your own `utoipa` dependency
+  (and UI crates such as `utoipa-swagger-ui` 10) so `Page` and `Book` schemas fit in your `OpenApi`.
+
 ## Typical Developer Commands
 
-### Format and lint
+The `Makefile` at the repository root wraps the most useful commands. Run `make` to list them:
 
-```bash
-cargo fmt --package page-hunter --all
-cargo fmt --package page-hunter --all --check
-cargo clippy --package page-hunter --all-features
-```
-
-### Build and test
-
-```bash
-cargo check --package page-hunter --all-features
-cargo test --package page-hunter --all-features
-cargo test --package page-hunter --all-features --doc
-```
-
-### Generate docs
-
-```bash
-cargo doc --package page-hunter --all-features --open
-```
-
-### Security scan
-
-```bash
-cargo deny --log-level error check
-```
-
-### Run full CI locally
-
-Use the local helper script to run the same core flow as the GitHub CI (format, clippy matrix, check matrix, docs, tests, coverage, and security):
-
-```bash
-bash scripts/ci-local.sh
-```
-
-Optional shortcuts:
-
-```bash
-SKIP_DB=true bash scripts/ci-local.sh
-SKIP_COVERAGE=true bash scripts/ci-local.sh
-```
+| Command | What it does |
+| --- | --- |
+| `make fmt` / `make fmt-check` | Format the crate / check formatting |
+| `make lint` | Clippy (including tests) with `-D warnings` on every CI feature combination |
+| `make check` | `cargo check` on every CI feature combination |
+| `make doc` / `make doc-open` | Build the docs / build and open them |
+| `make test-unit` | Tests that need no database |
+| `make test` | All tests against Postgres, MySQL and SQLite (starts the databases) |
+| `make test-doc` | Doc tests |
+| `make coverage` | All tests with coverage into `codecov.json` (needs `cargo-llvm-cov`) |
+| `make deny` | `cargo-deny` checks (advisories, licenses, bans, sources) |
+| `make examples` | Build-check the `actix-web` and `axum` examples |
+| `make update` | Update `Cargo.lock` to the latest compatible versions |
+| `make msrv` | Check the minimum Rust versions like CI (installs the toolchains with `rustup`) |
+| `make ci` | The same steps as CI: format, lint, check, docs, tests and `cargo-deny` |
+| `make db-up` / `make db-down` / `make db-status` | Start, remove or inspect the test databases |
 
 ## Local SQLx Test Setup
 
-Create `local.env` at workspace root:
+SQLite tests run in memory. Postgres and MySQL tests need running databases: `make test` and
+`make ci` start them in Docker (`postgres:16` and `mysql:8.4`, bound to `127.0.0.1`). Each test
+creates its own tables and data, so no migrations are required.
+
+The settings come from an optional `local.env` at the repository root (these are the defaults):
 
 ```text
-DB_HOST=localhost
+DB_HOST=127.0.0.1
 DB_USER=test
 DB_PASSWORD=docker
 DB_NAME=test
 PG_DB_PORT=5432
-PG_MIGRATIONS_PATH=page-hunter/src/pagination/sqlx/tests/pg/migrations
+MYSQL_DB_PORT=3306
 ```
 
-Run test DB and migrations:
+If a port is already in use, change it in `local.env` or on the command line:
 
 ```bash
-bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_db.sh
-bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/run_migrations.sh
+make test PG_DB_PORT=55432
 ```
 
-Revert migrations:
+Remove the containers when you are done:
 
 ```bash
-bash ./page-hunter/src/pagination/sqlx/tests/pg/scripts/revert_migration.sh
+make db-down
 ```
 
 ## Examples
