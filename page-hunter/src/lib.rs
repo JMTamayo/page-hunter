@@ -15,7 +15,7 @@
 //! let records = vec![1_u32, 2, 3, 4, 5];
 //! let page: Page<u32> = paginate_records(&records, 0, 2).unwrap();
 //!
-//! assert_eq!(page.get_items(), &vec![1, 2]);
+//! assert_eq!(page.get_items(), &[1, 2]);
 //! assert_eq!(page.get_pages(), 3);
 //! assert_eq!(page.get_next_page(), Some(1));
 //! ```
@@ -31,7 +31,7 @@
 //! use page_hunter::{Page, PaginationResult};
 //!
 //! let items = vec![1_u32, 2];
-//! let page_model: PaginationResult<Page<u32>> = Page::new(&items, 0, 2, 5);
+//! let page_model: PaginationResult<Page<u32>> = Page::new(items, 0, 2, 5);
 //! ```
 //!
 //! Build a [`Book`] from existing pages:
@@ -40,12 +40,12 @@
 //! use page_hunter::{Book, Page};
 //!
 //! let sheets: Vec<Page<u32>> = vec![
-//!     Page::new(&vec![1, 2], 0, 2, 5).unwrap(),
-//!     Page::new(&vec![3, 4], 1, 2, 5).unwrap(),
-//!     Page::new(&vec![5], 2, 2, 5).unwrap(),
+//!     Page::new(vec![1, 2], 0, 2, 5).unwrap(),
+//!     Page::new(vec![3, 4], 1, 2, 5).unwrap(),
+//!     Page::new(vec![5], 2, 2, 5).unwrap(),
 //! ];
 //!
-//! let book: Book<u32> = Book::new(&sheets);
+//! let book: Book<u32> = Book::new(sheets);
 //! assert_eq!(book.get_sheets().len(), 3);
 //! ```
 //!

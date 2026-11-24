@@ -35,8 +35,13 @@ pub struct Page<E> {
 
 impl<E> Page<E> {
     /// Get ***items***
-    pub fn get_items(&self) -> &Vec<E> {
+    pub fn get_items(&self) -> &[E] {
         &self.items
+    }
+
+    /// Consume the [`Page`] and return its ***items***.
+    pub fn into_items(self) -> Vec<E> {
+        self.items
     }
 
     /// Get ***page***
@@ -166,7 +171,7 @@ impl<E> Page<E> {
     /// Create a new [`Page`] instance.
     ///
     /// ### Arguments:
-    /// - **items**: A reference to a collection of items `E`, where `E` must implement [`Clone`].
+    /// - **items**: The items of the page.
     /// - **page**: The page index.
     /// - **size**: The maximum number of elements per page.
     /// - **total**: The total number of records used for pagination.
@@ -184,7 +189,7 @@ impl<E> Page<E> {
     ///   let total_elements: usize = 5;
     ///
     ///   let pagination_result: PaginationResult<Page<u32>> = Page::new(
-    ///     &items,
+    ///     items,
     ///     page,
     ///     size,
     ///     total_elements,
@@ -195,17 +200,14 @@ impl<E> Page<E> {
     ///     Err(error) => panic!("Error: {}", error),
     ///   };
     /// ````
-    pub fn new(items: &Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>>
-    where
-        E: Clone,
-    {
+    pub fn new(items: Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>> {
         let pages: usize = match size.eq(&0) {
             true => 1,
             false => total.div_ceil(size).max(1),
         };
 
         let page: Page<E> = Page {
-            items: items.to_owned(),
+            items,
             page,
             size,
             total,
@@ -327,11 +329,11 @@ mod test_page_model {
         let expected_next_page: Option<usize> = Some(2);
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items.clone(), page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
-        assert_eq!(page_model.get_items(), &items);
+        assert_eq!(page_model.get_items(), items.as_slice());
         assert_eq!(page_model.get_page(), page);
         assert_eq!(page_model.get_size(), size);
         assert_eq!(page_model.get_total(), total_elements);
@@ -349,7 +351,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
@@ -369,7 +371,7 @@ mod test_page_model {
         let total_elements: usize = 3;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
@@ -387,7 +389,7 @@ mod test_page_model {
         let total_elements: usize = 3;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
@@ -405,7 +407,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -424,7 +426,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
@@ -466,7 +468,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -483,7 +485,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -500,7 +502,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -550,7 +552,7 @@ mod test_page_model {
         let next_page: Option<usize> = Some(1);
 
         let pagination_result: PaginationResult<Page<Person>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items.clone(), page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<Person> = pagination_result.unwrap();
@@ -559,7 +561,7 @@ mod test_page_model {
         assert!(serialized.eq("{\"items\":[{\"name\":\"John\",\"age\":20},{\"name\":\"Jane\",\"age\":25}],\"page\":0,\"size\":2,\"total\":5,\"pages\":3,\"previous_page\":null,\"next_page\":1}"));
 
         let deserialized: Page<Person> = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(deserialized.get_items(), &items);
+        assert_eq!(deserialized.get_items(), items.as_slice());
         assert_eq!(deserialized.get_page(), page);
         assert_eq!(deserialized.get_size(), size);
         assert_eq!(deserialized.get_total(), total_elements);
@@ -644,6 +646,13 @@ mod test_page_model {
             error.to_string(),
             "INVALID VALUE ERROR- Next page index error: expected 'Some(1)', found 'Some(2)'"
         );
+    }
+
+    /// Test [`Page`] `into_items` method.
+    #[test]
+    fn test_page_model_into_items() {
+        let page_model: Page<u32> = Page::new(vec![1, 2], 0, 2, 3).unwrap();
+        assert_eq!(page_model.into_items(), vec![1, 2]);
     }
 
     /// Test [`Page`] deserialization error.

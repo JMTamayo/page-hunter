@@ -20,40 +20,40 @@ pub struct Book<E> {
 
 impl<E> Book<E> {
     /// Get ***sheets***
-    pub fn get_sheets(&self) -> &Vec<Page<E>> {
+    pub fn get_sheets(&self) -> &[Page<E>] {
         &self.sheets
+    }
+
+    /// Consume the [`Book`] and return its ***sheets***.
+    pub fn into_sheets(self) -> Vec<Page<E>> {
+        self.sheets
     }
 
     /// Create a new [`Book`] instance.
     ///
     /// ### Arguments:
-    /// - **sheets**: A reference to a [`Vec`] of  [`Page`], where `E` must implement [`Clone`].
+    /// - **sheets**: A [`Vec`] of [`Page`].
     ///
     /// ### Returns:
-    /// A [`Book`] if successful, otherwise a [`PaginationError`] is returned.
+    /// A [`Book`] containing the given sheets.
     ///
     /// ### Example:
     /// ```rust,no_run
     ///   use page_hunter::*;
     ///
     ///   let sheets: Vec<Page<u32>> = vec![
-    ///     Page::new(&vec![1, 2], 0, 2, 5).unwrap_or_else(|error| {
+    ///     Page::new(vec![1, 2], 0, 2, 5).unwrap_or_else(|error| {
     ///       panic!("Error creating page model: {:?}", error);
     ///     }),
-    ///     Page::new(&vec![3, 4], 1, 2, 5).unwrap_or_else(|error| {
+    ///     Page::new(vec![3, 4], 1, 2, 5).unwrap_or_else(|error| {
     ///       panic!("Error creating page model: {:?}", error);
     ///     }),
     ///   ];
     ///
-    ///   let book: Book<u32> = Book::new(&sheets);
+    ///   let book: Book<u32> = Book::new(sheets);
     /// ```
-    pub fn new(sheets: &Vec<Page<E>>) -> Book<E>
-    where
-        E: Clone,
-    {
-        Book {
-            sheets: sheets.to_owned(),
-        }
+    pub fn new(sheets: Vec<Page<E>>) -> Book<E> {
+        Book { sheets }
     }
 }
 
@@ -94,11 +94,11 @@ mod test_book {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
         let size: usize = 2;
 
-        let page_1: Page<u32> = Page::new(&records[0..2].to_vec(), 0, size, records.len()).unwrap();
-        let page_2: Page<u32> = Page::new(&records[2..4].to_vec(), 1, size, records.len()).unwrap();
-        let page_3: Page<u32> = Page::new(&records[4..5].to_vec(), 2, size, records.len()).unwrap();
+        let page_1: Page<u32> = Page::new(records[0..2].to_vec(), 0, size, records.len()).unwrap();
+        let page_2: Page<u32> = Page::new(records[2..4].to_vec(), 1, size, records.len()).unwrap();
+        let page_3: Page<u32> = Page::new(records[4..5].to_vec(), 2, size, records.len()).unwrap();
 
-        Book::new(&vec![page_1, page_2, page_3]);
+        Book::new(vec![page_1, page_2, page_3]);
     }
 
     /// Test [`Book] clone method.
@@ -107,11 +107,11 @@ mod test_book {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
         let size: usize = 2;
 
-        let page_1: Page<u32> = Page::new(&records[0..2].to_vec(), 0, size, records.len()).unwrap();
-        let page_2: Page<u32> = Page::new(&records[2..4].to_vec(), 1, size, records.len()).unwrap();
-        let page_3: Page<u32> = Page::new(&records[4..5].to_vec(), 2, size, records.len()).unwrap();
+        let page_1: Page<u32> = Page::new(records[0..2].to_vec(), 0, size, records.len()).unwrap();
+        let page_2: Page<u32> = Page::new(records[2..4].to_vec(), 1, size, records.len()).unwrap();
+        let page_3: Page<u32> = Page::new(records[4..5].to_vec(), 2, size, records.len()).unwrap();
 
-        let book: Book<u32> = Book::new(&vec![page_1, page_2, page_3]);
+        let book: Book<u32> = Book::new(vec![page_1, page_2, page_3]);
         let cloned_book: Book<u32> = book.clone();
 
         assert_eq!(
@@ -212,11 +212,11 @@ mod test_book {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
         let size: usize = 2;
 
-        let page_1: Page<u32> = Page::new(&records[0..2].to_vec(), 0, size, records.len()).unwrap();
-        let page_2: Page<u32> = Page::new(&records[2..4].to_vec(), 1, size, records.len()).unwrap();
-        let page_3: Page<u32> = Page::new(&records[4..5].to_vec(), 2, size, records.len()).unwrap();
+        let page_1: Page<u32> = Page::new(records[0..2].to_vec(), 0, size, records.len()).unwrap();
+        let page_2: Page<u32> = Page::new(records[2..4].to_vec(), 1, size, records.len()).unwrap();
+        let page_3: Page<u32> = Page::new(records[4..5].to_vec(), 2, size, records.len()).unwrap();
 
-        let book: Book<u32> = Book::new(&vec![page_1, page_2, page_3]);
+        let book: Book<u32> = Book::new(vec![page_1, page_2, page_3]);
 
         assert_eq!(
             format!("{}", book),
@@ -230,11 +230,11 @@ mod test_book {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
         let size: usize = 2;
 
-        let page_1: Page<u32> = Page::new(&records[0..2].to_vec(), 0, size, records.len()).unwrap();
-        let page_2: Page<u32> = Page::new(&records[2..4].to_vec(), 1, size, records.len()).unwrap();
-        let page_3: Page<u32> = Page::new(&records[4..5].to_vec(), 2, size, records.len()).unwrap();
+        let page_1: Page<u32> = Page::new(records[0..2].to_vec(), 0, size, records.len()).unwrap();
+        let page_2: Page<u32> = Page::new(records[2..4].to_vec(), 1, size, records.len()).unwrap();
+        let page_3: Page<u32> = Page::new(records[4..5].to_vec(), 2, size, records.len()).unwrap();
 
-        let book: Book<u32> = Book::new(&vec![page_1, page_2, page_3]);
+        let book: Book<u32> = Book::new(vec![page_1, page_2, page_3]);
 
         let mut iter = book.into_iter();
 
@@ -250,10 +250,10 @@ mod test_book {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
         let size: usize = 2;
 
-        let page_1: Page<u32> = Page::new(&records[0..2].to_vec(), 0, size, records.len()).unwrap();
-        let page_2: Page<u32> = Page::new(&records[2..4].to_vec(), 1, size, records.len()).unwrap();
+        let page_1: Page<u32> = Page::new(records[0..2].to_vec(), 0, size, records.len()).unwrap();
+        let page_2: Page<u32> = Page::new(records[2..4].to_vec(), 1, size, records.len()).unwrap();
 
-        let book: Book<u32> = Book::new(&vec![page_1, page_2]);
+        let book: Book<u32> = Book::new(vec![page_1, page_2]);
 
         assert_eq!(
             format!("{:?}", book),
@@ -275,11 +275,11 @@ mod test_book {
         let records: Vec<u32> = vec![1, 2, 3, 4, 5];
         let size: usize = 2;
 
-        let page_1: Page<u32> = Page::new(&records[0..2].to_vec(), 0, size, records.len()).unwrap();
-        let page_2: Page<u32> = Page::new(&records[2..4].to_vec(), 1, size, records.len()).unwrap();
-        let page_3: Page<u32> = Page::new(&records[4..5].to_vec(), 2, size, records.len()).unwrap();
+        let page_1: Page<u32> = Page::new(records[0..2].to_vec(), 0, size, records.len()).unwrap();
+        let page_2: Page<u32> = Page::new(records[2..4].to_vec(), 1, size, records.len()).unwrap();
+        let page_3: Page<u32> = Page::new(records[4..5].to_vec(), 2, size, records.len()).unwrap();
 
-        let book: Book<u32> = Book::new(&vec![page_1, page_2, page_3]);
+        let book: Book<u32> = Book::new(vec![page_1, page_2, page_3]);
 
         let serialized_book: String = serde_json::to_string(&book).unwrap();
         let _deserialized_book: Book<u32> = serde_json::from_str(&serialized_book).unwrap();
@@ -322,5 +322,14 @@ mod test_book {
             json_string,
             "{\"type\":\"object\",\"description\":\"Model to represent a book of paginated items.\\n#### Fields:\\n- **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].\",\"required\":[\"sheets\"],\"properties\":{\"sheets\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Page_Record\"}}}}"
         );
+    }
+
+    /// Test [`Book`] `into_sheets` method.
+    #[test]
+    fn test_book_into_sheets() {
+        let book: Book<u32> = bind_records(&vec![1, 2, 3], 2).unwrap();
+        let sheets: Vec<Page<u32>> = book.into_sheets();
+        assert_eq!(sheets.len(), 2);
+        assert_eq!(sheets[1].get_items(), &[3]);
     }
 }

@@ -85,7 +85,7 @@ where
                 .map(|r| S::from_row(&r))
                 .collect::<Result<Vec<S>, SqlxError>>()?;
 
-            Page::new(&items, page, size, total)
+            Page::new(items, page, size, total)
         }
     }
 }

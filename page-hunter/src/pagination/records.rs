@@ -39,7 +39,7 @@ where
 
     let total: usize = records.clone().into_iter().count();
 
-    Page::new(&selected_records, page, size, total)
+    Page::new(selected_records, page, size, total)
 }
 
 /// Bind records into a [`Book`] model.
@@ -80,7 +80,7 @@ where
     let sheets = (0..pages)
         .map(|page| {
             Page::new(
-                &records
+                records
                     .clone()
                     .into_iter()
                     .skip(size * page)
@@ -93,7 +93,7 @@ where
         })
         .collect::<PaginationResult<Vec<Page<R::Item>>>>()?;
 
-    Ok(Book::new(&sheets))
+    Ok(Book::new(sheets))
 }
 
 /// Trait for paginating records.
