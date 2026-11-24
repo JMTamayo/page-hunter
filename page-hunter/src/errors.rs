@@ -217,9 +217,8 @@ mod test_errors {
     /// Test that [`PaginationError`] works as a boxed [`std::error::Error`].
     #[test]
     fn test_pagination_error_is_std_error() {
-        fn fails() -> Result<(), Box<dyn std::error::Error>> {
-            paginate_records(&vec![1_u8], 0, 0)?;
-            Ok(())
+        fn fails() -> Result<Page<u8>, Box<dyn std::error::Error>> {
+            Ok(paginate_records(&vec![1_u8], 0, 0)?)
         }
 
         let error: Box<dyn std::error::Error> = fails().unwrap_err();
