@@ -2,13 +2,19 @@ use crate::{Book, ErrorKind, Page, PaginationError, PaginationResult};
 
 /// Paginate records into a [`Page`] model.
 ///
+/// The records are read by reference: only the items of the requested page are cloned.
+///
 /// #### Arguments:
-/// - **records**: A reference to a collection of records `R`, where `R` must implement [`IntoIterator`] and [`Clone`], and `R::Item` must implement [`Clone`].
+/// - **records**: A reference to a collection of records of type `T`, such as a [`Vec`], a slice,
+///   a [`std::collections::VecDeque`] or any `R` where `&R` implements [`IntoIterator`] over `&T`.
+///   To paginate a range or an iterator, collect it into a [`Vec`] first.
 /// - **page**: The page index.
 /// - **size**: The number of records per page. Must be greater than 0.
 ///
 /// #### Returns:
-/// A [`PaginationResult`] containing a [`Page`] model of the paginated records `R::Item`.
+/// A [`PaginationResult`] containing a [`Page`] model of the paginated records `T`.
+/// Empty records produce a single empty page (index 0). A `size` of 0 or a `page` beyond the
+/// last page returns an error.
 ///
 /// #### Example:
 /// ```rust,no_run
@@ -24,11 +30,12 @@ use crate::{Book, ErrorKind, Page, PaginationError, PaginationResult};
 ///   let page: Page<u32> = pagination_result.unwrap_or_else(|error| {
 ///     panic!("Failed to paginate records: {:?}", error)
 ///   });
-/// ````
-pub fn paginate_records<R>(records: &R, page: usize, size: usize) -> PaginationResult<Page<R::Item>>
+/// ```
+pub fn paginate_records<R, T>(records: &R, page: usize, size: usize) -> PaginationResult<Page<T>>
 where
-    R: IntoIterator + Clone,
-    R::Item: Clone,
+    R: ?Sized,
+    for<'a> &'a R: IntoIterator<Item = &'a T>,
+    T: Clone,
 {
     validate_size(size)?;
 
@@ -38,14 +45,14 @@ where
         )))
     })?;
 
-    let selected_records: Vec<R::Item> = records
-        .clone()
-        .into_iter()
-        .skip(offset)
-        .take(size)
-        .collect::<Vec<R::Item>>();
-
-    let total: usize = records.clone().into_iter().count();
+    let mut total: usize = 0;
+    let mut selected_records: Vec<T> = Vec::with_capacity(size);
+    for (index, record) in records.into_iter().enumerate() {
+        if index >= offset && index - offset < size {
+            selected_records.push(record.clone());
+        }
+        total += 1;
+    }
 
     Page::new(selected_records, page, size, total)
 }
@@ -63,11 +70,15 @@ fn validate_size(size: usize) -> PaginationResult<()> {
 /// Bind records into a [`Book`] model.
 ///
 /// #### Arguments:
-/// - **records**: A reference to a collection of records `R`, where `R` must implement [`IntoIterator`] and [`Clone`], and `R::Item` must implement [`Clone`].
+/// - **records**: A reference to a collection of records of type `T`, such as a [`Vec`], a slice,
+///   a [`std::collections::VecDeque`] or any `R` where `&R` implements [`IntoIterator`] over `&T`.
+///   To bind a range or an iterator, collect it into a [`Vec`] first.
 /// - **size**: The number of records per page. Must be greater than 0.
 ///
 /// #### Returns:
-/// A [`PaginationResult`] containing a [`Book`] model of the paginated records `R::Item`.
+/// A [`PaginationResult`] containing a [`Book`] model of the paginated records `T`.
+/// The book always has at least one page: empty records produce a single empty page.
+/// A `size` of 0 returns an error.
 ///
 /// #### Example:
 /// ```rust,no_run
@@ -82,39 +93,39 @@ fn validate_size(size: usize) -> PaginationResult<()> {
 ///   let book: Book<u32> = book_result.unwrap_or_else(|error| {
 ///     panic!("Failed to bind records: {:?}", error)
 ///   });
-/// ````
-pub fn bind_records<R>(records: &R, size: usize) -> PaginationResult<Book<R::Item>>
+/// ```
+pub fn bind_records<R, T>(records: &R, size: usize) -> PaginationResult<Book<T>>
 where
-    R: IntoIterator + Clone,
-    R::Item: Clone,
+    R: ?Sized,
+    for<'a> &'a R: IntoIterator<Item = &'a T>,
+    T: Clone,
 {
     validate_size(size)?;
 
-    let total: usize = records.clone().into_iter().count();
+    let mut chunks: Vec<Vec<T>> = vec![Vec::with_capacity(size)];
+    let mut total: usize = 0;
+    for record in records {
+        if chunks.last().is_some_and(|chunk| chunk.len() == size) {
+            chunks.push(Vec::with_capacity(size));
+        }
+        if let Some(chunk) = chunks.last_mut() {
+            chunk.push(record.clone());
+        }
+        total += 1;
+    }
 
-    let pages: usize = total.div_ceil(size).max(1);
-
-    let sheets = (0..pages)
-        .map(|page| {
-            Page::new(
-                records
-                    .clone()
-                    .into_iter()
-                    .skip(size * page)
-                    .take(size)
-                    .collect::<Vec<R::Item>>(),
-                page,
-                size,
-                total,
-            )
-        })
-        .collect::<PaginationResult<Vec<Page<R::Item>>>>()?;
+    let sheets: Vec<Page<T>> = chunks
+        .into_iter()
+        .enumerate()
+        .map(|(page, items)| Page::new(items, page, size, total))
+        .collect::<PaginationResult<Vec<Page<T>>>>()?;
 
     Ok(Book::new(sheets))
 }
 
-/// Trait for paginating records.
-pub trait RecordsPagination {
+/// Trait for paginating records, implemented for every collection supported by
+/// [`paginate_records`] and [`bind_records`].
+pub trait RecordsPagination<T> {
     /// To get a specific [`Page`] from the given records.
     ///
     /// #### Arguments:
@@ -122,11 +133,8 @@ pub trait RecordsPagination {
     /// - **size**: The number of records per page. Must be greater than 0.
     ///
     /// #### Returns:
-    /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `Self::Item`.
-    fn paginate(&self, page: usize, size: usize) -> PaginationResult<Page<Self::Item>>
-    where
-        Self: IntoIterator + Clone,
-        Self::Item: Clone;
+    /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `T`.
+    fn paginate(&self, page: usize, size: usize) -> PaginationResult<Page<T>>;
 
     /// To bind the given records into a [`Book`] model.
     ///
@@ -134,23 +142,21 @@ pub trait RecordsPagination {
     /// - **size**: The number of records per page. Must be greater than 0.
     ///
     /// #### Returns:
-    /// A [`PaginationResult`] containing a [`Book`] model of the paginated records `Self::Item`.
-    fn bind(&self, size: usize) -> PaginationResult<Book<Self::Item>>
-    where
-        Self: IntoIterator + Clone,
-        Self::Item: Clone;
+    /// A [`PaginationResult`] containing a [`Book`] model of the paginated records `T`.
+    fn bind(&self, size: usize) -> PaginationResult<Book<T>>;
 }
 
-impl<R> RecordsPagination for R
+impl<R, T> RecordsPagination<T> for R
 where
-    R: IntoIterator + Clone,
-    R::Item: Clone,
+    R: ?Sized,
+    for<'a> &'a R: IntoIterator<Item = &'a T>,
+    T: Clone,
 {
-    fn paginate(&self, page: usize, size: usize) -> PaginationResult<Page<R::Item>> {
+    fn paginate(&self, page: usize, size: usize) -> PaginationResult<Page<T>> {
         paginate_records(self, page, size)
     }
 
-    fn bind(&self, size: usize) -> PaginationResult<Book<R::Item>> {
+    fn bind(&self, size: usize) -> PaginationResult<Book<T>> {
         bind_records(self, size)
     }
 }
@@ -275,5 +281,78 @@ pub mod test_records_pagination {
                 .to_string()
                 .starts_with("INVALID VALUE ERROR- Offset overflow")
         );
+    }
+
+    /// Test [`paginate_records`] and [`bind_records`] with empty records.
+    #[test]
+    fn test_empty_records() {
+        let records: Vec<u8> = vec![];
+
+        let page_model: Page<u8> = records.paginate(0, 3).unwrap();
+        assert!(page_model.get_items().is_empty());
+        assert_eq!(page_model.get_pages(), 1);
+        assert_eq!(page_model.get_total(), 0);
+
+        let book: Book<u8> = records.bind(3).unwrap();
+        assert_eq!(book.get_sheets().len(), 1);
+        assert!(book.get_sheets()[0].get_items().is_empty());
+    }
+
+    /// Test [`bind_records`] when records fill the last page exactly.
+    #[test]
+    fn test_bind_records_exact_fit() {
+        let records: Vec<u8> = vec![1, 2, 3, 4];
+
+        let book: Book<u8> = records.bind(2).unwrap();
+        assert_eq!(book.get_sheets().len(), 2);
+        assert_eq!(book.get_sheets()[1].get_items(), &[3, 4]);
+    }
+
+    /// Test that only the requested page is cloned.
+    #[test]
+    fn test_paginate_records_clones_only_the_page() {
+        use std::cell::Cell;
+
+        thread_local! {
+            static CLONES: Cell<usize> = const { Cell::new(0) };
+        }
+
+        #[derive(Debug)]
+        struct Counted(u32);
+
+        impl Clone for Counted {
+            fn clone(&self) -> Self {
+                CLONES.with(|clones| clones.set(clones.get() + 1));
+                Counted(self.0)
+            }
+        }
+
+        let records: Vec<Counted> = (0..1_000).map(Counted).collect();
+
+        let page_model: Page<Counted> = records.paginate(3, 10).unwrap();
+
+        assert_eq!(page_model.get_items()[0].0, 30);
+        assert_eq!(page_model.get_total(), 1_000);
+        assert_eq!(CLONES.with(Cell::get), 10);
+    }
+
+    /// Test pagination over slices and other collections.
+    #[test]
+    fn test_paginate_other_collections() {
+        use std::collections::VecDeque;
+
+        let records: Vec<u8> = vec![1, 2, 3, 4, 5];
+
+        let from_slice: Page<u8> = paginate_records(&records[1..], 0, 2).unwrap();
+        assert_eq!(from_slice.get_items(), &[2, 3]);
+        assert_eq!(from_slice.get_total(), 4);
+
+        let deque: VecDeque<u8> = records.iter().copied().collect();
+        let from_deque: Book<u8> = deque.bind(2).unwrap();
+        assert_eq!(from_deque.get_sheets().len(), 3);
+
+        let array: [u8; 3] = [7, 8, 9];
+        let from_array: Page<u8> = array.paginate(1, 2).unwrap();
+        assert_eq!(from_array.get_items(), &[9]);
     }
 }
