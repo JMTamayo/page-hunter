@@ -99,4 +99,22 @@ pub mod test_sqlx_sqlite_pagination {
             "INVALID VALUE ERROR- Page size must be greater than 0"
         );
     }
+
+    /// Test database error when the pool is closed before the transaction starts
+    #[tokio::test]
+    async fn test_pagination_with_closed_pool() {
+        let pool: SqlitePool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        pool.close().await;
+
+        let query: QueryBuilder<Sqlite> = QueryBuilder::<Sqlite>::new("SELECT 1");
+
+        let result: PaginationResult<Page<(i64,)>> = query.paginate(&pool, 0, 10).await;
+
+        let error: PaginationError = result.unwrap_err();
+        assert!(error.get_error_kind().is_sqlx_error());
+        assert_eq!(
+            error.to_string(),
+            "SQLX ERROR- attempted to acquire a connection on a closed pool"
+        );
+    }
 }
