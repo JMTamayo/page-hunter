@@ -428,6 +428,18 @@ mod test_page_model {
         );
     }
 
+    /// Test that the last page must account for every remaining record.
+    #[test]
+    fn test_last_page_total_elements_error() {
+        // 4 records with size 2 means the last page (index 1) must hold 2 items, not 1.
+        let pagination_result: PaginationResult<Page<u32>> = Page::new(vec![3], 1, 2, 4);
+
+        assert_eq!(
+            pagination_result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Total elements error: expected '3', found '4'"
+        );
+    }
+
     /// Test [`Page`] equality.
     #[test]
     fn test_page_model_equality() {
