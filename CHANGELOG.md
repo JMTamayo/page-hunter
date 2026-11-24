@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 🚀 0.8.0 [Unreleased]
+
+### Added:
+
+- 🧑🏻‍💻 Add a `Makefile` with the most useful developer commands (format, lint, check, docs, tests against Postgres/MySQL/SQLite with Docker-managed databases, coverage, `cargo-deny`, examples and a local `ci` target) by [@JMTamayo](https://github.com/JMTamayo).
+- 🧑🏻‍💻 Implement `std::error::Error` for `PaginationError`, with `source()` returning the original SQLx error by [@JMTamayo](https://github.com/JMTamayo).
+- 🧑🏻‍💻 Implement `PartialEq` and `Eq` for `Page` and `Book` when their items do by [@JMTamayo](https://github.com/JMTamayo).
+- 🧑🏻‍💻 Add an `MSRV` CI job and a `make msrv` target that check Rust 1.85, 1.88 (`utoipa`) and 1.94 (`sqlx`) by [@JMTamayo](https://github.com/JMTamayo).
+
+### Fixed:
+
+- 🐛 Fix `SQLxPagination::paginate` discarding values bound with `QueryBuilder::push_bind`: bound arguments are now sent as parameters to both the `count(*)` and the page queries by [@JMTamayo](https://github.com/JMTamayo).
+- 🐛 Fix `SQLxPagination::paginate` failing on queries that end with `;` by [@JMTamayo](https://github.com/JMTamayo).
+- 🐛 Return an `InvalidValue` error instead of overflowing when `page * size` exceeds `usize::MAX` in `paginate_records` and `SQLxPagination::paginate` by [@JMTamayo](https://github.com/JMTamayo).
+
+### Changed:
+
+- 🔨 `SQLxPagination::paginate` consumes the `QueryBuilder` **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Update `sqlx` to 0.9; `SQLxPagination` works with Postgres, MySQL and SQLite with bound parameters. Requires Rust 1.94 or newer when the `sqlx` feature is enabled **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Run integration tests against Postgres, MySQL and SQLite in CI (MySQL 8.4 service and in-memory SQLite) by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Create the test schemas and data from the tests themselves, removing the Postgres test migrations, their helper scripts and the `sqlx-cli` installation from CI by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 A page `size` of 0 is now rejected with an `InvalidValue` error by `Page::new`, `Page` deserialization, `paginate_records`, `bind_records` and `SQLxPagination::paginate` **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 `Page::new` and `Book::new` take their `Vec` by value, and `Page::get_items` / `Book::get_sheets` return slices **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Remove `impl Default` for `Page` and `Book`: the `Page` default had `size` 0, which is no longer a valid page and could not be deserialized, and `Book` follows the same rule. Use `Page::new(vec![], 0, size, 0)` for an empty page **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Add `Page::into_items` and `Book::into_sheets` by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 `paginate_records`, `bind_records` and `RecordsPagination` read the records by reference and clone only the items of the requested page (instead of cloning the whole collection). They accept any collection whose reference can be iterated, and `RecordsPagination` is now generic over the item type **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Mark `ErrorKind` as `#[non_exhaustive]` so new error kinds can be added without breaking changes **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Update CI actions to `actions/checkout` v7 and `codecov/codecov-action` v7 by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Lint the tests in CI (`clippy --all-targets`) and build the docs with warnings as errors (`RUSTDOCFLAGS=-D warnings`), also in `make lint` and `make doc` by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Update `utoipa` to 6.0.0, so `Page` and `Book` implement `ToSchema` for applications on utoipa 6 **[⚠️ BREAKING CHANGE]** by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Update development dependencies (`tokio` 1.54, `serde_json` 1.0.154) and refresh `Cargo.lock` to the latest compatible versions, which also picks up fixed releases of `event-listener`, `tokio` and `libsqlite3-sys` by [@JMTamayo](https://github.com/JMTamayo).
+- 🔨 Update example dependencies to their latest versions (`actix-web` 4.20, `axum` 0.8.9, `reqwest` 0.13.5, `utoipa-swagger-ui` 10, `utoipa-redoc` 7, `utoipa-rapidoc` 7, `utoipa-scalar` 0.4, among others) by [@JMTamayo](https://github.com/JMTamayo).
+
+### Security:
+
+- 🔒 The `axum` example no longer formats user input into SQL: every query uses `push_bind`, and pagination validation errors return `400 Bad Request` by [@JMTamayo](https://github.com/JMTamayo).
+
+### Docs:
+
+- 📝 Add a 0.7 → 0.8 migration guide and a bound-parameters example to `README.md` by [@JMTamayo](https://github.com/JMTamayo).
+- 📝 Declare `rust-version = "1.85"` and document the minimum Rust versions (1.85, 1.88 with `utoipa`, 1.94 with `sqlx`, each verified by compiling), the empty-result and out-of-range behavior, and fix doc comments in `Page`, `Book` and the record helpers by [@JMTamayo](https://github.com/JMTamayo).
+- 📝 Document the `SQLxPagination` query requirements: no `LIMIT`/`OFFSET`, and an `ORDER BY` on a unique key (also added to the `axum` example list queries) by [@JMTamayo](https://github.com/JMTamayo).
+- 📝 Update the `axum` example README: migrations run at startup, required environment variables, and pagination parameters by [@JMTamayo](https://github.com/JMTamayo).
+- 📝 Add a `Makefile` to the `actix-web` example (`run`, `run-dev`, `check`, `lint`, `try`, `docs`) and a `help` target to both example Makefiles; the `axum` database container now uses `postgres:16` bound to `127.0.0.1` with a configurable port by [@JMTamayo](https://github.com/JMTamayo).
+
+### Removed:
+
+- ❌ Remove the redundant `homepage` field from `page-hunter/Cargo.toml` (same URL as `repository`), which Cargo now reports as a warning by [@JMTamayo](https://github.com/JMTamayo).
+
 ## 🚀 0.7.0 [2026-03-07]
 
 ### Added:
