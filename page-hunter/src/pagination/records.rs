@@ -1,11 +1,11 @@
-use crate::{Book, Page, PaginationResult};
+use crate::{Book, ErrorKind, Page, PaginationError, PaginationResult};
 
 /// Paginate records into a [`Page`] model.
 ///
 /// #### Arguments:
 /// - **records**: A reference to a collection of records `R`, where `R` must implement [`IntoIterator`] and [`Clone`], and `R::Item` must implement [`Clone`].
 /// - **page**: The page index.
-/// - **size**: The number of records per page.
+/// - **size**: The number of records per page. Must be greater than 0.
 ///
 /// #### Returns:
 /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `R::Item`.
@@ -30,6 +30,8 @@ where
     R: IntoIterator + Clone,
     R::Item: Clone,
 {
+    validate_size(size)?;
+
     let selected_records: Vec<R::Item> = records
         .clone()
         .into_iter()
@@ -42,11 +44,21 @@ where
     Page::new(selected_records, page, size, total)
 }
 
+/// Return an error when `size` is 0.
+fn validate_size(size: usize) -> PaginationResult<()> {
+    match size.eq(&0) {
+        true => Err(PaginationError::from(ErrorKind::InvalidValue(
+            "Page size must be greater than 0".to_string(),
+        ))),
+        false => Ok(()),
+    }
+}
+
 /// Bind records into a [`Book`] model.
 ///
 /// #### Arguments:
 /// - **records**: A reference to a collection of records `R`, where `R` must implement [`IntoIterator`] and [`Clone`], and `R::Item` must implement [`Clone`].
-/// - **size**: The number of records per page.
+/// - **size**: The number of records per page. Must be greater than 0.
 ///
 /// #### Returns:
 /// A [`PaginationResult`] containing a [`Book`] model of the paginated records `R::Item`.
@@ -70,12 +82,11 @@ where
     R: IntoIterator + Clone,
     R::Item: Clone,
 {
+    validate_size(size)?;
+
     let total: usize = records.clone().into_iter().count();
 
-    let pages: usize = match size.eq(&0) {
-        true => 0,
-        false => total.div_ceil(size).max(1),
-    };
+    let pages: usize = total.div_ceil(size).max(1);
 
     let sheets = (0..pages)
         .map(|page| {
@@ -102,7 +113,7 @@ pub trait RecordsPagination {
     ///
     /// #### Arguments:
     /// - **page**: The page index.
-    /// - **size**: The number of records per page.
+    /// - **size**: The number of records per page. Must be greater than 0.
     ///
     /// #### Returns:
     /// A [`PaginationResult`] containing a [`Page`] model of the paginated records `Self::Item`.
@@ -114,7 +125,7 @@ pub trait RecordsPagination {
     /// To bind the given records into a [`Book`] model.
     ///
     /// #### Arguments:
-    /// - **size**: The number of records per page.
+    /// - **size**: The number of records per page. Must be greater than 0.
     ///
     /// #### Returns:
     /// A [`PaginationResult`] containing a [`Book`] model of the paginated records `Self::Item`.
@@ -222,15 +233,27 @@ pub mod test_records_pagination {
         assert_eq!(book.get_sheets()[3].get_next_page(), None);
     }
 
-    /// Test successfully result of [`bind_records`] function with zero size.
+    /// Test failed result of [`bind_records`] function with zero size.
     #[test]
-    fn test_bind_records_success_with_zero_size() {
+    fn test_bind_records_error_with_zero_size() {
         let records: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
         let pagination_result: PaginationResult<Book<u8>> = records.bind(0);
-        assert!(pagination_result.is_ok());
+        assert_eq!(
+            pagination_result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
+    }
 
-        let book: Book<u8> = pagination_result.unwrap();
-        assert_eq!(book.get_sheets().len(), 0);
+    /// Test failed result of [`paginate_records`] function with zero size.
+    #[test]
+    fn test_paginate_records_error_with_zero_size() {
+        let records: Vec<u8> = vec![1, 2, 3];
+
+        let pagination_result: PaginationResult<Page<u8>> = records.paginate(0, 0);
+        assert_eq!(
+            pagination_result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
     }
 }

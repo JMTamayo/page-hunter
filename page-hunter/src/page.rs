@@ -83,7 +83,8 @@ impl<E> Page<E> {
     /// A [`PaginationResult`]  with a `()` if successful, otherwise a [`PaginationError`] is returned.
     ///
     /// This method is used to check if the fields of a [`Page`] are valid based on the following criteria:
-    /// - ***pages*** must be equal to ***total*** divided by ***size*** rounded up. When ***size*** is 0, ***pages*** must be 1.
+    /// - ***size*** must be greater than 0.
+    /// - ***pages*** must be equal to ***total*** divided by ***size*** rounded up, with a minimum of 1.
     /// - ***page*** must be less than or equal to ***pages*** - 1.
     /// - if ***page*** is less than ***pages*** - 1, ***items*** length must be equal to ***size***.
     /// - if ***page*** is equal to ***pages*** - 1, ***total*** must be equal to (***pages*** - 1) * ***size*** + ***items*** length.
@@ -92,11 +93,15 @@ impl<E> Page<E> {
     fn verify_fields(&self) -> PaginationResult<()> {
         let items_length: usize = self.get_items().len();
 
-        // pages must be equal to total divided by size rounded up. When size is 0, pages must be 1.
-        let expected_pages: usize = match self.get_size().eq(&0) {
-            true => 1,
-            false => self.get_total().div_ceil(self.get_size()).max(1),
-        };
+        // size must be greater than 0.
+        if self.get_size().eq(&0) {
+            return Err(PaginationError::from(ErrorKind::InvalidValue(
+                "Page size must be greater than 0".to_string(),
+            )));
+        }
+
+        // pages must be equal to total divided by size rounded up, with a minimum of 1.
+        let expected_pages: usize = self.get_total().div_ceil(self.get_size()).max(1);
         if expected_pages.ne(&self.get_pages()) {
             return Err(PaginationError::from(ErrorKind::InvalidValue(format!(
                 "Total pages error: expected '{}', found '{}'",
@@ -173,7 +178,7 @@ impl<E> Page<E> {
     /// ### Arguments:
     /// - **items**: The items of the page.
     /// - **page**: The page index.
-    /// - **size**: The maximum number of elements per page.
+    /// - **size**: The maximum number of elements per page. Must be greater than 0.
     /// - **total**: The total number of records used for pagination.
     ///
     /// ### Returns:
@@ -201,6 +206,7 @@ impl<E> Page<E> {
     ///   };
     /// ````
     pub fn new(items: Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>> {
+        // A size of 0 is rejected by `verify_fields`; use 1 page here to avoid dividing by zero.
         let pages: usize = match size.eq(&0) {
             true => 1,
             false => total.div_ceil(size).max(1),
@@ -433,7 +439,7 @@ mod test_page_model {
         assert!(
             pagination_error
                 .to_string()
-                .eq("INVALID VALUE ERROR- Total elements error: expected '2', found '5'")
+                .eq("INVALID VALUE ERROR- Page size must be greater than 0")
         );
     }
 
@@ -648,11 +654,45 @@ mod test_page_model {
         );
     }
 
+    /// Test [`Page`] constructor error with zero size.
+    #[test]
+    fn test_page_model_constructor_zero_size() {
+        let pagination_result: PaginationResult<Page<u32>> = Page::new(vec![], 0, 0, 0);
+        assert_eq!(
+            pagination_result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
+    }
+
     /// Test [`Page`] `into_items` method.
     #[test]
     fn test_page_model_into_items() {
         let page_model: Page<u32> = Page::new(vec![1, 2], 0, 2, 3).unwrap();
         assert_eq!(page_model.into_items(), vec![1, 2]);
+    }
+
+    /// Test [`Page`] deserialization error with zero size.
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_page_deserialization_error_zero_size() {
+        use serde_json::json;
+
+        let invalid_json = json!({
+            "items": [],
+            "page": 0,
+            "size": 0,
+            "total": 0,
+            "pages": 1,
+            "previous_page": null,
+            "next_page": null
+        });
+
+        let result: Result<Page<String>, _> = serde_json::from_value(invalid_json);
+
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
     }
 
     /// Test [`Page`] deserialization error.
