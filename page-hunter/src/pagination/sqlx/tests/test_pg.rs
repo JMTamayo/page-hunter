@@ -70,9 +70,9 @@ pub mod test_sqlx_pg_pagination {
         assert_eq!(users.get_items()[2].is_active, true);
     }
 
-    /// Test database error when is not possible to get total by invalid query
+    /// Test pagination of a query ending with a semicolon
     #[sqlx::test]
-    async fn test_error_fetching_total_records() {
+    async fn test_pagination_with_trailing_semicolon() {
         let db_host: String = var("DB_HOST").expect("DB_HOST var not found");
         let db_port: String = var("PG_DB_PORT").expect("PG_DB_PORT var not found");
         let db_user: String = var("DB_USER").expect("DB_USER var not found");
@@ -96,16 +96,12 @@ pub mod test_sqlx_pg_pagination {
         .unwrap();
 
         let query: QueryBuilder<Postgres> =
-            QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users;");
+            QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users ORDER BY id;");
 
-        let users_pagination: PaginationResult<Page<User>> = query.paginate(&mut conn, 2, 3).await;
-        assert!(users_pagination.is_err());
+        let users: Page<User> = query.paginate(&mut conn, 2, 3).await.unwrap();
 
-        let error: String = users_pagination.unwrap_err().to_string();
-        assert_eq!(
-            error,
-            "SQLX ERROR- error returned from database: syntax error at or near \";\"".to_string(),
-        )
+        assert_eq!(users.get_total(), 100);
+        assert_eq!(users.get_items()[0].id, 7);
     }
 
     /// Test from row error when is not possible to parse the result
@@ -187,5 +183,51 @@ pub mod test_sqlx_pg_pagination {
             error,
             "INVALID VALUE ERROR- Page index '5' exceeds total pages '4'".to_string(),
         )
+    }
+
+    /// Test pagination of a query with bound parameters
+    #[sqlx::test]
+    async fn test_pagination_with_bound_parameters() {
+        let db_host: String = var("DB_HOST").expect("DB_HOST var not found");
+        let db_port: String = var("PG_DB_PORT").expect("PG_DB_PORT var not found");
+        let db_user: String = var("DB_USER").expect("DB_USER var not found");
+        let db_password: String = var("DB_PASSWORD").expect("DB_PASSWORD var not found");
+        let db_name: String = var("DB_NAME").expect("DB_NAME var not found");
+
+        #[derive(Clone, Debug, FromRow)]
+        #[allow(dead_code)]
+        pub struct User {
+            id: i32,
+            username: String,
+            hashed_password: String,
+            is_active: bool,
+        }
+
+        let pool: PgPool = PgPoolOptions::new()
+            .max_connections(1)
+            .connect(&format!(
+                "postgres://{}:{}@{}:{}/{}",
+                db_user, db_password, db_host, db_port, db_name
+            ))
+            .await
+            .unwrap();
+
+        let mut query: QueryBuilder<Postgres> =
+            QueryBuilder::<Postgres>::new("SELECT * FROM test_page_hunter.users WHERE id > ");
+        query
+            .push_bind(90_i32)
+            .push(" AND username LIKE ")
+            .push_bind(String::from("user9%"))
+            .push(" ORDER BY id");
+
+        let users: Page<User> = query.paginate(&pool, 1, 4).await.unwrap();
+
+        // Ids between 91 and 99.
+        assert_eq!(users.get_total(), 9);
+        assert_eq!(users.get_pages(), 3);
+        assert_eq!(
+            users.get_items().iter().map(|u| u.id).collect::<Vec<i32>>(),
+            vec![95, 96, 97, 98]
+        );
     }
 }

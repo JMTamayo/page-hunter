@@ -65,10 +65,14 @@
 //!
 //! ## SQLx Pagination (`sqlx` feature)
 //!
-//! [`SQLxPagination::paginate`] accepts both:
+//! [`SQLxPagination::paginate`] consumes a [`sqlx::QueryBuilder`] and accepts both:
 //!
 //! - a pool reference (`&Pool<DB>`)
 //! - a single connection (`&mut DB::Connection`)
+//!
+//! Values added with `push_bind` are sent as query parameters, so user input never needs to be
+//! formatted into the SQL. It works with Postgres, MySQL and SQLite: enable the database in your
+//! own `sqlx` dependency (e.g. `sqlx = { version = "0.9", features = ["postgres"] }`).
 //!
 //! Example with a connection:
 //!
