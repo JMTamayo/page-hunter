@@ -129,6 +129,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: test
+          MYSQL_PASSWORD: docker
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -utest -pdocker"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: "Repository: Fetch"
@@ -145,13 +159,14 @@ jobs:
       - name: "Step: Doc Tests"
         run: cargo test --package page-hunter --all-features --doc --locked
 
-      - name: "Step: Unit & Integration Tests"
+      - name: "Step: Unit & Integration Tests (Postgres, MySQL, SQLite)"
         env:
           DB_USER: test
           DB_PASSWORD: docker
           DB_NAME: test
           DB_HOST: 127.0.0.1
           PG_DB_PORT: 5432
+          MYSQL_DB_PORT: 3306
         run: cargo llvm-cov --package page-hunter --all-features --locked --codecov --output-path codecov.json
 
       - name: "Step: Publish Results"
