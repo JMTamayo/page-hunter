@@ -102,15 +102,15 @@ where
 {
     validate_size(size)?;
 
+    // There is always at least one page, even for empty records.
     let mut chunks: Vec<Vec<T>> = vec![Vec::with_capacity(size)];
     let mut total: usize = 0;
     for record in records {
-        if chunks.last().is_some_and(|chunk| chunk.len() == size) {
+        // Start a new page once the current one is full.
+        if total > 0 && total % size == 0 {
             chunks.push(Vec::with_capacity(size));
         }
-        if let Some(chunk) = chunks.last_mut() {
-            chunk.push(record.clone());
-        }
+        chunks[total / size].push(record.clone());
         total += 1;
     }
 
@@ -354,5 +354,30 @@ pub mod test_records_pagination {
         let array: [u8; 3] = [7, 8, 9];
         let from_array: Page<u8> = array.paginate(1, 2).unwrap();
         assert_eq!(from_array.get_items(), &[9]);
+    }
+
+    /// Test that [`bind_records`] groups records like [`slice::chunks`] for many lengths and sizes.
+    #[test]
+    fn test_bind_records_matches_slice_chunks() {
+        for length in 0..=12_u32 {
+            let records: Vec<u32> = (0..length).collect();
+
+            for size in 1..=5_usize {
+                let book: Book<u32> = records.bind(size).unwrap();
+                let sheets: &[Page<u32>] = book.get_sheets();
+
+                let expected: Vec<&[u32]> = match records.is_empty() {
+                    true => vec![&[]],
+                    false => records.chunks(size).collect(),
+                };
+
+                assert_eq!(sheets.len(), expected.len(), "length {length}, size {size}");
+                for (index, (sheet, items)) in sheets.iter().zip(expected).enumerate() {
+                    assert_eq!(sheet.get_items(), items, "length {length}, size {size}");
+                    assert_eq!(sheet.get_page(), index);
+                    assert_eq!(sheet.get_total(), records.len());
+                }
+            }
+        }
     }
 }
