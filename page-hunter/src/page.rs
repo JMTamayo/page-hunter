@@ -123,7 +123,7 @@ impl<E> Page<E> {
         if self.get_page().lt(&(self.get_pages() - 1)) && items_length.ne(&self.get_size()) {
             return Err(PaginationError::from(ErrorKind::InvalidValue(format!(
                 "Items length '{}' is not equal to page size '{}' for an intermediate page '{}'",
-                &items_length,
+                items_length,
                 self.get_size(),
                 self.get_page(),
             ))));
