@@ -50,7 +50,7 @@ impl<'p> Repository<'p> for ProductsRepository<'p> {
 impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
     async fn get_product_by_id(&self, id: Uuid) -> Result<Product, SqlxError> {
         Ok(Product::from(ProductBase::from_row(
-            &QueryBuilder::<Postgres>::new(format!(
+            &QueryBuilder::<Postgres>::new(
                 r#"SELECT
 						p.*,
 						c.id AS category_id,
@@ -61,10 +61,9 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
 					INNER JOIN inventory.categories c ON
 						p.category_id = c.id
 					WHERE
-						p.id = '{}';
-				"#,
-                id
-            ))
+						p.id = "#,
+            )
+            .push_bind(id)
             .build()
             .fetch_one(self.get_pool())
             .await?,
@@ -93,7 +92,9 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
         match search_by.get_name_like() {
             Some(name_like) => {
                 debug!("filtering by name_like: {}", name_like);
-                query.push(format!("AND LOWER(p.name) ILIKE '%{name_like}%'"));
+                query
+                    .push(" AND LOWER(p.name) ILIKE ")
+                    .push_bind(format!("%{}%", name_like.to_lowercase()));
             }
             None => debug!("No name_like provided"),
         }
@@ -101,9 +102,9 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
         match search_by.get_description_like() {
             Some(description_like) => {
                 debug!("filtering by description_like: {}", description_like);
-                query.push(format!(
-                    "AND LOWER(p.description) ILIKE '%{description_like}%'"
-                ));
+                query
+                    .push(" AND LOWER(p.description) ILIKE ")
+                    .push_bind(format!("%{}%", description_like.to_lowercase()));
             }
             None => debug!("No description_like provided"),
         }
@@ -111,7 +112,7 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
         match search_by.get_category_id() {
             Some(category_id) => {
                 debug!("filtering by category_id: {}", category_id);
-                query.push(format!("AND category_id = '{}'", category_id));
+                query.push(" AND p.category_id = ").push_bind(category_id);
             }
             None => debug!("No category_id provided"),
         }
@@ -119,24 +120,34 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
         match search_by.get_category_name_like() {
             Some(category_name_like) => {
                 debug!("filtering by category_name_like: {}", category_name_like);
-                query.push(format!("AND LOWER(c.name) ILIKE '%{category_name_like}%'"));
+                query
+                    .push(" AND LOWER(c.name) ILIKE ")
+                    .push_bind(format!("%{}%", category_name_like.to_lowercase()));
             }
             None => debug!("No category_name_like provided"),
         }
+
+        // A unique sort key keeps every row on exactly one page.
+        query.push(" ORDER BY p.name, p.id");
 
         let products_base: PaginatedProductsBase = query
             .paginate(self.get_pool(), search_by.get_page(), search_by.get_size())
             .await?;
 
-        let products: PaginatedProducts = Page::new(
-            &products_base
-                .clone()
-                .into_iter()
-                .map(|product_base| product_base.into())
-                .collect::<Vec<Product>>(),
+        let (page, size, total) = (
             products_base.get_page(),
             products_base.get_size(),
             products_base.get_total(),
+        );
+
+        let products: PaginatedProducts = Page::new(
+            products_base
+                .into_iter()
+                .map(|product_base| product_base.into())
+                .collect::<Vec<Product>>(),
+            page,
+            size,
+            total,
         )?;
 
         Ok(products)
@@ -144,17 +155,15 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
 
     async fn delete_product(&self, id: Uuid) -> Result<ProductId, SqlxError> {
         ProductId::from_row(
-            &QueryBuilder::<Postgres>::new(format!(
+            &QueryBuilder::<Postgres>::new(
                 r#"
 				DELETE FROM
 					inventory.products p
-				WHERE 
-					p.id = '{}'
-				RETURNING
-					p.id;
-			"#,
-                id
-            ))
+				WHERE
+					p.id = "#,
+            )
+            .push_bind(id)
+            .push(" RETURNING p.id")
             .build()
             .fetch_one(self.get_pool())
             .await?,
@@ -163,7 +172,7 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
 
     async fn create_product(&self, product: &CreateProductRequest) -> Result<ProductId, SqlxError> {
         ProductId::from_row(
-            &QueryBuilder::<Postgres>::new(format!(
+            &QueryBuilder::<Postgres>::new(
                 r#"
 				INSERT INTO inventory.products (
 					name,
@@ -171,21 +180,18 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
 					quantity,
 					unitary_price,
 					category_id
-				) VALUES (
-					'{name}',
-					'{description}',
-					{quantity},
-					{unitary_price},
-					'{category_id}'
-				) RETURNING 
-					id;
-			"#,
-                name = product.get_name(),
-                description = product.get_description(),
-                quantity = product.get_quantity(),
-                unitary_price = product.get_unitary_price(),
-                category_id = product.get_category_id()
-            ))
+				) VALUES ("#,
+            )
+            .push_bind(product.get_name())
+            .push(", ")
+            .push_bind(product.get_description())
+            .push(", ")
+            .push_bind(product.get_quantity())
+            .push(", ")
+            .push_bind(product.get_unitary_price())
+            .push(", ")
+            .push_bind(product.get_category_id())
+            .push(") RETURNING id")
             .build()
             .fetch_one(self.get_pool())
             .await?,
@@ -198,19 +204,17 @@ impl<'p> ProductsRepositoryMethods for ProductsRepository<'p> {
         update_by: &UpdateProductQuantityRequest,
     ) -> Result<ProductId, SqlxError> {
         ProductId::from_row(
-            &QueryBuilder::<Postgres>::new(format!(
+            &QueryBuilder::<Postgres>::new(
                 r#"
 				UPDATE
 					inventory.products p
 				SET
-					quantity = {quantity}
-				WHERE
-					p.id = '{id}'
-				RETURNING
-					p.id;
-			"#,
-                quantity = update_by.get_quantity(),
-            ))
+					quantity = "#,
+            )
+            .push_bind(update_by.get_quantity())
+            .push(" WHERE p.id = ")
+            .push_bind(id)
+            .push(" RETURNING p.id")
             .build()
             .fetch_one(self.get_pool())
             .await?,

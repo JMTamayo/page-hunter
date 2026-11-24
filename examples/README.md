@@ -13,4 +13,5 @@ This directory contains runnable projects that show how to use `page-hunter` in 
 2. Follow that example's `README.md` step by step.
 3. Run the service and open its API docs in the browser.
 
-Each example is self-contained and has its own dependencies and run commands.
+Each example is self-contained and has its own dependencies and a `Makefile` with its run
+commands (run `make` inside the example to list them).

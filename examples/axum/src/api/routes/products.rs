@@ -68,7 +68,7 @@ pub async fn create_product(
     Extension(pool): Extension<Arc<PgPool>>,
     Json(product): Json<CreateProductRequest>,
 ) -> Response {
-    info!("Creating product: {:?}", &product);
+    info!("Creating product: {:?}", product);
 
     let repository: ProductsRepository = ProductsRepository::new(&pool);
 
@@ -82,7 +82,7 @@ pub async fn create_product(
         Err(error) => return HttpException::from(error).into(),
     };
 
-    info!("Product created: {:?}", &product);
+    info!("Product created: {:?}", product);
 
     (StatusCode::CREATED, Json(product)).into_response()
 }
@@ -111,7 +111,7 @@ pub async fn get_product_by_id(
         Err(error) => return HttpException::from(error).into(),
     };
 
-    info!("Product found: {:?}", &product);
+    info!("Product found: {:?}", product);
 
     (StatusCode::OK, Json(product)).into_response()
 }
@@ -133,7 +133,7 @@ pub async fn list_products(
     Extension(pool): Extension<Arc<PgPool>>,
     Query(params): Query<SearchProductsRequest>,
 ) -> Response {
-    info!("Searching products by: {:?}", &params);
+    info!("Searching products by: {:?}", params);
 
     let products: PaginatedProducts =
         match ProductsRepository::new(&pool).list_products(&params).await {
@@ -141,7 +141,7 @@ pub async fn list_products(
             Err(error) => return HttpException::from(error).into(),
         };
 
-    info!("Products found: {:?}", &products);
+    info!("Products found: {:?}", products);
 
     (StatusCode::OK, Json(products)).into_response()
 }
@@ -170,7 +170,7 @@ pub async fn delete_product(
         Err(error) => return HttpException::from(error).into(),
     };
 
-    info!("Product deleted: {:?}", &product);
+    info!("Product deleted: {:?}", product);
 
     (StatusCode::OK, Json(product)).into_response()
 }
@@ -191,7 +191,7 @@ pub async fn update_product_quantity(
     Path(id): Path<Uuid>,
     Json(update_by): Json<UpdateProductQuantityRequest>,
 ) -> Response {
-    info!("Updating product {id}: {:?}", &update_by);
+    info!("Updating product {id}: {:?}", update_by);
 
     let repository: ProductsRepository = ProductsRepository::new(&pool);
 
@@ -205,7 +205,7 @@ pub async fn update_product_quantity(
         Err(error) => return HttpException::from(error).into(),
     };
 
-    info!("Product updated: {:?}", &product);
+    info!("Product updated: {:?}", product);
 
     (StatusCode::OK, Json(product)).into_response()
 }

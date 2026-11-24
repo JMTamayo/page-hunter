@@ -15,7 +15,7 @@
 //! let records = vec![1_u32, 2, 3, 4, 5];
 //! let page: Page<u32> = paginate_records(&records, 0, 2).unwrap();
 //!
-//! assert_eq!(page.get_items(), &vec![1, 2]);
+//! assert_eq!(page.get_items(), &[1, 2]);
 //! assert_eq!(page.get_pages(), 3);
 //! assert_eq!(page.get_next_page(), Some(1));
 //! ```
@@ -31,7 +31,7 @@
 //! use page_hunter::{Page, PaginationResult};
 //!
 //! let items = vec![1_u32, 2];
-//! let page_model: PaginationResult<Page<u32>> = Page::new(&items, 0, 2, 5);
+//! let page_model: PaginationResult<Page<u32>> = Page::new(items, 0, 2, 5);
 //! ```
 //!
 //! Build a [`Book`] from existing pages:
@@ -40,12 +40,12 @@
 //! use page_hunter::{Book, Page};
 //!
 //! let sheets: Vec<Page<u32>> = vec![
-//!     Page::new(&vec![1, 2], 0, 2, 5).unwrap(),
-//!     Page::new(&vec![3, 4], 1, 2, 5).unwrap(),
-//!     Page::new(&vec![5], 2, 2, 5).unwrap(),
+//!     Page::new(vec![1, 2], 0, 2, 5).unwrap(),
+//!     Page::new(vec![3, 4], 1, 2, 5).unwrap(),
+//!     Page::new(vec![5], 2, 2, 5).unwrap(),
 //! ];
 //!
-//! let book: Book<u32> = Book::new(&sheets);
+//! let book: Book<u32> = Book::new(sheets);
 //! assert_eq!(book.get_sheets().len(), 3);
 //! ```
 //!
@@ -65,10 +65,17 @@
 //!
 //! ## SQLx Pagination (`sqlx` feature)
 //!
-//! [`SQLxPagination::paginate`] accepts both:
+//! [`SQLxPagination::paginate`] consumes a [`sqlx::QueryBuilder`] and accepts both:
 //!
 //! - a pool reference (`&Pool<DB>`)
 //! - a single connection (`&mut DB::Connection`)
+//!
+//! Values added with `push_bind` are sent as query parameters, so user input never needs to be
+//! formatted into the SQL. It works with Postgres, MySQL and SQLite: enable the database in your
+//! own `sqlx` dependency (e.g. `sqlx = { version = "0.9", features = ["postgres"] }`).
+//!
+//! The query must not include `LIMIT` or `OFFSET` (they are appended by `paginate`) and should
+//! have an `ORDER BY` on a unique key, so every row appears on exactly one page.
 //!
 //! Example with a connection:
 //!
@@ -88,7 +95,7 @@
 //! let mut conn = PgConnection::connect("postgres://username:password@localhost/db")
 //!     .await
 //!     .unwrap();
-//! let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries");
+//! let query: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM geo.countries ORDER BY id");
 //!
 //! let page: Page<Country> = query.paginate(&mut conn, 0, 10).await.unwrap();
 //! assert_eq!(page.get_size(), 10);
@@ -98,20 +105,28 @@
 //! ## Feature Flags
 //!
 //! - `serde`: adds `Serialize` and `Deserialize` support for [`Page`] and [`Book`].
-//! - `utoipa`: adds `ToSchema` support for [`Page`] and [`Book`] (depends on `serde`).
-//! - `sqlx`: enables SQL query pagination support via [`SQLxPagination`].
+//! - `utoipa`: adds `ToSchema` support for [`Page`] and [`Book`] with `utoipa` 6 (depends on `serde`,
+//!   requires Rust 1.88 or newer).
+//! - `sqlx`: enables SQL query pagination via [`SQLxPagination`] with `sqlx` 0.9
+//!   (requires Rust 1.94 or newer).
 //!
 //! ## Validation Rules
 //!
 //! Every [`Page`] is validated on construction (and on deserialization when `serde` is enabled).
-//! Validation ensures internal consistency for pagination metadata, including page ranges,
-//! element counts, and previous/next pointers.
+//! Validation ensures internal consistency for pagination metadata, including a page size
+//! greater than 0, page ranges, element counts, and previous/next pointers.
 //!
 //! Invalid data returns [`PaginationError`].
+//!
+//! Paginating a collection or query without results returns a single empty page (index 0, with
+//! `total` 0 and `pages` 1). Requesting a page beyond the last one returns an error.
 //!
 //! ## See Also
 //!
 //! - Repository examples: <https://github.com/JMTamayo/page-hunter/tree/main/examples>
+// Links to SQLx items only resolve with the `sqlx` feature (docs.rs builds with all features).
+#![cfg_attr(not(feature = "sqlx"), allow(rustdoc::broken_intra_doc_links))]
+
 mod book;
 mod errors;
 mod page;

@@ -1,12 +1,12 @@
 [package]
 name = "page-hunter"
 description = "The pagination powerhouse, built with Rust"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Juan Manuel Tamayo <jmtamayog23@gmail.com>"]
 edition = "2024"
+rust-version = "1.85"
 repository = "https://github.com/jmtamayo/page-hunter"
 documentation = "https://docs.rs/page-hunter"
-homepage = "https://github.com/jmtamayo/page-hunter"
 license-file = "../LICENSE"
 readme = "../README.md"
 keywords = ["pagination", "paginator", "page_model"]
@@ -14,13 +14,13 @@ categories = ["development-tools"]
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"], optional = true }
-utoipa = { version = "5.4.0", optional = true }
-sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio"], optional = true }
+utoipa = { version = "6.0.0", optional = true }
+sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio"], optional = true }
 
 [dev-dependencies]
-tokio ={ version = "1.50.0", features = ["full"] }
-sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "postgres", "macros"] }
-serde_json = "1.0.149"
+tokio = { version = "1.54.1", features = ["full"] }
+sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "postgres", "mysql", "sqlite", "macros"] }
+serde_json = "1.0.154"
 
 [features]
 serde = ["dep:serde"]

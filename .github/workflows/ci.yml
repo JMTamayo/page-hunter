@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: "Repository: Fetch"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "Setup: Install Rust"
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: "Repository: Fetch"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "Setup: Install Rust"
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -72,7 +72,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: "Step: Lints"
-        run: cargo clippy --package page-hunter ${{ matrix.cargo_flags }} --locked -- -D warnings
+        run: cargo clippy --package page-hunter ${{ matrix.cargo_flags }} --all-targets --locked -- -D warnings
 
   Build:
     runs-on: ubuntu-24.04
@@ -83,7 +83,7 @@ jobs:
 
     steps:
       - name: "Repository: Fetch"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "Setup: Install Rust"
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -94,13 +94,43 @@ jobs:
       - name: "Step: Build"
         run: cargo check --package page-hunter ${{ matrix.cargo_flags }} --locked --verbose
 
+  MSRV:
+    # Keeps `rust-version` and the documented minimum Rust versions honest.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - toolchain: "1.85"
+            cargo_flags: "--features serde"
+          - toolchain: "1.88"
+            cargo_flags: "--features utoipa"
+          - toolchain: "1.94"
+            cargo_flags: "--all-features"
+
+    steps:
+      - name: "Repository: Fetch"
+        uses: actions/checkout@v7
+
+      - name: "Setup: Install Rust ${{ matrix.toolchain }}"
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: "Setup: Cargo Cache"
+        uses: Swatinem/rust-cache@v2
+
+      - name: "Step: Check with Rust ${{ matrix.toolchain }}"
+        run: cargo check --package page-hunter ${{ matrix.cargo_flags }} --locked
+
   Docs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:
       - name: "Repository: Fetch"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "Setup: Install Rust"
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -109,6 +139,8 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: "Step: Build Doc"
+        env:
+          RUSTDOCFLAGS: "-D warnings"
         run: cargo doc --package page-hunter --all-features --document-private-items --locked --verbose
 
   Tests:
@@ -129,12 +161,31 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: test
+          MYSQL_PASSWORD: docker
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -utest -pdocker"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: "Repository: Fetch"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "Setup: Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: llvm-tools-preview
+
+      - name: "Setup: Install cargo-llvm-cov"
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
@@ -142,34 +193,25 @@ jobs:
       - name: "Setup: Cargo Cache"
         uses: Swatinem/rust-cache@v2
 
-      - name: "Setup: Install SQLx Cli"
-        run: cargo install sqlx-cli --no-default-features --features postgres
-
-      - name: "Setup: Postgres Database Migrations"
-        env:
-          MIGRATIONS_PATH: page-hunter/src/pagination/sqlx/tests/pg/migrations
-          DATABASE_URL: postgres://test:docker@127.0.0.1:5432/test
-        run: sqlx migrate run --source ${{ env.MIGRATIONS_PATH }}
-
       - name: "Step: Doc Tests"
         run: cargo test --package page-hunter --all-features --doc --locked
 
-      - name: "Step: Unit & Integration Tests"
+      - name: "Step: Unit & Integration Tests (Postgres, MySQL, SQLite)"
         env:
           DB_USER: test
           DB_PASSWORD: docker
           DB_NAME: test
           DB_HOST: 127.0.0.1
           PG_DB_PORT: 5432
+          MYSQL_DB_PORT: 3306
         run: cargo llvm-cov --package page-hunter --all-features --locked --codecov --output-path codecov.json
 
       - name: "Step: Publish Results"
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           files: codecov.json
           fail_ci_if_error: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   Security:
     runs-on: ubuntu-24.04
@@ -177,7 +219,7 @@ jobs:
 
     steps:
       - name: "Repository: Fetch"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "Step: Security Analysis"
         uses: EmbarkStudios/cargo-deny-action@v2

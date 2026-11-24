@@ -15,12 +15,12 @@ use crate::{ErrorKind, PaginationError, PaginationResult};
 /// #### Fields:
 /// - **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.
 /// - **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.
-/// - **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.
+/// - **size**: Represents the maximum number of elements per [`Page`]. It must be greater than 0. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.
 /// - **total**: Represents the total number of records used for pagination.
-/// - **pages**: Represents the total number of pages required for paginate the items.
+/// - **pages**: Represents the total number of pages required to paginate the items. It is at least 1, so an empty result is a single empty page.
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "utoipa", derive(ToSchema))]
 pub struct Page<E> {
@@ -35,8 +35,13 @@ pub struct Page<E> {
 
 impl<E> Page<E> {
     /// Get ***items***
-    pub fn get_items(&self) -> &Vec<E> {
+    pub fn get_items(&self) -> &[E] {
         &self.items
+    }
+
+    /// Consume the [`Page`] and return its ***items***.
+    pub fn into_items(self) -> Vec<E> {
+        self.items
     }
 
     /// Get ***page***
@@ -78,7 +83,8 @@ impl<E> Page<E> {
     /// A [`PaginationResult`]  with a `()` if successful, otherwise a [`PaginationError`] is returned.
     ///
     /// This method is used to check if the fields of a [`Page`] are valid based on the following criteria:
-    /// - ***pages*** must be equal to ***total*** divided by ***size*** rounded up. When ***size*** is 0, ***pages*** must be 1.
+    /// - ***size*** must be greater than 0.
+    /// - ***pages*** must be equal to ***total*** divided by ***size*** rounded up, with a minimum of 1.
     /// - ***page*** must be less than or equal to ***pages*** - 1.
     /// - if ***page*** is less than ***pages*** - 1, ***items*** length must be equal to ***size***.
     /// - if ***page*** is equal to ***pages*** - 1, ***total*** must be equal to (***pages*** - 1) * ***size*** + ***items*** length.
@@ -87,11 +93,15 @@ impl<E> Page<E> {
     fn verify_fields(&self) -> PaginationResult<()> {
         let items_length: usize = self.get_items().len();
 
-        // pages must be equal to total divided by size rounded up. When size is 0, pages must be 1.
-        let expected_pages: usize = match self.get_size().eq(&0) {
-            true => 1,
-            false => self.get_total().div_ceil(self.get_size()).max(1),
-        };
+        // size must be greater than 0.
+        if self.get_size().eq(&0) {
+            return Err(PaginationError::from(ErrorKind::InvalidValue(
+                "Page size must be greater than 0".to_string(),
+            )));
+        }
+
+        // pages must be equal to total divided by size rounded up, with a minimum of 1.
+        let expected_pages: usize = self.get_total().div_ceil(self.get_size()).max(1);
         if expected_pages.ne(&self.get_pages()) {
             return Err(PaginationError::from(ErrorKind::InvalidValue(format!(
                 "Total pages error: expected '{}', found '{}'",
@@ -100,7 +110,7 @@ impl<E> Page<E> {
             ))));
         }
 
-        // page must be less than pages - 1.
+        // page must be less than or equal to pages - 1.
         if self.get_page().gt(&(self.get_pages() - 1)) {
             return Err(PaginationError::from(ErrorKind::InvalidValue(format!(
                 "Page index '{}' exceeds total pages '{}'",
@@ -113,7 +123,7 @@ impl<E> Page<E> {
         if self.get_page().lt(&(self.get_pages() - 1)) && items_length.ne(&self.get_size()) {
             return Err(PaginationError::from(ErrorKind::InvalidValue(format!(
                 "Items length '{}' is not equal to page size '{}' for an intermediate page '{}'",
-                &items_length,
+                items_length,
                 self.get_size(),
                 self.get_page(),
             ))));
@@ -166,16 +176,16 @@ impl<E> Page<E> {
     /// Create a new [`Page`] instance.
     ///
     /// ### Arguments:
-    /// - **items**: A reference to a collection of items `E`, where `E` must implement [`Clone`].
+    /// - **items**: The items of the page.
     /// - **page**: The page index.
-    /// - **size**: The maximum number of elements per page.
+    /// - **size**: The maximum number of elements per page. Must be greater than 0.
     /// - **total**: The total number of records used for pagination.
     ///
     /// ### Returns:
     /// A [`PaginationResult`] with a [`Page`] if successful, otherwise a [`PaginationError`] is returned.
     ///
     /// ### Example:
-    ///```rust,no_run
+    /// ```rust,no_run
     ///   use page_hunter::*;
     ///
     ///   let items: Vec<u32> = vec![1, 2];
@@ -184,7 +194,7 @@ impl<E> Page<E> {
     ///   let total_elements: usize = 5;
     ///
     ///   let pagination_result: PaginationResult<Page<u32>> = Page::new(
-    ///     &items,
+    ///     items,
     ///     page,
     ///     size,
     ///     total_elements,
@@ -194,18 +204,16 @@ impl<E> Page<E> {
     ///     Ok(page) => page,
     ///     Err(error) => panic!("Error: {}", error),
     ///   };
-    /// ````
-    pub fn new(items: &Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>>
-    where
-        E: Clone,
-    {
+    /// ```
+    pub fn new(items: Vec<E>, page: usize, size: usize, total: usize) -> PaginationResult<Page<E>> {
+        // A size of 0 is rejected by `verify_fields`; use 1 page here to avoid dividing by zero.
         let pages: usize = match size.eq(&0) {
             true => 1,
             false => total.div_ceil(size).max(1),
         };
 
         let page: Page<E> = Page {
-            items: items.to_owned(),
+            items,
             page,
             size,
             total,
@@ -222,21 +230,6 @@ impl<E> Page<E> {
         page.verify_fields()?;
 
         Ok(page)
-    }
-}
-
-/// Implementation of [`Default`] for [`Page`].
-impl<E> Default for Page<E> {
-    fn default() -> Self {
-        Self {
-            items: Vec::new(),
-            page: 0,
-            size: 0,
-            total: 0,
-            pages: 1,
-            previous_page: None,
-            next_page: None,
-        }
     }
 }
 
@@ -327,11 +320,11 @@ mod test_page_model {
         let expected_next_page: Option<usize> = Some(2);
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items.clone(), page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
-        assert_eq!(page_model.get_items(), &items);
+        assert_eq!(page_model.get_items(), items.as_slice());
         assert_eq!(page_model.get_page(), page);
         assert_eq!(page_model.get_size(), size);
         assert_eq!(page_model.get_total(), total_elements);
@@ -349,7 +342,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
@@ -369,7 +362,7 @@ mod test_page_model {
         let total_elements: usize = 3;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
@@ -387,7 +380,7 @@ mod test_page_model {
         let total_elements: usize = 3;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
@@ -405,7 +398,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -424,37 +417,67 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_err());
 
         let pagination_error: PaginationError = pagination_result.unwrap_err();
         assert!(
             pagination_error
                 .to_string()
-                .eq("INVALID VALUE ERROR- Total elements error: expected '2', found '5'")
+                .eq("INVALID VALUE ERROR- Page size must be greater than 0")
         );
     }
 
-    /// Test default [`Page`] constructor.
+    /// Test that the last page must account for every remaining record.
     #[test]
-    fn test_default_page_model_constructor() {
-        let expected_items: Vec<u32> = vec![];
-        let expected_page: usize = 0;
-        let expected_size: usize = 0;
-        let expected_total_elements: usize = 0;
-        let expected_total_pages: usize = 1;
-        let expected_previous_page: Option<usize> = None;
-        let expected_next_page: Option<usize> = None;
+    fn test_last_page_total_elements_error() {
+        // 4 records with size 2 means the last page (index 1) must hold 2 items, not 1.
+        let pagination_result: PaginationResult<Page<u32>> = Page::new(vec![3], 1, 2, 4);
 
-        let page_model: Page<u32> = Page::default();
+        assert_eq!(
+            pagination_result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Total elements error: expected '3', found '4'"
+        );
+    }
 
-        assert_eq!(page_model.get_items(), &expected_items);
-        assert_eq!(page_model.get_page(), expected_page);
-        assert_eq!(page_model.get_size(), expected_size);
-        assert_eq!(page_model.get_total(), expected_total_elements);
-        assert_eq!(page_model.get_pages(), expected_total_pages);
-        assert_eq!(page_model.get_previous_page(), expected_previous_page);
-        assert_eq!(page_model.get_next_page(), expected_next_page);
+    /// Test [`Page`] equality.
+    #[test]
+    fn test_page_model_equality() {
+        let a: Page<u32> = Page::new(vec![1, 2], 0, 2, 3).unwrap();
+        let b: Page<u32> = Page::new(vec![1, 2], 0, 2, 3).unwrap();
+        let c: Page<u32> = Page::new(vec![3], 1, 2, 3).unwrap();
+
+        assert_eq!(a, b);
+        assert_ne!(a, c);
+    }
+
+    /// Test an empty [`Page`], as returned for a query without results.
+    #[test]
+    fn test_empty_page_model() {
+        let page_model: Page<u32> = Page::new(vec![], 0, 20, 0).unwrap();
+
+        assert!(page_model.get_items().is_empty());
+        assert_eq!(page_model.get_page(), 0);
+        assert_eq!(page_model.get_size(), 20);
+        assert_eq!(page_model.get_total(), 0);
+        assert_eq!(page_model.get_pages(), 1);
+        assert_eq!(page_model.get_previous_page(), None);
+        assert_eq!(page_model.get_next_page(), None);
+    }
+
+    /// Test that an empty [`Page`] survives a serialization round trip.
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_empty_page_model_serialization_round_trip() {
+        let page_model: Page<u32> = Page::new(vec![], 0, 20, 0).unwrap();
+
+        let json: String = serde_json::to_string(&page_model).unwrap();
+        let deserialized: Page<u32> = serde_json::from_str(&json).unwrap();
+
+        assert!(deserialized.get_items().is_empty());
+        assert_eq!(deserialized.get_size(), 20);
+        assert_eq!(deserialized.get_total(), 0);
+        assert_eq!(deserialized.get_pages(), 1);
     }
 
     /// Test ['Page'] display method.
@@ -466,7 +489,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -483,7 +506,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -500,7 +523,7 @@ mod test_page_model {
         let total_elements: usize = 5;
 
         let pagination_result: PaginationResult<Page<u32>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items, page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<u32> = pagination_result.unwrap();
@@ -550,7 +573,7 @@ mod test_page_model {
         let next_page: Option<usize> = Some(1);
 
         let pagination_result: PaginationResult<Page<Person>> =
-            Page::new(&items, page, size, total_elements);
+            Page::new(items.clone(), page, size, total_elements);
         assert!(pagination_result.is_ok());
 
         let page_model: Page<Person> = pagination_result.unwrap();
@@ -559,7 +582,7 @@ mod test_page_model {
         assert!(serialized.eq("{\"items\":[{\"name\":\"John\",\"age\":20},{\"name\":\"Jane\",\"age\":25}],\"page\":0,\"size\":2,\"total\":5,\"pages\":3,\"previous_page\":null,\"next_page\":1}"));
 
         let deserialized: Page<Person> = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(deserialized.get_items(), &items);
+        assert_eq!(deserialized.get_items(), items.as_slice());
         assert_eq!(deserialized.get_page(), page);
         assert_eq!(deserialized.get_size(), size);
         assert_eq!(deserialized.get_total(), total_elements);
@@ -646,6 +669,47 @@ mod test_page_model {
         );
     }
 
+    /// Test [`Page`] constructor error with zero size.
+    #[test]
+    fn test_page_model_constructor_zero_size() {
+        let pagination_result: PaginationResult<Page<u32>> = Page::new(vec![], 0, 0, 0);
+        assert_eq!(
+            pagination_result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
+    }
+
+    /// Test [`Page`] `into_items` method.
+    #[test]
+    fn test_page_model_into_items() {
+        let page_model: Page<u32> = Page::new(vec![1, 2], 0, 2, 3).unwrap();
+        assert_eq!(page_model.into_items(), vec![1, 2]);
+    }
+
+    /// Test [`Page`] deserialization error with zero size.
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_page_deserialization_error_zero_size() {
+        use serde_json::json;
+
+        let invalid_json = json!({
+            "items": [],
+            "page": 0,
+            "size": 0,
+            "total": 0,
+            "pages": 1,
+            "previous_page": null,
+            "next_page": null
+        });
+
+        let result: Result<Page<String>, _> = serde_json::from_value(invalid_json);
+
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "INVALID VALUE ERROR- Page size must be greater than 0"
+        );
+    }
+
     /// Test [`Page`] deserialization error.
     #[cfg(feature = "serde")]
     #[test]
@@ -687,7 +751,7 @@ mod test_page_model {
         let json_string: String = serde_json::to_string(&schema_object).unwrap();
         assert_eq!(
             json_string,
-            "{\"type\":\"object\",\"description\":\"Model to represent paginated items.\\n\\n#### Fields:\\n- **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.\\n- **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.\\n- **size**: Represents the maximum number of elements per [`Page`]. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.\\n- **total**: Represents the total number of records used for pagination.\\n- **pages**: Represents the total number of pages required for paginate the items.\\n- **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].\\n- **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].\",\"required\":[\"items\",\"page\",\"size\",\"total\",\"pages\"],\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Record\"}},\"next_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"page\":{\"type\":\"integer\",\"minimum\":0},\"pages\":{\"type\":\"integer\",\"minimum\":0},\"previous_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"size\":{\"type\":\"integer\",\"minimum\":0},\"total\":{\"type\":\"integer\",\"minimum\":0}}}"
+            "{\"type\":\"object\",\"description\":\"Model to represent paginated items.\\n\\n#### Fields:\\n- **items**: Represents the items in a [`Page`] as a [`Vec`] of `E`.\\n- **page**: Represents the page index in a [`Page`]. It starts from 0 to ***pages*** - 1.\\n- **size**: Represents the maximum number of elements per [`Page`]. It must be greater than 0. ***items*** length must be equal to ***size*** for all pages except the last page, when ***items*** length could be less than or equal to ***size***.\\n- **total**: Represents the total number of records used for pagination.\\n- **pages**: Represents the total number of pages required to paginate the items. It is at least 1, so an empty result is a single empty page.\\n- **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].\\n- **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].\",\"required\":[\"items\",\"page\",\"size\",\"total\",\"pages\"],\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/components/schemas/Record\"}},\"next_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"page\":{\"type\":\"integer\",\"minimum\":0},\"pages\":{\"type\":\"integer\",\"minimum\":0},\"previous_page\":{\"type\":[\"integer\",\"null\"],\"minimum\":0},\"size\":{\"type\":\"integer\",\"minimum\":0},\"total\":{\"type\":\"integer\",\"minimum\":0}}}"
         );
     }
 }
