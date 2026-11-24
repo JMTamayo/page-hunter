@@ -20,7 +20,7 @@ use crate::{ErrorKind, PaginationError, PaginationResult};
 /// - **pages**: Represents the total number of pages required for paginate the items.
 /// - **previous_page**: Represents the previous page index in a [`Page`]. If there is no previous page, it will be [`None`].
 /// - **next_page**: Represents the next page index in a [`Page`]. If there is no next page, it will be [`None`].
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "utoipa", derive(ToSchema))]
 pub struct Page<E> {
@@ -426,6 +426,17 @@ mod test_page_model {
                 .to_string()
                 .eq("INVALID VALUE ERROR- Page size must be greater than 0")
         );
+    }
+
+    /// Test [`Page`] equality.
+    #[test]
+    fn test_page_model_equality() {
+        let a: Page<u32> = Page::new(vec![1, 2], 0, 2, 3).unwrap();
+        let b: Page<u32> = Page::new(vec![1, 2], 0, 2, 3).unwrap();
+        let c: Page<u32> = Page::new(vec![3], 1, 2, 3).unwrap();
+
+        assert_eq!(a, b);
+        assert_ne!(a, c);
     }
 
     /// Test an empty [`Page`], as returned for a query without results.

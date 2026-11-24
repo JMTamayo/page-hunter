@@ -11,7 +11,7 @@ use crate::{Page, PaginationError};
 /// Model to represent a book of paginated items.
 /// #### Fields:
 /// - **sheets**: Represents the ***sheets*** in a [`Book`] as a [`Vec`]  of [`Page`].
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "utoipa", derive(ToSchema))]
 pub struct Book<E> {
@@ -317,5 +317,16 @@ mod test_book {
         let sheets: Vec<Page<u32>> = book.into_sheets();
         assert_eq!(sheets.len(), 2);
         assert_eq!(sheets[1].get_items(), &[3]);
+    }
+
+    /// Test [`Book`] equality.
+    #[test]
+    fn test_book_equality() {
+        let a: Book<u32> = bind_records(&vec![1, 2, 3], 2).unwrap();
+        let b: Book<u32> = bind_records(&vec![1, 2, 3], 2).unwrap();
+        let c: Book<u32> = bind_records(&vec![1, 2, 3], 3).unwrap();
+
+        assert_eq!(a, b);
+        assert_ne!(a, c);
     }
 }
